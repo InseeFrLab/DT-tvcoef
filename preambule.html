@@ -1,0 +1,27 @@
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    TeX: {Macros: {
+            E: "{\\mathbb{E}}"
+        },
+        Augment: {
+        Definitions: {
+          delimiter: {
+            "\\llbracket": '\u27E6',
+            '\\rrbracket': '\u27E7'
+          }}
+        }}
+    });
+</script>
+    <body>
+    <div style="display:none" aria-hidden="true">
+    \(
+
+        \newcommand\llbracket{[\![}
+        \newcommand\rrbracket{]\!]}
+        \newcommand{\transp}[1]{{}^t\!#1}
+        \newcommand{\bf}[1]{{\boldsymbol #1}}
+        \DeclareMathOperator*{\argmax}{argmax}
+        \DeclareMathOperator*{\argmin}{argmin}
+    \)
+    </div>
+    </body>
