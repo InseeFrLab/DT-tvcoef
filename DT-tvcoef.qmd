@@ -24,6 +24,14 @@ citation:
   url: https://github.com/InseeFrLab/DT-tvcoef
 ---
 
+```{r}
+#| include: false
+library(tvCoef)
+library(dynlm)
+library(strucchange)
+library(tvReg)
+```
+
 # Abstract
 
 Remerciements
@@ -207,6 +215,11 @@ coef(pr_gdp$model)
 @tvReg
 
 # Modélisation espace-état
+
+La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
+Dans cette approche, on suppose que tout problème est déterminé par une série de vecteurs non observés $\alpha_1,\dots,\alpha_n$ associés aux observations $y_1,\dots,y_n$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
+Ces modèles sont largement décrits dans @durbinkoopman.
+Dans cet article, nous nous placerons dans un cadre simplifié des modèles linéaires gaussiens.
 
 # Comparaison générale
 
