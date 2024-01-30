@@ -1,0 +1,376 @@
+---
+title: "Utilisation de modèles de régression à coefficients variant dans le temps pour la prévision conjoncturelle"
+format: 
+  pdf:
+    include-in-header: template/preambule.tex
+  html: 
+    self-contained: true
+    include-before-body: template/preambule.html
+    css: [template/style.css]
+toc: true
+number-sections: true
+bibliography: biblio.bib
+biblio-style: authoryear
+author:
+  - name: Alain Quartier-la-Tente 
+    affiliation: Insee
+    affiliation-url: https://www.insee.fr/fr/
+citation:
+  type: article-journal
+  container-title: "Document de travail méthodologique Insee"
+  issued: 2024
+  url: https://github.com/InseeFrLab/DT-tvcoef
+  pdf-url: https://www.insee.fr/fr/statistiques/7759578
+  citation-key: inseeDTM2024XX
+# license:
+#   text: > 
+#     Copyright (c) 2024 Alain Quartier-la-Tente, INSEE
+# 
+#     Permission is hereby granted, free of charge, to any person obtaining a copy
+#     of this software and associated documentation files (the "Software"), to deal
+#     in the Software without restriction, including without limitation the rights
+#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#     copies of the Software, and to permit persons to whom the Software is
+#     furnished to do so, subject to the following conditions:
+#     
+#     The above copyright notice and this permission notice shall be included in all
+#     copies or substantial portions of the Software.
+#     
+#     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#     SOFTWARE.
+#   type: MIT
+lang: fr
+language:
+ title-block-author-single: Auteur
+---
+
+```{r}
+#| include: false
+library(tvCoef)
+library(dynlm)
+library(strucchange)
+library(tvReg)
+```
+
+
+<!-- \thispagestyle{fancy} -->
+
+::: {.content-visible when-format="html"}
+Remerciements :
+:::
+
+# Résumé {-}
+
+:::: {.abstract}
+Dans la statistique publique, de nombreux modèles de prévision s’appuient sur des régressions linéaires. En effet, les producteurs appliquent des modèles RegARIMA pour la correction des effets de calendrier. Pour la prévision des grands agrégats macroéconomiques, le département de la conjoncture de l’Insee utilise notamment des étalonnages et le modèle Mésange s’appuie sur des modèles à correction d’erreur pour modéliser les comportements macroéconomiques. Ces méthodes fournissent généralement de bons résultats et ont l’avantage d’être facilement interprétables. Cependant, ils supposent que les relations entre les variables sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n’est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
+L’objectif de cette étude est d’étudier différentes méthodes d’estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. Ces méthodes se regroupent en trois catégories : 
+
+- les modèles de régression par morceaux
+
+- les régressions locales
+
+- les modèles espace-état
+
+Pour simplifier l’implémentation de ces méthodes, ainsi que leur comparaison, un package R a également été développé lors de cette étude. 
+Les premiers résultats montrent que, lorsque l’hypothèse de constance des coefficients n’est pas vérifiée, l’utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision (en temps réel et dans l’échantillon). De plus, ils ont l’avantage d’être plus facilement interprétables que des méthodes de machine learning, puisqu’ils s’appuient sur des modèles de régression linéaire.
+L’atelier montrera comment mettre en application ces différentes méthodes, interpréter et comparer les résultats.
+
+
+Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de retournement.
+::::
+
+:::: {.abstract}
+This paper focuses on different approaches to build moving averages for real-time trend-cycle estimation and fast turning point detection.
+We propose a comparison of the main methods, based on a general unifying framework to derive linear filters.
+We also describe two possible extensions to local polynomial filters: the addition of a timeliness criterion to control the phase shift (delay in the detection of turning points) and a way to locally parameterize these filters.
+The empirical comparison of the methods shows that: the optimization problems of the filters from the Reproducing Kernel Hilbert Space (RKHS) theory increase the phase shift and the revisions of the trend-cycle estimates;
+modeling polynomial trends that are too complex introduces more revisions without decreasing the phase shift;
+for polynomial filters, a local parameterization reduces the phase shift and the revisions.
+
+Keywords: time series, trend-cycle, seasonal adjustment, turning points.
+::::
+
+JEL Classification: E32, E37.
+
+\newpage
+
+
+# Introduction
+
+Sur longue période, les institutions, les normes de sociétés ainsi que les comportements des agents économiques évoluent, induisant des changements dans la dynamique des séries économiques étudiées.
+
+De nombreux modèles de l'Insee sont basés sur des régressions linéaires (CJO, prévisions, calage...) qui supposent que les relations entre les variables sont fixes dans le temps.
+
+
+Hypothèse vraie sur le court-terme mais généralement fausse sur le long-terme ou en présence de changements structurels (changement de nomenclature, de définition, COVID...)
+
+
+Objectifs : 
+
+- étudier des méthodes qui permettent de relâcher cette contrainte ;
+
+- proposer une façon simple d'implémenter et de comparer ces méthodes (package {{< fa brands r-project >}} `tvCoef`)
+
+@JMS2018 et @eurostat2015guidelines
+
+
+# Modélisation générale et tests
+
+Dans cet article, nous nous placerons dans le cadre de la régression linéaire avec des variables à une dimension.
+À chaque date $t$, une variable à expliquer $y_t$ (e.g. : taux de croissance du PIB) s'écrit comme une combinaison linéaire de $p$ variables explicative, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
+$$
+y_t=\beta_{0}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t 
+$$
+où $\varepsilon_t$ représente l'erreur.
+En notant ${\bf X}_t=\begin{pmatrix}1 \\ x_{1,t} \\\vdots \\ x_{p,t} \end{pmatrix}$ et 
+${\bf \beta}=\begin{pmatrix}\beta_0 \\ \beta_1 \\\vdots \\ \beta_p \end{pmatrix}$, cela s'écrit matriciellement\ :
+$$
+y_t=\transp{\bf\beta} \bf X_t +\varepsilon_t.
+$$
+
+Dans le cadre de la régression linéaire, les coefficients $\bf\beta$ sont supposés constants dans le temps et estimés en utilisant l'ensemble des données.
+Cela suppose donc que la relation économique entre les différentes variables est stable dans le temps.
+Même si cette hypothèse est généralement vraie sur le court-terme, elle peut être invalidée sur le long-terme du fait de changements structurels (mesures économiques, crises, changement de nomenclature, etc.)
+L'objectif de cet article est d'étudier différent modèles permettant de relâcher cette hypothèse de constance des coefficients.
+Le modèle général s'écrit donc :
+$$
+y_t=\transp{\bf\beta_t} \bf X_t +\varepsilon_t.
+$$
+
+Les différentes méthodes seront illustrées à travers l'exemple de la prévision du taux de croissance trimestriel du PIB à partir du climat des affaires France publié par l'Insee.
+Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de donnée `tvCoef::gdp` :
+
+- `growth_gdp` correspond au taux de croissance trimestriel du PIB ;
+
+- `bc_fr_m1` correspond au climat des affaires au premier mois de chaque trimestre (la valeur de 2000T1 correspond à la valeur de janvier 2000, celle de 2000T2 à celle d'avril 2000, etc.) ;
+
+- `diff_bc_fr_m1` correspond à la différenciation trimestrielle de la variable précédente (la valeur de 2000T1 correspond à la différence du climat des affaires entre de janvier 2000 et octobre 1999).
+
+Le modèle s'écrit donc :
+$$
+\% PIB_t=\beta_0 + \beta_1\times climat\_fr_t^{m_1} + \beta_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
+$$
+
+Il est estimé en utilisant les données entre les années 1990 et 2019.
+Sous {{< fa brands r-project >}}, ce modèle peut être estimé en utilisant la fonction `stats::lm()`.
+Toutefois, nous recommandons d'utiliser le package `dynlm` @dynlm qui offre une plus grande flexibilité dans la définition des modèles et de conserver le format série temporelle dans les fonctions de `tvCoef`.
+
+```{r}
+#| warning: false
+#| message: false
+library(tvCoef)
+library(dynlm)
+model_gdp <- dynlm(
+  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
+  data = window(gdp, start = 1980, end = c(2019,4))
+)
+# # Equivalent à :
+# model_gdp <- dynlm(
+#   formula = growth_gdp ~ bc_fr_m1 + diff(bc_fr_m1, 1),
+#   # Date de début changée car on perd une donnée avec la différenciation
+#   data = window(gdp, start = c(1989,4), end = c(2019,4))
+# )
+coefficients(model_gdp)
+```
+
+Le modèle estimé est donc :
+```{r}
+#| echo: false
+#| output: asis
+cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+\\hat\\varepsilon_t$$",
+        coef(model_gdp)[1],
+         coef(model_gdp)[2],
+         coef(model_gdp)[3]))
+```
+
+
+
+## Test de rupture brutale
+
+L'idée la plus simple pour tester s'il y a une rupture dans l'estimation des coefficients à une date $t_1$, est d'estimer deux sous-modèles avant et après cette date :
+
+$$
+\begin{cases}
+\forall t \leq t_1 :\quad PIB_t = \beta_0' + \beta_1' climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad PIB_t = \beta_0'' + \beta_1'' climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
+\end{cases}
+$$
+Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux XXXXX : $\beta_0=\beta_0' = \beta_0''$, $\beta_1=\beta_1' = \beta_1''$ et $\beta_2=\beta_2' = \beta_2''.$
+C'est le principe du test de Chow.
+
+L'inconvénient est que cela suppose d'avoir un a priori sur la date de la rupture à tester.
+Pour palier à ce problème, @bai2003computation ont proposé un algorithme efficace afin de chercher la présence de ruptures multiples dans des modèles de régression linéaire.
+Sous {{< fa brands r-project >}}, cet algorithme a été implémenté dans le package `strucchange` @strucchangeBP.
+La fonction `strucchange::breakpoints()` permet de chercher les ruptures et la fonction `strucchange::breakdates()` d'extraire facilement les dates associées.
+Le package `tvCoef` implémente une méthode `breakpoints.lm()` afin de pouvoir directement appliquer cette fonction aux régressions linéaires estimées :
+
+```{r}
+library(strucchange)
+breakdates(breakpoints(model_gdp))
+```
+Une seule rupture est détectée au `r format(zoo::as.yearqtr(2000.25), "%YT%q")`.
+
+
+## Test de constance des coefficients
+
+Les tests classiques supposent qu'il existe une date de rupture, mais on veut parfois juste savoir si le coefficients est constant ou non.
+
+
+@hansen1992testing
+
+
+
+Tests trouvés dans la littérature autour de Nyblom et Hansen -\> Implémentation de Hansen (1992).
+
+Idée : 
+$$
+f_{i,t} = \begin{cases}
+x_{i,t}\hat \varepsilon_t &\text{ si }i\leq p\\
+\hat \varepsilon_t^2 - \hat \sigma^2&\text{ si }i=p+1
+\end{cases}
+\text{ puis }S_{i,t} = \sum_{j=1}^tf_{i,j}\qquad(\text{N.B : }S_{i,n}=0)
+$$ 
+
+Test : 
+$$
+L_i=\frac{1}{nV_i}\sum_{t=1}^nS_{i,t}^2\qquad
+\text{avec }V_i=\sum_{t=1}^nf_{i,t}^2
+$$ 
+
+Test joint : 
+$$
+L_c = \frac{1}{n}
+\sum_{t=1}^nS_t'V^{-1}S_t\qquad
+\text{avec }V=\sum_{t=1}^nf_{t}f_{t}'
+$$
+
+Ce test est implémenté dans la fonction `tvCoef::hansen_test()`.
+Par défaut, le test joint ne comprend pas le test de constance de la variance (`sigma = FALSE`).
+
+```{r}
+hansen_test(model_gdp)
+```
+Sur notre modèle de prévision de la croissance, le test de Hansen conclut à la non-constance des coefficients associés à la constante et au climat des affaires en niveau au seuil de 5 %.
+En revanche, le coefficient associé au climat des affaires en différences serait constant (au seuil de 5 %).
+
+
+
+
+## Autres tests
+
+@abs2006
+
+# Régression par morceaux
+
+```{r}
+pr_gdp <- piece_reg(model_gdp)
+coef(pr_gdp$model)
+```
+
+
+# De la régression mobile à la régression locale
+
+@tvReg
+
+# Modélisation espace-état
+
+La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
+Dans cette approche, on suppose que tout problème est déterminé par une série de vecteurs non observés $\alpha_1,\dots,\alpha_n$ associés aux observations $y_1,\dots,y_n$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
+Ces modèles sont largement décrits dans @durbinkoopman.
+Dans cet article, nous nous placerons dans un cadre simplifié des modèles linéaires gaussiens appliqués aux régressions linéaires.
+Les modèles sont déterminés par un ensemble de deux équations :
+$$
+TODO
+$$
+avec $\alpha_t$ le vecteur d'états (*state vector*) de dimension $p \times 1$.
+
+La première équation est l'équation d'observation (*observation equation*) et la seconde l'équation d'état (*state equation*).
+
+texte sur la variance des coefficients.
+
+
+On retrouve le cas de la régression linéaire lorsque...
+
+Ces modèles sont implémentés dans la fonction `tvCoef::ssm_lm()` qui prend en entrée un modèle de régression linéaire.
+L'implémentation est basée sur le package `rjd3sts` @rjd3sts
+
+```{r}
+ssm_lm(model_gdp)
+```
+
+
+
+Smoothing, filtering
+
+```{r}
+ssm_lm(model_gdp)
+```
+
+## Autres modèles
+
+# Comparaison générale
+
+## Données utilisées
+
+## Résultats
+
+tableau agrégé
+
+
+# Conclusion
+
+
+# Installation de `tvCoef` {.appendix}
+
+
+Pour utiliser `tvCoef`, il faut il faut avoir la version 17 de Java SE (ou une version supérieure).
+
+Pour savoir quelle version de Java est utilisée par R, utiliser le code suivant :
+```{r, eval = TRUE}
+library(rJava)
+.jinit()
+.jcall("java/lang/System", "S", "getProperty", "java.runtime.version")
+```
+
+Si le résultat n'est pas sous la forme `"17xxxx"` c'est que vous n'avez pas Java 17 !
+
+Si l'on a pas cette version d'installée et que l'on n'a pas les droits d'administrateur pour installer Java, une solution est d'installer une version portable de Java, par exemple installer une version portable à partir des liens suivants :
+
+- [Zulu JDK](https://www.azul.com/downloads/#zulu)
+
+- [AdoptOpenJDK](https://adoptopenjdk.net/)
+
+- [Amazon Corretto](https://aws.amazon.com/corretto/)
+
+Pour installer une version portable de java, télécharger par exemple le fichier `Windows 10 x64 Java Development Kit` disponible sur <https://jdk.java.net/java-se-ri/17>, le dézipper et le mettre par exemple sous `""`.  
+
+Pour configurer R avec une version portable de Java, trois solutions :
+
+1. Avant **avant tout chargement de package nécessitant Java (`rJava`...)** (si vous avez lancé le code précédent, relancez donc R) :
+```{r, eval = FALSE}
+# Si la version portable est installée sous D:/Programmes/jdk-17
+Sys.setenv(JAVA_HOME='D:/Programmes/jdk-17')
+```
+
+2. Pour éviter de faire cette manipulation à chaque fois que l'on relance R, deux solutions :  
+
+    a. modifier le `JAVA_HOME` dans les variables d'environnement de Windows (voir <https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html>).
+    
+    b. modifier le `.Renviron` : depuis R lancer le code `file.edit("~/.Renviron")`{.r}, ajouter dans le fichier le chemin vers la version portable de Java comme précédemment (`JAVA_HOME='D:/Programmes/jdk-17'`), sauvegarder et relancer R.
+
+Il reste maintenant à installer les packages :
+
+```{r, eval = FALSE}
+remotes::install_github("palatej/rjd3toolkit")
+remotes::install_github("palatej/rjd3sts")
+remotes::install_github("AQLT/tvCoef")
+```
+
+Si vous utilisez un ordinateur professionnel, si c'est nécessaire,pensez à configurer le proxy pour que ces commandes puissent fonctionner (voir <https://www.book.utilitr.org/01_r_insee/fiche-personnaliser-r#le-fichier-.renviron>).
+Pour cela vous pouvez utiliser `curl::ie_get_proxy_for_url()` pour récupérer l'adresse du proxy et ajouter deux variable `http_proxy` et `https_proxy` dans les variables d'environnement (comme précédemment).
+
