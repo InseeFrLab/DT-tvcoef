@@ -15,13 +15,13 @@ author:
   - name: Alain Quartier-la-Tente 
     affiliation: Insee
     affiliation-url: https://www.insee.fr/fr/
-citation:
+citation:  
   type: article-journal
   container-title: "Document de travail méthodologique Insee"
   issued: 2024
   url: https://github.com/InseeFrLab/DT-tvcoef
   pdf-url: https://www.insee.fr/fr/statistiques/7759578
-  citation-key: inseeDTM2024XX
+  # key: inseeDTM2024XX
 # license:
 #   text: > 
 #     Copyright (c) 2024 Alain Quartier-la-Tente, INSEE
@@ -85,12 +85,7 @@ Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de
 ::::
 
 :::: {.abstract}
-This paper focuses on different approaches to build moving averages for real-time trend-cycle estimation and fast turning point detection.
-We propose a comparison of the main methods, based on a general unifying framework to derive linear filters.
-We also describe two possible extensions to local polynomial filters: the addition of a timeliness criterion to control the phase shift (delay in the detection of turning points) and a way to locally parameterize these filters.
-The empirical comparison of the methods shows that: the optimization problems of the filters from the Reproducing Kernel Hilbert Space (RKHS) theory increase the phase shift and the revisions of the trend-cycle estimates;
-modeling polynomial trends that are too complex introduces more revisions without decreasing the phase shift;
-for polynomial filters, a local parameterization reduces the phase shift and the revisions.
+
 
 Keywords: time series, trend-cycle, seasonal adjustment, turning points.
 ::::
@@ -122,11 +117,11 @@ Objectifs :
 # Modélisation générale et tests
 
 Dans cet article, nous nous placerons dans le cadre de la régression linéaire avec des variables à une dimension.
-À chaque date $t$, une variable à expliquer $y_t$ (e.g. : taux de croissance du PIB) s'écrit comme une combinaison linéaire de $p$ variables explicative, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
+À chaque date $t$, la variable $y_t$ (e.g. : taux de croissance du PIB) est expliquée par une combinaison linéaire de $p$ variables explicatives, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
 $$
 y_t=\beta_{0}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t 
 $$
-où $\varepsilon_t$ représente l'erreur.
+où $\varepsilon_t$ représente l'erreur d'approximation.
 En notant ${\bf X}_t=\begin{pmatrix}1 \\ x_{1,t} \\\vdots \\ x_{p,t} \end{pmatrix}$ et 
 ${\bf \beta}=\begin{pmatrix}\beta_0 \\ \beta_1 \\\vdots \\ \beta_p \end{pmatrix}$, cela s'écrit matriciellement\ :
 $$
@@ -141,6 +136,7 @@ Le modèle général s'écrit donc :
 $$
 y_t=\transp{\bf\beta_t} \bf X_t +\varepsilon_t.
 $$
+Pour faciliter l'utilisation des modèles ici présentés, le package {{< fa brands r-project >}} `tvCoef` [@tvcoef] a été développé pour cette étude.
 
 Les différentes méthodes seront illustrées à travers l'exemple de la prévision du taux de croissance trimestriel du PIB à partir du climat des affaires France publié par l'Insee.
 Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de donnée `tvCoef::gdp` :
@@ -158,7 +154,7 @@ $$
 
 Il est estimé en utilisant les données entre les années 1990 et 2019.
 Sous {{< fa brands r-project >}}, ce modèle peut être estimé en utilisant la fonction `stats::lm()`.
-Toutefois, nous recommandons d'utiliser le package `dynlm` @dynlm qui offre une plus grande flexibilité dans la définition des modèles et de conserver le format série temporelle dans les fonctions de `tvCoef`.
+Toutefois, nous recommandons d'utiliser le package `dynlm` [@dynlm] qui offre une plus grande flexibilité dans la définition des modèles et de conserver le format série temporelle dans les fonctions de `tvCoef`.
 
 ```{r}
 #| warning: false
@@ -200,28 +196,44 @@ $$
 \forall t > t_1 :\quad PIB_t = \beta_0'' + \beta_1'' climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}
 $$
-Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux XXXXX : $\beta_0=\beta_0' = \beta_0''$, $\beta_1=\beta_1' = \beta_1''$ et $\beta_2=\beta_2' = \beta_2''.$
-C'est le principe du test de Chow.
+Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux : $\beta_0' = \beta_0''$, $\beta_1' = \beta_1''$ et $\beta_2' = \beta_2''.$
+C'est le principe du test de @chowtest.
 
 L'inconvénient est que cela suppose d'avoir un a priori sur la date de la rupture à tester.
 Pour palier à ce problème, @bai2003computation ont proposé un algorithme efficace afin de chercher la présence de ruptures multiples dans des modèles de régression linéaire.
-Sous {{< fa brands r-project >}}, cet algorithme a été implémenté dans le package `strucchange` @strucchangeBP.
+Cet algorithme a été implémenté sous {{< fa brands r-project >}} dans le package `strucchange` @strucchangeBP.
 La fonction `strucchange::breakpoints()` permet de chercher les ruptures et la fonction `strucchange::breakdates()` d'extraire facilement les dates associées.
 Le package `tvCoef` implémente une méthode `breakpoints.lm()` afin de pouvoir directement appliquer cette fonction aux régressions linéaires estimées :
 
 ```{r}
 library(strucchange)
-breakdates(breakpoints(model_gdp))
+bp <- breakpoints(model_gdp)
+breakdates(bp)
 ```
-Une seule rupture est détectée au `r format(zoo::as.yearqtr(2000.25), "%YT%q")`.
+Une seule rupture est détectée au `{r} format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")`.
+Un intervalle de confiance autour de la date détectée peut être calculée peut en utilisant la fonction `confint()` :
+```{r}
+breakdates(confint(bp))
+```
+L'incertitude autour de la date détectée est grande ! 
+Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yearqtr(breakdates(confint(bp))[1]), "%YT%q")` et `{r} format(zoo::as.yearqtr(breakdates(confint(bp))[3]), "%YT%q")`.
 
+
+Deux inconvénients :
+
+- choix de la date
+
+- supposent qu'il y a une rupture
 
 ## Test de constance des coefficients
 
+Alors que les tests précédents supposent qu'il existe une date de ru
+
+@hansen1992testing
 Les tests classiques supposent qu'il existe une date de rupture, mais on veut parfois juste savoir si le coefficients est constant ou non.
 
 
-@hansen1992testing
+
 
 
 

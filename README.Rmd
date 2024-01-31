@@ -30,7 +30,7 @@ Pour citer cet article :
   journal={Document de travail méthodologique Insee},
   number={M2024/XX},
   year={2024},
-  url={https://github.com/InseeFrLab/XXXX}
+  url={https://github.com/InseeFrLab/DT-tvcoef}
 }
 ```
 
