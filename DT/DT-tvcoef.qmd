@@ -189,14 +189,14 @@ cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \
 ## Test de rupture brutale
 
 L'idée la plus simple pour tester s'il y a une rupture dans l'estimation des coefficients à une date $t_1$, est d'estimer deux sous-modèles avant et après cette date :
-
 $$
 \begin{cases}
-\forall t \leq t_1 :\quad PIB_t = \beta_0' + \beta_1' climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad PIB_t = \beta_0'' + \beta_1'' climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
-\end{cases}
+\forall t \leq t_1 :\quad \% PIB_t = \beta_0' + \beta_1' climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad \% PIB_t = \beta_0'' + \beta_1'' climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
+\end{cases}.
 $$
 Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux : $\beta_0' = \beta_0''$, $\beta_1' = \beta_1''$ et $\beta_2' = \beta_2''.$
+L'hypothèse alternative et qu'au moins un des coefficients est différent entre les deux sous-périodes.
 C'est le principe du test de @chowtest.
 
 L'inconvénient est que cela suppose d'avoir un a priori sur la date de la rupture à tester.
@@ -218,48 +218,68 @@ breakdates(confint(bp))
 L'incertitude autour de la date détectée est grande ! 
 Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yearqtr(breakdates(confint(bp))[1]), "%YT%q")` et `{r} format(zoo::as.yearqtr(breakdates(confint(bp))[3]), "%YT%q")`.
 
+Cet algorithme est très simple à utiliser mais possède plusieurs inconvénients :
 
-Deux inconvénients :
+- L'implémentation sous {{< fa brands r-project >}} de l'algorithme de Bai et Perron ne permet pas de chercher des ruptures sur un sous-ensemble de variables : on ne cherche des rupture que sur l'ensemble du modèle.
+Par exemple, on ne peut pas tester $\beta_2' = \beta_2''$ dans le modèle :
+$$
+\begin{cases}
+\forall t \leq t_1 :\quad \% PIB_t = \beta_0 + \beta_1 climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad \% PIB_t = \beta_0 + \beta_1 climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
+\end{cases}.
+$$
+Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\beta_0$ et $\beta_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle :
+$$
+\begin{cases}
+\forall t \leq t_1 :\quad (\% PIB - \hat\beta_0-\hat \beta_1 climat\_fr)_t = \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad (\% PIB - \hat\beta_0-\hat \beta_1 climat\_fr)_t = \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
+\end{cases}.
+$$
 
-- choix de la date
+- Il y a une instabilité sur le choix de la date et il suppose que la rupture est brutale à partir d'une certaine date.
+Si la rupture est brutale, le statisticien doit pouvoir expliquer son origine (changement de nomenclature, de champ dans les données, crise...) et a déjà un a priori sur la date de rupture.
+Si l'on n'a aucune information sur la présence d'une rupture, on peut raisonnablement penser que celle-ci n'est pas brutale mais que la relation entre les variables a évolué de manière progressive dans le temps.
 
-- supposent qu'il y a une rupture
 
 ## Test de constance des coefficients
 
-Alors que les tests précédents supposent qu'il existe une date de ru
+Alors que l'algorithme de Bai et Perron cherche une date spécifique où il y aurait une rupture dans les modèles,
+@hansen1992testing propose une procédure permettant de tester uniquement si les coefficients sont constants ou non sans hypothèse sur la forme de la rupture (brutale ou non) et sur la date de la rupture.
 
-@hansen1992testing
-Les tests classiques supposent qu'il existe une date de rupture, mais on veut parfois juste savoir si le coefficients est constant ou non.
+En repartant de la modélisation générale de la régression linéaire :
+\begin{align*}
+y_t&=\beta_{0}x_{0,t}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t  \\
+&= \transp{\bf\beta} \bf X_t +\varepsilon_t\\
+\E{e_t|x_t}&=0 (eee) \\
+\E{e_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
+\end{align*}
+Le test consiste \ tester si l'ensemble des paramètres $(\beta,\sigma^2)$ sont constants.
+L'hypothèse alternative est qu'au moins un paramètre suit une martingale.
 
-
-
-
-
-
-Tests trouvés dans la littérature autour de Nyblom et Hansen -\> Implémentation de Hansen (1992).
-
-Idée : 
+Notons $\hat \varepsilon_t =y_t- \transp{\hat{\bf\beta}} \bf X_t$ et
 $$
 f_{i,t} = \begin{cases}
 x_{i,t}\hat \varepsilon_t &\text{ si }i\leq p\\
 \hat \varepsilon_t^2 - \hat \sigma^2&\text{ si }i=p+1
 \end{cases}
-\text{ puis }S_{i,t} = \sum_{j=1}^tf_{i,j}\qquad(\text{N.B : }S_{i,n}=0)
+\text{ et }S_{i,t} = \sum_{j=1}^tf_{i,j}\qquad(\text{N.B : }S_{i,n}=0)
 $$ 
+D'après les conditions de premier ordre $S_{i,n}=0.$
 
-Test : 
+Le test individuel de constance du coefficient du paramètre $i$ est :
 $$
 L_i=\frac{1}{nV_i}\sum_{t=1}^nS_{i,t}^2\qquad
-\text{avec }V_i=\sum_{t=1}^nf_{i,t}^2
+\text{avec }V_i=\sum_{t=1}^nf_{i,t}^2.
 $$ 
 
-Test joint : 
+Le test joint de constance de l'ensemble des paramètres est :
 $$
 L_c = \frac{1}{n}
-\sum_{t=1}^nS_t'V^{-1}S_t\qquad
-\text{avec }V=\sum_{t=1}^nf_{t}f_{t}'
+\sum_{t=1}^n\transp{\bf S_t}\bf V^{-1}\bf S_t
+\text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}
 $$
+Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites
+Sous l'hypothèse alternative d'instabilité des paramètres,
 
 Ce test est implémenté dans la fonction `tvCoef::hansen_test()`.
 Par défaut, le test joint ne comprend pas le test de constance de la variance (`sigma = FALSE`).
@@ -267,10 +287,12 @@ Par défaut, le test joint ne comprend pas le test de constance de la variance (
 ```{r}
 hansen_test(model_gdp)
 ```
-Sur notre modèle de prévision de la croissance, le test de Hansen conclut à la non-constance des coefficients associés à la constante et au climat des affaires en niveau au seuil de 5 %.
+Sur notre modèle de prévision de la croissance, le test de Hansen conclut à la non-constance des coefficients associés à la constance et au climat des affaires en niveau au seuil de 5 %.
 En revanche, le coefficient associé au climat des affaires en différences serait constant (au seuil de 5 %).
 
 
+Ne marche que sur des variables stationnaires
+@hansen1992I1 et <https://users.ssc.wisc.edu/~bhansen/progs/jbes_92.html> pour l'implémentation
 
 
 ## Autres tests
