@@ -178,7 +178,7 @@ Le modèle estimé est donc :
 ```{r}
 #| echo: false
 #| output: asis
-cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+\\hat\\varepsilon_t$$",
+cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+\\hat\\varepsilon_t.$$",
         coef(model_gdp)[1],
          coef(model_gdp)[2],
          coef(model_gdp)[3]))
@@ -195,7 +195,7 @@ $$
 \forall t > t_1 :\quad \% PIB_t = \beta_0'' + \beta_1'' climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
-Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux : $\beta_0' = \beta_0''$, $\beta_1' = \beta_1''$ et $\beta_2' = \beta_2''.$
+Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux\ : $\beta_0' = \beta_0''$, $\beta_1' = \beta_1''$ et $\beta_2' = \beta_2''.$
 L'hypothèse alternative et qu'au moins un des coefficients est différent entre les deux sous-périodes.
 C'est le principe du test de @chowtest.
 
@@ -220,7 +220,7 @@ Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yea
 
 Cet algorithme est très simple à utiliser mais possède plusieurs inconvénients :
 
-- L'implémentation sous {{< fa brands r-project >}} de l'algorithme de Bai et Perron ne permet pas de chercher des ruptures sur un sous-ensemble de variables : on ne cherche des rupture que sur l'ensemble du modèle.
+- L'implémentation sous {{< fa brands r-project >}} de l'algorithme de Bai et Perron ne permet pas de chercher des ruptures sur un sous-ensemble de variables : on ne cherche des ruptures que sur l'ensemble du modèle.
 Par exemple, on ne peut pas tester $\beta_2' = \beta_2''$ dans le modèle :
 $$
 \begin{cases}
@@ -228,7 +228,7 @@ $$
 \forall t > t_1 :\quad \% PIB_t = \beta_0 + \beta_1 climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
-Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\beta_0$ et $\beta_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle :
+Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\beta_0$ et $\beta_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle\ :
 $$
 \begin{cases}
 \forall t \leq t_1 :\quad (\% PIB - \hat\beta_0-\hat \beta_1 climat\_fr)_t = \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
@@ -250,10 +250,13 @@ En repartant de la modélisation générale de la régression linéaire :
 \begin{align*}
 y_t&=\beta_{0}x_{0,t}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t  \\
 &= \transp{\bf\beta} \bf X_t +\varepsilon_t\\
-\E{e_t|x_t}&=0 (eee) \\
-\E{e_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
+\E{\varepsilon_t|x_t}&=0 (eee) \\
+\E{\varepsilon_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
 \end{align*}
-Le test consiste \ tester si l'ensemble des paramètres $(\beta,\sigma^2)$ sont constants.
+On suppose également que toutes les variables sont stationnaires (cas général de la régression linéaire).
+Les variables ne doivent donc pas contenir de tendance déterministe ou stochastique (comme des racines unitaires).
+
+Le test consiste à tester si l'ensemble des paramètres $(\beta,\sigma^2)$ sont constants.
 L'hypothèse alternative est qu'au moins un paramètre suit une martingale.
 
 Notons $\hat \varepsilon_t =y_t- \transp{\hat{\bf\beta}} \bf X_t$ et
@@ -272,14 +275,43 @@ L_i=\frac{1}{nV_i}\sum_{t=1}^nS_{i,t}^2\qquad
 \text{avec }V_i=\sum_{t=1}^nf_{i,t}^2.
 $$ 
 
+Notons :
+$$
+\bf f_t= \begin{pmatrix}
+f_{1,t} \\ \vdots \\ f_{p+1,t}
+\end{pmatrix} \text{ et }
+\bf S_t= \begin{pmatrix}
+S_{1,t} \\ \vdots \\ S_{p+1,t}
+\end{pmatrix}.
+$$
 Le test joint de constance de l'ensemble des paramètres est :
 $$
 L_c = \frac{1}{n}
 \sum_{t=1}^n\transp{\bf S_t}\bf V^{-1}\bf S_t
-\text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}
+\text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}.
 $$
-Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites
-Sous l'hypothèse alternative d'instabilité des paramètres,
+Il s'adapte facilement à un test de joint de constance d'un sous-ensemble de paramètres en utilisant des sous-vecteurs de $\bf f_t$ et $\bf S_t.$
+
+Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
+Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
+L'hypothèse nulle de stabilité des coefficients est donc rejetée lorsque la statistique de test est grande.
+Sous l'hypothèse nulle, la loi de distribution asymptotique est non standard, les valeurs critiques sont présentés dans la [table @tbl-hansen-table].
+
+::: {#tbl-hansen-table}
+
+```{r}
+#| echo: false
+table <- tvCoef::hansen_table
+colnames(table) <- gsub("%"," %", colnames(table))
+colnames(table) <- gsub(".",",", colnames(table), fixed = TRUE)
+colnames(table)[1] <- "Degrés de liberté"
+knitr::kable(table, format.args = list(decimal.mark = ","))
+```
+
+Source : @hansen1990lagrange.
+
+Valeurs critiques asymptotiques pour $L_c$ en fonction du nombre de paramètres testés (1 degré de liberté pour $L_i$).
+:::
 
 Ce test est implémenté dans la fonction `tvCoef::hansen_test()`.
 Par défaut, le test joint ne comprend pas le test de constance de la variance (`sigma = FALSE`).
@@ -291,15 +323,24 @@ Sur notre modèle de prévision de la croissance, le test de Hansen conclut à l
 En revanche, le coefficient associé au climat des affaires en différences serait constant (au seuil de 5 %).
 
 
-Ne marche que sur des variables stationnaires
-@hansen1992I1 et <https://users.ssc.wisc.edu/~bhansen/progs/jbes_92.html> pour l'implémentation
+Le test de Hansen peut être vu comme une extension des tests de stabilité CUSUM (*cumulative sum control chart*) et CUSUM sur les carrés (pour le test sur la variance).
+Il est robuste à l'hétéroscédasticité.
+En appliquant les mêmes formules au modèle "transformé", ce test est également robustes à la prise en compte de l'autocorrélation via les moindres carrés généralisés.
+En revanche, ce test suppose que toutes les variables sont stationnaires : il ne peut donc directement s'appliquer sur des modèles du type modèle à correction d’erreur.
+Dans ce cas, une loi asymptotique différente doit être utilisée^[
+Voir par exemple @hansen1992I1.
+Une implémentation sous {{< fa brands r-project >}} de ce cas est disponible sous <https://users.ssc.wisc.edu/~bhansen/progs/jbes_92.html>.
+].
+Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le test peut en revanche s'appliquer sur la seconde estimation (estimation des paramètres de court-terme).
 
 
 ## Autres tests
 
 @abs2006
 
-# Régression par morceaux
+# Différents modèles utilisés
+
+## Régression par morceaux
 
 ```{r}
 pr_gdp <- piece_reg(model_gdp)
@@ -307,11 +348,11 @@ coef(pr_gdp$model)
 ```
 
 
-# De la régression mobile à la régression locale
+## De la régression mobile à la régression locale
 
 @tvReg
 
-# Modélisation espace-état
+## Modélisation espace-état
 
 La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
 Dans cette approche, on suppose que tout problème est déterminé par une série de vecteurs non observés $\alpha_1,\dots,\alpha_n$ associés aux observations $y_1,\dots,y_n$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
@@ -365,7 +406,8 @@ tableau agrégé
 Pour utiliser `tvCoef`, il faut il faut avoir la version 17 de Java SE (ou une version supérieure).
 
 Pour savoir quelle version de Java est utilisée par R, utiliser le code suivant :
-```{r, eval = TRUE}
+```{r}
+#| eval: false
 library(rJava)
 .jinit()
 .jcall("java/lang/System", "S", "getProperty", "java.runtime.version")
@@ -400,11 +442,17 @@ Sys.setenv(JAVA_HOME='D:/Programmes/jdk-17')
 Il reste maintenant à installer les packages :
 
 ```{r, eval = FALSE}
-remotes::install_github("palatej/rjd3toolkit")
-remotes::install_github("palatej/rjd3sts")
-remotes::install_github("AQLT/tvCoef")
+remotes::install_github("rjdemetra/rjd3toolkit")
+remotes::install_github("rjdemetra/rjd3sts")
+remotes::install_github("InseeFrLab/tvCoef")
 ```
 
 Si vous utilisez un ordinateur professionnel, si c'est nécessaire,pensez à configurer le proxy pour que ces commandes puissent fonctionner (voir <https://www.book.utilitr.org/01_r_insee/fiche-personnaliser-r#le-fichier-.renviron>).
 Pour cela vous pouvez utiliser `curl::ie_get_proxy_for_url()` pour récupérer l'adresse du proxy et ajouter deux variable `http_proxy` et `https_proxy` dans les variables d'environnement (comme précédemment).
 
+<!-- {{< pagebreak >}} -->
+
+# Bibliographie {-}
+
+::: {#refs}
+:::
