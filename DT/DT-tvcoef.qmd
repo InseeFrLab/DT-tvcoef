@@ -340,7 +340,53 @@ Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le te
 
 # Différents modèles utilisés
 
-## Régression par morceaux
+Si un des tests précédents conclut à la non constance des coefficients du modèle estimé c'est qu'il est mal spécifié et donc qu'il faut utiliser une modélisation alternative qui pourrait notamment provenir d'un problème de variables omises.
+Dans cet article, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
+Dans certains cas, comme par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g. : des indicatrices).
+
+Trois méthodes sont étudiées dans cet article :
+
+- la régression linéaire par morceaux (@sec-reg-morceaux) ;
+
+- la régression locale (@sec-reg-locale) ;
+
+- les modèles espace-état (@sec-ssm).
+
+## Régression par morceaux {#sec-reg-morceaux}
+
+La régression par morceaux est la modélisation la plus simple : elle consiste à estimer le modèle sur un sous-ensemble des données.
+La modélisation est similaire à celle de la procédure de Bai et Perron puisque cette dernière donne directement les "morceaux" : entre les dates de ruptures.
+
+Par exemple, pour le modèle de prévision de la croissance, deux régressions seraient estimés en utilisant les données avant et après  `{r} format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")`.
+
+Deux méthodes d'estimations sont possibles :
+
+1. Une régression en une étape est faite en doublant découpant les régresseurs en fonction de la date de rupture (fonction `tvCoef::piece_reg()`) :
+```{r}
+#| echo: false
+#| output: asis
+date_rupture <- format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")
+cat(
+  sprintf("
+\\begin{align*}
+\\%% PIB_t &= \\beta_0\\1_{t\\leq %s} + \\beta_1 climat\\_fr_t\\1_{t\\leq %s} + \\beta_2 \\Delta climat\\_fr_t\\1_{t\\leq %s} + \\\\
+&\\phantom{=} \\beta_0'\\1_{t > %s} + \\beta_1' climat\\_fr_t\\1_{t > %s} + \\beta_2' \\Delta climat\\_fr_t\\1_{t > %s} + \\varepsilon_t
+\\end{align*}
+          ",date_rupture,date_rupture,date_rupture,date_rupture,date_rupture,date_rupture
+)
+)
+```
+
+2. En effectuant deux régressions linéaires distinctes (fonction `tvCoef::bp_lm()`) :
+$$
+\begin{cases}
+\forall t \leq 2000T2 :\quad \% PIB_t = \beta_0 + \beta_1 climat\_fr_t + \beta_2 \Delta climat\_fr_t + \varepsilon_t \\
+\forall t > 2000T2 :\quad \% PIB_t = \beta_0' + \beta_1' climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t'
+\end{cases}.
+$$
+Dans les 
+
+
 
 ```{r}
 pr_gdp <- piece_reg(model_gdp)
@@ -348,11 +394,11 @@ coef(pr_gdp$model)
 ```
 
 
-## De la régression mobile à la régression locale
+## De la régression mobile à la régression locale {#sec-reg-locale}
 
 @tvReg
 
-## Modélisation espace-état
+## Modélisation espace-état {#sec-ssm}
 
 La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
 Dans cette approche, on suppose que tout problème est déterminé par une série de vecteurs non observés $\alpha_1,\dots,\alpha_n$ associés aux observations $y_1,\dots,y_n$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
@@ -387,6 +433,8 @@ ssm_lm(model_gdp)
 ```
 
 ## Autres modèles
+
+Modèles à seuil et à changement de régime
 
 # Comparaison générale
 
