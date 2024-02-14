@@ -55,6 +55,7 @@ library(tvCoef)
 library(dynlm)
 library(strucchange)
 library(tvReg)
+library(ggplot2)
 ```
 
 
@@ -241,7 +242,7 @@ Si la rupture est brutale, le statisticien doit pouvoir expliquer son origine (c
 Si l'on n'a aucune information sur la présence d'une rupture, on peut raisonnablement penser que celle-ci n'est pas brutale mais que la relation entre les variables a évolué de manière progressive dans le temps.
 
 
-## Test de constance des coefficients
+## Test de constance des coefficients {#sec-hansen-test}
 
 Alors que l'algorithme de Bai et Perron cherche une date spécifique où il y aurait une rupture dans les modèles,
 @hansen1992testing propose une procédure permettant de tester uniquement si les coefficients sont constants ou non sans hypothèse sur la forme de la rupture (brutale ou non) et sur la date de la rupture.
@@ -250,10 +251,10 @@ En repartant de la modélisation générale de la régression linéaire :
 \begin{align*}
 y_t&=\beta_{0}x_{0,t}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t  \\
 &= \transp{\bf\beta} \bf X_t +\varepsilon_t\\
-\E{\varepsilon_t|x_t}&=0 (eee) \\
+\E{\varepsilon_t|x_t}&=0 \text{ (exogénéité stricte)} \\
 \E{\varepsilon_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
 \end{align*}
-On suppose également que toutes les variables sont stationnaires (cas général de la régression linéaire).
+On suppose également que toutes les variables sont faiblement dépendantes (cas général de la régression linéaire).
 Les variables ne doivent donc pas contenir de tendance déterministe ou stochastique (comme des racines unitaires).
 
 Le test consiste à tester si l'ensemble des paramètres $(\beta,\sigma^2)$ sont constants.
@@ -291,6 +292,7 @@ L_c = \frac{1}{n}
 \text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}.
 $$
 Il s'adapte facilement à un test de joint de constance d'un sous-ensemble de paramètres en utilisant des sous-vecteurs de $\bf f_t$ et $\bf S_t.$
+Toutefois, si modèle contient des indicatrices alors le test joint ne pourra pas être calcule (la matrice $\bf V$ ne sera pas inversible).
 
 Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
 Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
@@ -378,25 +380,118 @@ cat(
 ```
 
 2. En effectuant deux régressions linéaires distinctes (fonction `tvCoef::bp_lm()`) :
-$$
-\begin{cases}
-\forall t \leq 2000T2 :\quad \% PIB_t = \beta_0 + \beta_1 climat\_fr_t + \beta_2 \Delta climat\_fr_t + \varepsilon_t \\
-\forall t > 2000T2 :\quad \% PIB_t = \beta_0' + \beta_1' climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t'
-\end{cases}.
-$$
-Dans les 
+```{r}
+#| echo: false
+#| output: asis
+cat(
+  sprintf("
+\\begin{cases}
+\\forall t \\leq %s :\\quad \\%% PIB_t = \\beta_0 + \\beta_1 climat\\_fr_t + \\beta_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\
+\\forall t > %s :\\quad \\%% PIB_t = \\beta_0' + \\beta_1' climat\\_fr_t + \\beta_2' \\Delta climat\\_fr_t + \\varepsilon_t'
+\\end{cases}.
+          ",date_rupture,date_rupture
+)
+)
+```
+Dans les deux cas les coefficients estimés sont les mêmes mais les écarts-types seront en général différents.
+En effet, dans la première modélisation on suppose que la variance du résidu est constante dans les deux sous-périodes alors que dans la seconde on autorise la variance à évoluer dans le temps.
 
+Dans la majorité des cas, nous suggérons de privilégier la première modélisation car elle offre plus de flexibilité, notamment pour fixer les coefficients de certaines variables.
 
-
+Dans notre exemple, les coefficients associés à la constante et au climat des affaires en niveau sont proches avant et après la rupture, ce qui est cohérent avec le résultat du test de Hansen (section [-@sec-hansen-test]) :
 ```{r}
 pr_gdp <- piece_reg(model_gdp)
 coef(pr_gdp$model)
 ```
+Cette égalité peut être testée en utilisant un test de Fisher, par exemple avec la fonction `car::linearHypothesis()`.
+Dans notre exemple, on ne rejette pas l'hypothèse nulle d'égalité des coefficients de la constante et du climat des affaires en niveau avant et après la rupture, modèle peut donc être simplifié.
+Par ailleurs, on rejette l'hypothèse nulle d'égalité du coefficient associé au climat des affaires en différence : la prise en compte de la rupture est donc justifiée.
+Toutefois, nous conseillons de toujours considérer que la constante varie dans le temps, même lorsque que ce n'est statistiquement pas significatif : cela permet de s'assurer que le modèle ne sera pas biaisé par des résidus qui ne seraient pas de moyenne nulle.
+```{r}
+car::linearHypothesis(
+  pr_gdp$model,
+  c("`(Intercept)_2000.25` = `(Intercept)_2019.75`",
+    "bc_fr_m1_2000.25 = bc_fr_m1_2019.75"),
+  test = "F")
+pr_gdp2 <- piece_reg(model_gdp, fixed_var = 2)
+car::linearHypothesis(
+  pr_gdp2$model,
+  c("diff_bc_fr_m1_2000.25 = diff_bc_fr_m1_2019.75"),
+  test = "F")
+coef(pr_gdp2$model)
+```
+
+TODO : tracer les prévisions
+Pour les deux modélisations il faudra faire attention lors des processus de simulation en temps réel puisque les coefficients estimés auront une très grande variance autour des points de rupture.
+
+```{r}
+oos_pr <- oos_prev(pr_gdp)
+oos_pr2 <- oos_prev(pr_gdp2)
+oos_lm <- oos_prev(model_gdp)
+apply(ts.union(oos_pr$residuals, oos_pr2$residuals, oos_lm$residuals)^2, 2, mean)
+```
+
+```{r}
+#| echo: false
+#| fig-cap: Prévision du PIB
+prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_pr2$forecast)
+colnames(prev) <- c("% PIB", "Reg. lin.",
+                    "Reg. par morceaux")
+forecast::autoplot(prev[,1],
+                   series = colnames(prev) [1]) +
+  forecast::autolayer(prev[,-1], linetype = 2,
+                      series = colnames(prev)[-1]) +
+  theme_bw() + 
+  labs()
+```
+
+
 
 
 ## De la régression mobile à la régression locale {#sec-reg-locale}
 
 @tvReg
+
+Model 
+
+$$
+y_t=x_t^T\beta(z_t)+u_t,\quad t=1, \dots, T
+$$
+Here we use $z_t= t/T$ the rescaled time but $z_t$ could be the value at date $t$ of a random variable
+
+We assume that $\beta$ is a local constant (Nadaraya-Watson estimator) or local linear.
+
+With Taylor rule, $\beta(z_t)\simeq \beta(z) + \beta(z)'(z_t-z)$ and at
+
+$$
+\kappa_j^{TW}=\left(
+1-
+\left\lvert
+\frac j {h+1}
+\right\lvert^2
+\right)^3
+$$
+
+$$
+K_b(x)=\frac{1}{b}\left(
+1-
+\left\lvert
+\frac x {b}
+\right\lvert^2
+\right)^3\mathbb 1_{-1\leq x/b\leq1}
+$$
+
+$$
+z_t-z_j=\frac{t-j}{T}
+$$
+
+$$
+K_b(x) \ne 0 \iff
+\left\lvert\frac{t-j}{bT}
+\right\rvert \leq 1
+$$
+
+
 
 ## Modélisation espace-état {#sec-ssm}
 
