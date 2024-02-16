@@ -7,6 +7,8 @@ format:
     self-contained: true
     include-before-body: template/preambule.html
     css: [template/style.css]
+execute:
+  freeze: true 
 toc: true
 number-sections: true
 bibliography: biblio.bib
@@ -56,6 +58,7 @@ library(dynlm)
 library(strucchange)
 library(tvReg)
 library(ggplot2)
+library(forecast)
 ```
 
 
@@ -180,9 +183,9 @@ Le modèle estimé est donc :
 #| echo: false
 #| output: asis
 cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+\\hat\\varepsilon_t.$$",
-        coef(model_gdp)[1],
-         coef(model_gdp)[2],
-         coef(model_gdp)[3]))
+            coef(model_gdp)[1],
+            coef(model_gdp)[2],
+            coef(model_gdp)[3]))
 ```
 
 
@@ -375,7 +378,7 @@ cat(
 &\\phantom{=} \\beta_0'\\1_{t > %s} + \\beta_1' climat\\_fr_t\\1_{t > %s} + \\beta_2' \\Delta climat\\_fr_t\\1_{t > %s} + \\varepsilon_t
 \\end{align*}
           ",date_rupture,date_rupture,date_rupture,date_rupture,date_rupture,date_rupture
-)
+  )
 )
 ```
 
@@ -384,13 +387,13 @@ cat(
 #| echo: false
 #| output: asis
 cat(
-  sprintf("
+  sprintf("$$
 \\begin{cases}
 \\forall t \\leq %s :\\quad \\%% PIB_t = \\beta_0 + \\beta_1 climat\\_fr_t + \\beta_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\
 \\forall t > %s :\\quad \\%% PIB_t = \\beta_0' + \\beta_1' climat\\_fr_t + \\beta_2' \\Delta climat\\_fr_t + \\varepsilon_t'
 \\end{cases}.
-          ",date_rupture,date_rupture
-)
+$$          ",date_rupture,date_rupture
+  )
 )
 ```
 Dans les deux cas les coefficients estimés sont les mêmes mais les écarts-types seront en général différents.
@@ -413,37 +416,78 @@ car::linearHypothesis(
   c("`(Intercept)_2000.25` = `(Intercept)_2019.75`",
     "bc_fr_m1_2000.25 = bc_fr_m1_2019.75"),
   test = "F")
-pr_gdp2 <- piece_reg(model_gdp, fixed_var = 2)
+pr_gdp <- piece_reg(model_gdp, fixed_var = 2)
 car::linearHypothesis(
-  pr_gdp2$model,
+  pr_gdp$model,
   c("diff_bc_fr_m1_2000.25 = diff_bc_fr_m1_2019.75"),
   test = "F")
-coef(pr_gdp2$model)
+coef(pr_gdp$model)
 ```
 
-TODO : tracer les prévisions
-Pour les deux modélisations il faudra faire attention lors des processus de simulation en temps réel puisque les coefficients estimés auront une très grande variance autour des points de rupture.
+La qualité prédictive du nouveau modèle peut s'apprécier de plusieurs façons, les plus classiques étant la minimisation du critère d'information d'Akaike (AIC et fonction `AIC()`) ou la minimisation des erreurs de prévisions en temps réel (fonction `tvCoef::oos_prev()`).
+Pour le calcul des erreurs de prévisions en temps réel, la méthodologie retenue consiste à calculer pour chaque date $t$ la prévision obtenue à la date $t+1$ en estimant le modèle à partir des observations disponibles jusqu'à la date $t$ uniquement.
+Avec cette méthode, appelée le *leave-one-out cross-validation*, on ne s'intéresse donc qu'à la qualité de prévision à l'horizon d'un trimestre (ce qui est le cas d'utilisation pour les modèles étudiés).
+Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces erreurs de prévisions en temps réel (voir @AIC).
 
+Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères :
 ```{r}
+# AIC minimisé :
+AIC(pr_gdp$model) < AIC(model_gdp)
 oos_pr <- oos_prev(pr_gdp)
-oos_pr2 <- oos_prev(pr_gdp2)
 oos_lm <- oos_prev(model_gdp)
-apply(ts.union(oos_pr$residuals, oos_pr2$residuals, oos_lm$residuals)^2, 2, mean)
+res <- ts.union(oos_pr$residuals, oos_lm$residuals)
+# Les deux modèles étant équivalents avant la rupture,
+# on n'étudie les prévisions qu'après celle-ci
+res <- window(res, start = 2003)  
+# Erreurs de prévisions en temps réel minimisées
+apply(res, 2, rmse)
 ```
+
+La [figure -@fig-prev-piecereg] montre les prévisions en temps réel des deux modèles étudiés.
+Autour de la date de rupture, la régression linéaire par morceaux produit des prévisions peu réalistes : cela s'explique par le fait que très peu d'observations sont utilisées pour estimer les coefficients associés aux régresseurs après la rupture, les estimateurs sont donc peu précis (grande variance).
+Pour les analyses en temps réel, il faut donc faire attention aux valeurs prédites autour de la rupture !
+
 
 ```{r}
 #| echo: false
-#| fig-cap: Prévision du PIB
-prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_pr2$forecast)
+#| fig-cap: Prévision du PIB à partir d'un modèle de régression linéaire et d'un modèle de régression linéaire par morceaux.
+#| label: fig-prev-piecereg
+prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_pr$forecast)
 colnames(prev) <- c("% PIB", "Reg. lin.",
                     "Reg. par morceaux")
 forecast::autoplot(prev[,1],
                    series = colnames(prev) [1]) +
-  forecast::autolayer(prev[,-1], linetype = 2,
+  forecast::autolayer(prev[,-1], linetype = 3,
                       series = colnames(prev)[-1]) +
   theme_bw() + 
-  labs()
+  labs(x = NULL, y = "%") +
+  theme(
+    legend.background = element_rect(fill = alpha('gray99', 0.4),
+                                     colour = "gray80", linetype = "solid"),
+    legend.justification = c(0,0),
+    legend.position = c(0,0),
+    legend.key = element_blank(),
+    legend.title = element_blank()
+  )
 ```
+
+```{r}
+bp <- lapply(oos_lm$model,breakpoints)
+bpd <- sapply(bp, breakdates)
+bpd <- bpd * sapply(bp, `[[`, "nobs")
+bp_ts <- ts(time(get_data(pr_gdp))[bpd], 
+            end = end(oos_lm$forecast),
+            frequency = frequency(oos_lm$forecast))
+ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
+       y = as.numeric(bp_ts))),
+       aes(x = x, y = y)) +
+  geom_point() +
+  theme_bw() +
+  coord_cartesian(xlim =c(2009,NA)) +
+  labs(x = "Date de fin d'estimation",
+       y = "Date de rupture détectée")
+```
+
 
 
 
@@ -578,9 +622,9 @@ Sys.setenv(JAVA_HOME='D:/Programmes/jdk-17')
 
 2. Pour éviter de faire cette manipulation à chaque fois que l'on relance R, deux solutions :  
 
-    a. modifier le `JAVA_HOME` dans les variables d'environnement de Windows (voir <https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html>).
-    
-    b. modifier le `.Renviron` : depuis R lancer le code `file.edit("~/.Renviron")`{.r}, ajouter dans le fichier le chemin vers la version portable de Java comme précédemment (`JAVA_HOME='D:/Programmes/jdk-17'`), sauvegarder et relancer R.
+a. modifier le `JAVA_HOME` dans les variables d'environnement de Windows (voir <https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html>).
+
+b. modifier le `.Renviron` : depuis R lancer le code `file.edit("~/.Renviron")`{.r}, ajouter dans le fichier le chemin vers la version portable de Java comme précédemment (`JAVA_HOME='D:/Programmes/jdk-17'`), sauvegarder et relancer R.
 
 Il reste maintenant à installer les packages :
 
