@@ -472,7 +472,11 @@ forecast::autoplot(prev[,1],
 ```
 
 ```{r}
-bp <- lapply(oos_lm$model,breakpoints)
+#| echo: false
+#| label: fig-temps-reel-
+#| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'esitmation du modèle
+# On enlève les premières observations car pas de rupture
+bp <- lapply(oos_lm$model[-(1:74)],breakpoints)
 bpd <- sapply(bp, breakdates)
 bpd <- bpd * sapply(bp, `[[`, "nobs")
 bp_ts <- ts(time(get_data(pr_gdp))[bpd], 
@@ -484,6 +488,7 @@ ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
   geom_point() +
   theme_bw() +
   coord_cartesian(xlim =c(2009,NA)) +
+  scale_x_continuous(breaks = seq(2010,2020, by = 2))+
   labs(x = "Date de fin d'estimation",
        y = "Date de rupture détectée")
 ```
