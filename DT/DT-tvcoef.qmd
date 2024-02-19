@@ -126,8 +126,8 @@ $$
 y_t=\beta_{0}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t 
 $$
 où $\varepsilon_t$ représente l'erreur d'approximation.
-En notant ${\bf X}_t=\begin{pmatrix}1 \\ x_{1,t} \\\vdots \\ x_{p,t} \end{pmatrix}$ et 
-${\bf \beta}=\begin{pmatrix}\beta_0 \\ \beta_1 \\\vdots \\ \beta_p \end{pmatrix}$, cela s'écrit matriciellement\ :
+En notant ${\bf X}_t=\transp{\begin{pmatrix}1 & x_{1,t} &\cdots & x_{p,t} \end{pmatrix}}$ et 
+${\bf \beta}=\transp{\begin{pmatrix}\beta_0 & \beta_1 &\cdots & \beta_p \end{pmatrix}}$, cela s'écrit matriciellement\ :
 $$
 y_t=\transp{\bf\beta} \bf X_t +\varepsilon_t.
 $$
@@ -156,7 +156,7 @@ $$
 \% PIB_t=\beta_0 + \beta_1\times climat\_fr_t^{m_1} + \beta_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
 $$
 
-Il est estimé en utilisant les données entre les années 1990 et 2019.
+Il est estimé en utilisant les données entre les années 1980 et 2019.
 Sous {{< fa brands r-project >}}, ce modèle peut être estimé en utilisant la fonction `stats::lm()`.
 Toutefois, nous recommandons d'utiliser le package `dynlm` [@dynlm] qui offre une plus grande flexibilité dans la définition des modèles et de conserver le format série temporelle dans les fonctions de `tvCoef`.
 
@@ -173,7 +173,7 @@ model_gdp <- dynlm(
 # model_gdp <- dynlm(
 #   formula = growth_gdp ~ bc_fr_m1 + diff(bc_fr_m1, 1),
 #   # Date de début changée car on perd une donnée avec la différenciation
-#   data = window(gdp, start = c(1989,4), end = c(2019,4))
+#   data = window(gdp, start = c(1979,4), end = c(2019,4))
 # )
 coefficients(model_gdp)
 ```
@@ -190,7 +190,7 @@ cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \
 
 
 
-## Test de rupture brutale
+## Test de rupture brutale {#sec-test-baiperron}
 
 L'idée la plus simple pour tester s'il y a une rupture dans l'estimation des coefficients à une date $t_1$, est d'estimer deux sous-modèles avant et après cette date :
 $$
@@ -471,10 +471,16 @@ forecast::autoplot(prev[,1],
   )
 ```
 
+Comme indiqué dans la [section -@sec-test-baiperron], l'inconvénient de cette méthode provient du choix de la date de rupture lorsque celle-ci n'est pas imposée par l'utilisateur.
+La [figure -@fig-temps-reel-bp] montre les dates de la rupture détectée par la procédure de Bai et Perron en fonction de la date de fin de fin d'estimation du modèle de régression linéaire : aucune rupture n'est détectée avant 2009 ou lorsque le modèle est estimé en utilisant des données jusqu'en 2013T2-2015T3.
+En fonction de la date de fin d'estimation, la rupture détectée automatiquement peut tout aussi bien être en 2000 qu'en 2004 ou 2006.
+Même s'il est possible que cela n'ait que très peu d'effet sur les prévisions estimées en fin de période, l'interprétation faite du modèle sera vraisemblablement différente !
+
+
 ```{r}
 #| echo: false
-#| label: fig-temps-reel-
-#| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'esitmation du modèle
+#| label: fig-temps-reel-bp
+#| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'estimation du modèle
 # On enlève les premières observations car pas de rupture
 bp <- lapply(oos_lm$model[-(1:74)],breakpoints)
 bpd <- sapply(bp, breakdates)
@@ -499,7 +505,66 @@ ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
 
 ## De la régression mobile à la régression locale {#sec-reg-locale}
 
-@tvReg
+La régression mobile est une des méthodes empiriques les plus simples pour savoir si les coefficients évoluent dans le temps.
+Celle-ci consiste à estimer des régression en utilisant un intervalle de temps fixe et à observer la courbe des coefficients estimés.
+En reprenant notre exemple où les données commencent en 1980, avec une fenêtre fixe de 15 ans (par exemple), cela consiste à estimer une première régression entre 1980T1 et 1994T4, une deuxième entre 1980T2 et 1995T1... et une dernière entre 2005T1 et 2019T4.
+Sous R cela peut par exemple s'estimer en utilisant la fonction `rollRegres::roll_regres()` :
+```{r}
+roll_regres <- rollRegres::roll_regres(
+  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
+  data = window(gdp, start = 1980, end = c(2019,4)),
+  width = 4 * 15
+)
+coef_roll_regres <- ts(roll_regres$coefs, start = 1980, frequency = 4)
+```
+
+La [figure -@fig-coef-rollreg] montre les coefficients estimés par cette régression mobile.
+Seule ceux estimés sur le climat des affaires en différence montrent une rupture nette.
+Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T2).
+
+::: {# fig-coef-rollreg}
+```{r}
+#| echo: true
+coef_roll_regres <- na.omit(coef_roll_regres)
+coef_pr <- window(coef(pr_gdp), start = start(coef_roll_regres))
+(autoplot(coef_roll_regres[,1], series = "Reg. mobile") + autolayer(coef_pr[,1], series = "Reg. par morceaux") + labs(y = colnames(coef_roll_regres)[1], x = NULL)) + 
+  (autoplot(coef_roll_regres[,2], series = "Reg. mobile") + autolayer(coef_pr[,2], series = "Reg. par morceaux") + labs(y = colnames(coef_roll_regres)[2], x = NULL)) / 
+  (autoplot(coef_roll_regres[,3], series = "Reg. mobile") + autolayer(coef_pr[,3], series = "Reg. par morceaux") + labs(y = colnames(coef_roll_regres)[3], x = NULL))
+```
+
+Lecture : la régression mobile est estimée sur une fenêtre de 15 ans.
+Les coefficients estimés en 1994T4 correspondent aux coefficients estimés entre 1980T1 et 1994T4.
+
+Coefficients estimés par régression mobile et régression par morceaux.
+:::
+
+La régression mobile a l'avantage d'être très simple mais repose sur plusieurs paramètres qui ont ici été fixés arbitrairement dont notamment :
+
+- La longueur de la fenêtre : elle doit être suffisamment large pour avoir des bonnes estimations mais suffisamment courte afin de permettre de prendre en compte les ruptures.
+
+- La date à laquelle les coefficients sont associés.
+Dans la fonction `rollRegres::roll_regres()` ils sont associés à la dernière date de la fenêtre : les coefficients de la date $t$ correspondent à ceux obtenus en utilisant les données jusqu'à la date $t.$
+Ils auraient également pu être associés à la première date de la fenêtre ou encore à son milieu (coefficients de la date $t$ estimés en utilisant autant d'observations avant et après $t$).
+Dans tous les cas une stratégie doit être adoptée afin de gérer les observations manquantes (dans notre exemple il s'agit donc d'estimer les coefficients avant 1994).
+
+La régression locale permet, grâce à une modélisation plus poussée, de donner des solutions à ce problème.
+Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvReg::tvLM` développée par @tvReg.
+On suppose ici que les coefficients $\beta_t$ dépendent d'une variable aléatoire $z_t$ : $\beta_t=\beta(z_t).$
+Par défaut $z_t=t/T$ avec $T$ le nombre d'observations : les coefficients dépendent donc d'une mesure normalisée du temps.
+On suppose que $\beta$ est localement constante ($\beta(z_t)\simeq \beta(z_t)$) ou localement linéaire  ($\beta(z_t)\simeq \beta(z_t)+\beta'(z)(z_t-z)$), ce qui est justifiée par le théorème de Taylor.
+Pour chaque date $t$, le coefficient $\beta_t$ est obtenu par moindre carrés pondérés.
+Lorsque $\beta$ est supposé localement constant il s'agit du système :
+$$
+\beta_t=\underset{\theta_0}\argmin\sum_{i=1}^T\left[\y_i-\transp{\theta_0} X_i\right]^2K_{b_t}(z_i-z).
+$$
+Lorsque $\beta$ est supposé localement linéaire il s'agit du système :
+$$
+\beta_t=\underset{\theta_0,\theta_1}\argmin\sum_{i=1}^T\left[\y_i-\transp{\theta_0} X_i - (z_i-z)\transp{\theta_1}X_i\right]^2K_{b_t}(z_i-z).
+$$
+
+
+
+
 
 Model 
 
@@ -510,7 +575,6 @@ Here we use $z_t= t/T$ the rescaled time but $z_t$ could be the value at date $t
 
 We assume that $\beta$ is a local constant (Nadaraya-Watson estimator) or local linear.
 
-With Taylor rule, $\beta(z_t)\simeq \beta(z) + \beta(z)'(z_t-z)$ and at
 
 $$
 \kappa_j^{TW}=\left(
