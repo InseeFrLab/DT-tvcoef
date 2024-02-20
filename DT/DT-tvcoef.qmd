@@ -58,7 +58,26 @@ library(dynlm)
 library(strucchange)
 library(tvReg)
 library(ggplot2)
+library(patchwork)
 library(forecast)
+coef2plot <- function(x, linetype = 1){
+  noms_mod <- names(x)
+  linetype <- rep(linetype, length(x))
+  plot_i <- function(x, col){
+    p <- autoplot(x[[1]][,col], series = noms_mod[1], linetype=linetype[1]) + 
+      labs(y = colnames(x[[1]])[col], x = NULL)
+    
+    for (i in seq_len(length(x)-1)+1) {
+      p <- p + autolayer(x[[i]][,col], series = noms_mod[i], linetype=linetype[i])
+    }
+    p +
+      theme_bw() + 
+      theme(legend.title=element_blank())+
+    scale_color_grey(breaks = noms_mod)
+  }
+  (plot_i(x, 1) + plot_i(x, 2) / plot_i(x, 3)) + 
+    plot_layout(guides = 'collect') 
+}
 ```
 
 
@@ -165,17 +184,17 @@ Toutefois, nous recommandons d'utiliser le package `dynlm` [@dynlm] qui offre un
 #| message: false
 library(tvCoef)
 library(dynlm)
-model_gdp <- dynlm(
+reg_lin <- dynlm(
   formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
   data = window(gdp, start = 1980, end = c(2019,4))
 )
 # # Equivalent à :
-# model_gdp <- dynlm(
+# reg_lin <- dynlm(
 #   formula = growth_gdp ~ bc_fr_m1 + diff(bc_fr_m1, 1),
 #   # Date de début changée car on perd une donnée avec la différenciation
 #   data = window(gdp, start = c(1979,4), end = c(2019,4))
 # )
-coefficients(model_gdp)
+coefficients(reg_lin)
 ```
 
 Le modèle estimé est donc :
@@ -183,9 +202,9 @@ Le modèle estimé est donc :
 #| echo: false
 #| output: asis
 cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+\\hat\\varepsilon_t.$$",
-            coef(model_gdp)[1],
-            coef(model_gdp)[2],
-            coef(model_gdp)[3]))
+            coef(reg_lin)[1],
+            coef(reg_lin)[2],
+            coef(reg_lin)[3]))
 ```
 
 
@@ -211,7 +230,7 @@ Le package `tvCoef` implémente une méthode `breakpoints.lm()` afin de pouvoir 
 
 ```{r}
 library(strucchange)
-bp <- breakpoints(model_gdp)
+bp <- breakpoints(reg_lin)
 breakdates(bp)
 ```
 Une seule rupture est détectée au `{r} format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")`.
@@ -322,7 +341,7 @@ Ce test est implémenté dans la fonction `tvCoef::hansen_test()`.
 Par défaut, le test joint ne comprend pas le test de constance de la variance (`sigma = FALSE`).
 
 ```{r}
-hansen_test(model_gdp)
+hansen_test(reg_lin)
 ```
 Sur notre modèle de prévision de la croissance, le test de Hansen conclut à la non-constance des coefficients associés à la constance et au climat des affaires en niveau au seuil de 5 %.
 En revanche, le coefficient associé au climat des affaires en différences serait constant (au seuil de 5 %).
@@ -403,7 +422,7 @@ Dans la majorité des cas, nous suggérons de privilégier la première modélis
 
 Dans notre exemple, les coefficients associés à la constante et au climat des affaires en niveau sont proches avant et après la rupture, ce qui est cohérent avec le résultat du test de Hansen (section [-@sec-hansen-test]) :
 ```{r}
-pr_gdp <- piece_reg(model_gdp)
+pr_gdp <- piece_reg(reg_lin)
 coef(pr_gdp$model)
 ```
 Cette égalité peut être testée en utilisant un test de Fisher, par exemple avec la fonction `car::linearHypothesis()`.
@@ -416,7 +435,7 @@ car::linearHypothesis(
   c("`(Intercept)_2000.25` = `(Intercept)_2019.75`",
     "bc_fr_m1_2000.25 = bc_fr_m1_2019.75"),
   test = "F")
-pr_gdp <- piece_reg(model_gdp, fixed_var = 2)
+pr_gdp <- piece_reg(reg_lin, fixed_var = 2)
 car::linearHypothesis(
   pr_gdp$model,
   c("diff_bc_fr_m1_2000.25 = diff_bc_fr_m1_2019.75"),
@@ -432,9 +451,9 @@ Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces 
 Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères :
 ```{r}
 # AIC minimisé :
-AIC(pr_gdp$model) < AIC(model_gdp)
+AIC(pr_gdp$model) < AIC(reg_lin)
 oos_pr <- oos_prev(pr_gdp)
-oos_lm <- oos_prev(model_gdp)
+oos_lm <- oos_prev(reg_lin)
 res <- ts.union(oos_pr$residuals, oos_lm$residuals)
 # Les deux modèles étant équivalents avant la rupture,
 # on n'étudie les prévisions qu'après celle-ci
@@ -522,14 +541,16 @@ La [figure -@fig-coef-rollreg] montre les coefficients estimés par cette régre
 Seule ceux estimés sur le climat des affaires en différence montrent une rupture nette.
 Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T2).
 
-::: {# fig-coef-rollreg}
+::: {#fig-coef-rollreg}
 ```{r}
 #| echo: true
 coef_roll_regres <- na.omit(coef_roll_regres)
 coef_pr <- window(coef(pr_gdp), start = start(coef_roll_regres))
-(autoplot(coef_roll_regres[,1], series = "Reg. mobile") + autolayer(coef_pr[,1], series = "Reg. par morceaux") + labs(y = colnames(coef_roll_regres)[1], x = NULL)) + 
-  (autoplot(coef_roll_regres[,2], series = "Reg. mobile") + autolayer(coef_pr[,2], series = "Reg. par morceaux") + labs(y = colnames(coef_roll_regres)[2], x = NULL)) / 
-  (autoplot(coef_roll_regres[,3], series = "Reg. mobile") + autolayer(coef_pr[,3], series = "Reg. par morceaux") + labs(y = colnames(coef_roll_regres)[3], x = NULL))
+
+coef2plot(
+  list("Reg. mobile" = coef_roll_regres,
+       "Reg. par morceaux" = coef_pr)
+  )
 ```
 
 Lecture : la régression mobile est estimée sur une fenêtre de 15 ans.
@@ -548,62 +569,112 @@ Ils auraient également pu être associés à la première date de la fenêtre o
 Dans tous les cas une stratégie doit être adoptée afin de gérer les observations manquantes (dans notre exemple il s'agit donc d'estimer les coefficients avant 1994).
 
 La régression locale permet, grâce à une modélisation plus poussée, de donner des solutions à ce problème.
-Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvReg::tvLM` développée par @tvReg.
-On suppose ici que les coefficients $\beta_t$ dépendent d'une variable aléatoire $z_t$ : $\beta_t=\beta(z_t).$
+Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvReg::tvLM()` développée par @tvReg.
+On suppose ici que les coefficients $\bf\beta_t$ dépendent d'une variable aléatoire $z_t$ : $\bf\beta_t=\beta(z_t).$
 Par défaut $z_t=t/T$ avec $T$ le nombre d'observations : les coefficients dépendent donc d'une mesure normalisée du temps.
-On suppose que $\beta$ est localement constante ($\beta(z_t)\simeq \beta(z_t)$) ou localement linéaire  ($\beta(z_t)\simeq \beta(z_t)+\beta'(z)(z_t-z)$), ce qui est justifiée par le théorème de Taylor.
-Pour chaque date $t$, le coefficient $\beta_t$ est obtenu par moindre carrés pondérés.
+On suppose que la fonction $\beta$ est localement constante ($\beta(z_t)\simeq \beta(z)$, option par défaut) ou localement linéaire  ($\beta(z_t)\simeq \beta(z)+\beta'(z)(z_t-z)$), c'est-à-dire que pour toute date $t$ on a pour toute date $i$ proche de $t$ : $\beta(z_i)\simeq\beta(z_t)$ ou $\beta(z_i)\simeq\beta(z_t)+\beta'(z_t)(z_i-z_t).$ 
+Cette approximation locale est justifiée par le théorème de Taylor.
+
+Pour chaque date $t$, le coefficient $\beta_t=\beta(z_t)$ est obtenu par moindre carrés pondérés.
 Lorsque $\beta$ est supposé localement constant il s'agit du système :
 $$
-\beta_t=\underset{\theta_0}\argmin\sum_{i=1}^T\left[\y_i-\transp{\theta_0} X_i\right]^2K_{b_t}(z_i-z).
+\hat{\bf\beta_t}=\hat{\beta}(z_t)=\underset{\bf\theta_0}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf\theta_0} \bf X_i\right]^2K_{b_t}(z_i-z_t).
 $$
 Lorsque $\beta$ est supposé localement linéaire il s'agit du système :
 $$
-\beta_t=\underset{\theta_0,\theta_1}\argmin\sum_{i=1}^T\left[\y_i-\transp{\theta_0} X_i - (z_i-z)\transp{\theta_1}X_i\right]^2K_{b_t}(z_i-z).
+(\hat{\beta}(z_t), \hat{\beta}'(z_t))=\underset{\bf \theta_0,\bf \theta_1}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf \theta_0} X_i - (z_i-z_t)\transp{\bf \theta_1}\bf X_i\right]^2K_{b_t}(z_i-z_t).
 $$
+Avec $K_{b_t}(z_i-z_t)=\frac{1}{b_t}K\left(\frac{z_i-z_t}{b_t}\right)$ et $K(\cdot)$ une fonction de noyau.
+La fonction $K$ permet de pondérer les observations : pour l'estimation du coefficient à la date $t$ on accorde généralement plus d'importance (i.e., un poids plus important) aux observations qui sont proches de $t$ qu'à celles qui sont éloignées de $t.$
+C'est une fonction positive, paire et intégrable telle que $\int_{-\infty}^{+\infty}K(u) \ud u=1.$
+Trois noyaux sont disponibles dans la fonction `tvReg::tvLM()` :
 
-
-
-
-
-Model 
-
+- Le cubique (*triweight*, utilisé par défaut) :
 $$
-y_t=x_t^T\beta(z_t)+u_t,\quad t=1, \dots, T
-$$
-Here we use $z_t= t/T$ the rescaled time but $z_t$ could be the value at date $t$ of a random variable
-
-We assume that $\beta$ is a local constant (Nadaraya-Watson estimator) or local linear.
-
-
-$$
-\kappa_j^{TW}=\left(
+K(u)=\frac{35}{32}\left(
 1-
 \left\lvert
-\frac j {h+1}
+x
 \right\lvert^2
-\right)^3
+\right)^3\1_{[-1,1]}(x).
 $$
 
+- Le noyau d'Epanechnikov (ou parabolique) :
 $$
-K_b(x)=\frac{1}{b}\left(
+K(u)=\frac{3}{4}\left(
 1-
 \left\lvert
-\frac x {b}
+x
 \right\lvert^2
-\right)^3\mathbb 1_{-1\leq x/b\leq1}
+\right)\1_{[-1,1]}(x).
 $$
 
+- Le noyau Gaussien :
 $$
-z_t-z_j=\frac{t-j}{T}
-$$
-
-$$
-K_b(x) \ne 0 \iff
-\left\lvert\frac{t-j}{bT}
-\right\rvert \leq 1
+K(u)=\frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2}x^2\right)
 $$
 
+Le paramètre $b_t$ permet de calibrer la largeur de la fenêtre (i.e., le nombre de points utilisés pour chaque estimation).
+Il est généralement supposé constant ($b_t=b$).
+
+Dans notre exemple de prévision du PIB, $T=160$ observations sont utilisées.
+Avec $z_t=t/T$ et indexant chaque observation entre 1 et $T,$ la régression mobile sur 15 ans où l'on affecte le coefficient de la date $t$ au milieu de la fenêtre d'estimation est donc retrouvée en utilisant le noyau uniforme $K(u)=\1_{[-1,1]}(x)$ avec $b_t=b=\frac{30}{160}.$
+En effet, dans ce cas $K(z_t-z_i)\ne0$ si et seulement si $|t-i|\leq30$ : on utilise donc 30 observations ($=7,5$ ans) autour de $t$ pour estimer le coefficient à la date $t.$
+
+Dans `tvReg`, le paramètre $b$ est par défaut obtenu en minimisant une statistique de validation croisée dans l'intervalle $\left[\frac{5}{T},20\right].$
+Lorsque $b$ est plus grand que 1, toutes les observations sont utilisées pour l'estimation de chaque coefficient $\bf\beta_t.$
+Plus $b$ se rapproche de 1 plus on se rapproche du cas de la régression linéaire puisque dans ce cas les poids donnés par $K$ tendent à être constants pour toutes les observations.
+En effet, dans ce cas, pour $T=160,$ $\frac{\max_u K(u)}{\min_u K(u)}$ est compris entre $1,001$ et $1,008$ pour les noyaux cubiques, paraboliques et gaussiens.
+
+Reprenons notre exemple de prévision du PIB avec une détection automatique de la fenêtre.
+
+```{r}
+reg_loc <- tvReg::tvLM(
+  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
+  data = window(gdp, start = 1980, end = c(2019,4))
+)
+summary(reg_loc)
+```
+La fenêtre estimée par défaut est de `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")`, c'est-à-dire que pour estimer le coefficient à la date $t$ on utilise au plus `{r} round(reg_loc$bw*nrow(reg_lin$model)/4)` ans avant et après $t$ : on utilise tous les points dans la majorité des cas.
+Cela explique le caractère très lisse des coefficients ([graphique @fig-coef-reg-mobile]).
+Avec ce paramètre pour la fenêtre, les ruptures sont difficiles à prendre en compte.
+
+
+```{r}
+#| echo: true
+#| label: fig-coef-reg-mobile
+#| fig-cap: Coefficients estimés par régression locale (avec $b=0,74$) et régression par morceaux.
+# coef_roll_regres <- ts(coef_roll_regres, start = 1980+15/2-0.25,
+#                        frequency = 4)
+coef_pr <- coef(pr_gdp)
+coef_reg_loc <- ts(coef(reg_loc), start = 1980, frequency = 4)
+coef2plot(
+  list("Reg. par morceaux" = coef_pr,
+       # "Reg. mobile" = coef_roll_regres,
+       "Reg. locale" = coef_reg_loc)
+  )
+```
+
+
+
+```{r}
+oos_reg_loc <- oos_prev(reg_loc)
+oos_bw <- ts(sapply(oos_reg_loc$model, `[[`,"bw"),
+             end = c(2019, 4),
+             frequency = 4)
+```
+
+
+```{r}
+#| echo: false
+#| label: fig-oos-bw
+#| fig-cap: Fenêtre $b$ détectée automatique en fonction de la date de fin d'estimation du modèle
+autoplot(oos_bw) +
+  # geom_abline(slope = 0, intercept = 1) +
+  theme_bw() +
+  labs(x = "Date de fin d'estimation",
+       y = latex2exp::TeX("Fenêtre $b$"))
+```
 
 
 ## Modélisation espace-état {#sec-ssm}
@@ -629,7 +700,7 @@ Ces modèles sont implémentés dans la fonction `tvCoef::ssm_lm()` qui prend en
 L'implémentation est basée sur le package `rjd3sts` @rjd3sts
 
 ```{r}
-ssm_lm(model_gdp)
+ssm_lm(reg_lin)
 ```
 
 
@@ -637,7 +708,7 @@ ssm_lm(model_gdp)
 Smoothing, filtering
 
 ```{r}
-ssm_lm(model_gdp)
+ssm_lm(reg_lin)
 ```
 
 ## Autres modèles
