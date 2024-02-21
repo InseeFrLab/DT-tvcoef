@@ -569,7 +569,10 @@ Ils auraient également pu être associés à la première date de la fenêtre o
 Dans tous les cas une stratégie doit être adoptée afin de gérer les observations manquantes (dans notre exemple il s'agit donc d'estimer les coefficients avant 1994).
 
 La régression locale permet, grâce à une modélisation plus poussée, de donner des solutions à ce problème.
-Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvReg::tvLM()` développée par @tvReg.
+Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvReg::tvLM()` développée par @tvReg^[
+D'autres packages sont disponibles pour effectuer de la régression locale, dont par exemple `locfit` de @locfit.
+Toutefois, nous avons ici privilégié le package `tvReg` du fait de sa simplicité d'utilisation et parce qu'il implémente également une fonction `tvReg::tvAR()` pour permet de prendre en compte de manière optimale les retards de la variable endogène (non étudiée dans cette étude).
+].
 On suppose ici que les coefficients $\bf\beta_t$ dépendent d'une variable aléatoire $z_t$ : $\bf\beta_t=\beta(z_t).$
 Par défaut $z_t=t/T$ avec $T$ le nombre d'observations : les coefficients dépendent donc d'une mesure normalisée du temps.
 On suppose que la fonction $\beta$ est localement constante ($\beta(z_t)\simeq \beta(z)$, option par défaut) ou localement linéaire  ($\beta(z_t)\simeq \beta(z)+\beta'(z)(z_t-z)$), c'est-à-dire que pour toute date $t$ on a pour toute date $i$ proche de $t$ : $\beta(z_i)\simeq\beta(z_t)$ ou $\beta(z_i)\simeq\beta(z_t)+\beta'(z_t)(z_i-z_t).$ 
@@ -637,11 +640,11 @@ summary(reg_loc)
 ```
 La fenêtre estimée par défaut est de `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")`, c'est-à-dire que pour estimer le coefficient à la date $t$ on utilise au plus `{r} round(reg_loc$bw*nrow(reg_lin$model)/4)` ans avant et après $t$ : on utilise tous les points dans la majorité des cas.
 Cela explique le caractère très lisse des coefficients ([graphique @fig-coef-reg-mobile]).
-Avec ce paramètre pour la fenêtre, les ruptures sont difficiles à prendre en compte.
+Avec ce paramètre pour la fenêtre, les ruptures brutales sont donc difficiles à prendre en compte.
 
 
 ```{r}
-#| echo: true
+#| echo: false
 #| label: fig-coef-reg-mobile
 #| fig-cap: Coefficients estimés par régression locale (avec $b=0,74$) et régression par morceaux.
 # coef_roll_regres <- ts(coef_roll_regres, start = 1980+15/2-0.25,
@@ -655,7 +658,8 @@ coef2plot(
   )
 ```
 
-
+Un des inconvénients de méthode de sélection automatique de la fenêtre est que la statistique de validation croisée est un critère peu discriminant (voir @Loader1999) : il peut y avoir très peu de différences entre différentes valeurs de la fenêtre alors que celle-ci a un impact fort sur l'interprétation du modèle !
+Cela a également pour effet que la méthode est peu stable dans le temps ([figure @fig-oos-bw]), ce qui augmente les sources de révisions des simulations en temps réel, calculables en utilisant la fonction `oos_prev()` :
 
 ```{r}
 oos_reg_loc <- oos_prev(reg_loc)
@@ -675,6 +679,10 @@ autoplot(oos_bw) +
   labs(x = "Date de fin d'estimation",
        y = latex2exp::TeX("Fenêtre $b$"))
 ```
+
+Pour l'estimation en temps réel, la méthode utilisée est l'utilisation d'une fonction de noyau tronquée : plus de points dans le passé que dans le futur sont utilisés pour estimer les derniers coefficients.
+C'est donc également une source de révision au fur et à mesure que des nouveaux points seront connus.
+Même si des méthodes optimales existent pour minimiser les erreurs d'estimation des coefficients en temps réel (voir par exemple @FengSchafer2021), cela devrait ici avoir peu d'impact car un modèle très simple est ici utilisé pour estimer les coefficients (approximation de la fonction $\beta$ par une constante).
 
 
 ## Modélisation espace-état {#sec-ssm}
