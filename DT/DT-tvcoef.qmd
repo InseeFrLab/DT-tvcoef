@@ -60,9 +60,10 @@ library(tvReg)
 library(ggplot2)
 library(patchwork)
 library(forecast)
-coef2plot <- function(x, linetype = 1){
+coef2plot <- function(x, linetype = 1, start = NULL, end = NULL){
   noms_mod <- names(x)
   linetype <- rep(linetype, length(x))
+  x <- lapply(x, window, start = start, end = end, extend =TRUE)
   plot_i <- function(x, col){
     p <- autoplot(x[[1]][,col], series = noms_mod[1], linetype=linetype[1]) + 
       labs(y = colnames(x[[1]])[col], x = NULL)
@@ -422,8 +423,8 @@ Dans la majorité des cas, nous suggérons de privilégier la première modélis
 
 Dans notre exemple, les coefficients associés à la constante et au climat des affaires en niveau sont proches avant et après la rupture, ce qui est cohérent avec le résultat du test de Hansen (section [-@sec-hansen-test]) :
 ```{r}
-pr_gdp <- piece_reg(reg_lin)
-coef(pr_gdp$model)
+reg_morc <- piece_reg(reg_lin)
+coef(reg_morc$model)
 ```
 Cette égalité peut être testée en utilisant un test de Fisher, par exemple avec la fonction `car::linearHypothesis()`.
 Dans notre exemple, on ne rejette pas l'hypothèse nulle d'égalité des coefficients de la constante et du climat des affaires en niveau avant et après la rupture, modèle peut donc être simplifié.
@@ -431,16 +432,16 @@ Par ailleurs, on rejette l'hypothèse nulle d'égalité du coefficient associé 
 Toutefois, nous conseillons de toujours considérer que la constante varie dans le temps, même lorsque que ce n'est statistiquement pas significatif : cela permet de s'assurer que le modèle ne sera pas biaisé par des résidus qui ne seraient pas de moyenne nulle.
 ```{r}
 car::linearHypothesis(
-  pr_gdp$model,
+  reg_morc$model,
   c("`(Intercept)_2000.25` = `(Intercept)_2019.75`",
     "bc_fr_m1_2000.25 = bc_fr_m1_2019.75"),
   test = "F")
-pr_gdp <- piece_reg(reg_lin, fixed_var = 2)
+reg_morc <- piece_reg(reg_lin, fixed_var = 2)
 car::linearHypothesis(
-  pr_gdp$model,
+  reg_morc$model,
   c("diff_bc_fr_m1_2000.25 = diff_bc_fr_m1_2019.75"),
   test = "F")
-coef(pr_gdp$model)
+coef(reg_morc$model)
 ```
 
 La qualité prédictive du nouveau modèle peut s'apprécier de plusieurs façons, les plus classiques étant la minimisation du critère d'information d'Akaike (AIC et fonction `AIC()`) ou la minimisation des erreurs de prévisions en temps réel (fonction `tvCoef::oos_prev()`).
@@ -451,8 +452,8 @@ Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces 
 Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères :
 ```{r}
 # AIC minimisé :
-AIC(pr_gdp$model) < AIC(reg_lin)
-oos_pr <- oos_prev(pr_gdp)
+AIC(reg_morc$model) < AIC(reg_lin)
+oos_pr <- oos_prev(reg_morc)
 oos_lm <- oos_prev(reg_lin)
 res <- ts.union(oos_pr$residuals, oos_lm$residuals)
 # Les deux modèles étant équivalents avant la rupture,
@@ -499,12 +500,12 @@ Même s'il est possible que cela n'ait que très peu d'effet sur les prévisions
 ```{r}
 #| echo: false
 #| label: fig-temps-reel-bp
-#| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'estimation du modèle
+#| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'estimation du modèle.
 # On enlève les premières observations car pas de rupture
 bp <- lapply(oos_lm$model[-(1:74)],breakpoints)
 bpd <- sapply(bp, breakdates)
 bpd <- bpd * sapply(bp, `[[`, "nobs")
-bp_ts <- ts(time(get_data(pr_gdp))[bpd], 
+bp_ts <- ts(time(get_data(reg_morc))[bpd], 
             end = end(oos_lm$forecast),
             frequency = frequency(oos_lm$forecast))
 ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
@@ -545,11 +546,19 @@ Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fe
 ```{r}
 #| echo: true
 coef_roll_regres <- na.omit(coef_roll_regres)
-coef_pr <- window(coef(pr_gdp), start = start(coef_roll_regres))
+coef_pr <- coef(reg_morc)
+coef_lin <- ts(matrix(coef(reg_lin), nrow = 1), 
+               start = start(coef_pr),
+               end = end(coef_pr),
+               frequency = frequency(coef_pr))
 
 coef2plot(
-  list("Reg. mobile" = coef_roll_regres,
-       "Reg. par morceaux" = coef_pr)
+  list(
+    "Reg. linéaire" = coef_lin,
+    "Reg. par morceaux" = coef_pr,
+    "Reg. mobile" = coef_roll_regres
+  ),
+  start = start(coef_roll_regres)
   )
 ```
 
@@ -649,13 +658,17 @@ Avec ce paramètre pour la fenêtre, les ruptures brutales sont donc difficiles 
 #| fig-cap: Coefficients estimés par régression locale (avec $b=0,74$) et régression par morceaux.
 # coef_roll_regres <- ts(coef_roll_regres, start = 1980+15/2-0.25,
 #                        frequency = 4)
-coef_pr <- coef(pr_gdp)
+coef_pr <- coef(reg_morc)
 coef_reg_loc <- ts(coef(reg_loc), start = 1980, frequency = 4)
+
 coef2plot(
-  list("Reg. par morceaux" = coef_pr,
-       # "Reg. mobile" = coef_roll_regres,
-       "Reg. locale" = coef_reg_loc)
+  list(
+    "Reg. linéaire" = coef_lin,
+    # "Reg. mobile" = coef_roll_regres,
+    "Reg. par morceaux" = coef_pr,
+    "Reg. locale" = coef_reg_loc
   )
+)
 ```
 
 Un des inconvénients de méthode de sélection automatique de la fenêtre est que la statistique de validation croisée est un critère peu discriminant (voir @Loader1999) : il peut y avoir très peu de différences entre différentes valeurs de la fenêtre alors que celle-ci a un impact fort sur l'interprétation du modèle !
@@ -672,7 +685,7 @@ oos_bw <- ts(sapply(oos_reg_loc$model, `[[`,"bw"),
 ```{r}
 #| echo: false
 #| label: fig-oos-bw
-#| fig-cap: Fenêtre $b$ détectée automatique en fonction de la date de fin d'estimation du modèle
+#| fig-cap: Fenêtre $b$ détectée automatique en fonction de la date de fin d'estimation du modèle.
 autoplot(oos_bw) +
   # geom_abline(slope = 0, intercept = 1) +
   theme_bw() +
@@ -684,6 +697,9 @@ Pour l'estimation en temps réel, la méthode utilisée est l'utilisation d'une 
 C'est donc également une source de révision au fur et à mesure que des nouveaux points seront connus.
 Même si des méthodes optimales existent pour minimiser les erreurs d'estimation des coefficients en temps réel (voir par exemple @FengSchafer2021), cela devrait ici avoir peu d'impact car un modèle très simple est ici utilisé pour estimer les coefficients (approximation de la fonction $\beta$ par une constante).
 
+
+Un autre inconvénient de ces méthodes est que tous les coefficients varient.
+Si l'on souhaite fixer certaints coefficients
 
 ## Modélisation espace-état {#sec-ssm}
 
