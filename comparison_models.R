@@ -69,8 +69,8 @@ all_models_formula <-
     )
   )
 
-if (!file.exists("results/all_models.RDS")){
-  all_models <- lapply(all_models_formula, function(sect){
+if (!file.exists("results/all_models.RDS")) {
+  all_models <- lapply(all_models_formula, function(sect) {
     lapply(sect, function(form) {
       dynlm(as.formula(form), data = data)
     })
@@ -81,31 +81,33 @@ if (!file.exists("results/all_models.RDS")){
 }
 
 
-all_bp <- lapply(all_models, function(sect){
+all_bp <- lapply(all_models, function(sect) {
   # On restreint à au plus deux ruptures
   lapply(lapply(sect, breakpoints, breaks = 2), breakdates)
 })
-lapply(all_bp, function(sect){
-  sapply(sect, function(bp){
+lapply(all_bp, function(sect) {
+  sapply(sect, function(bp) {
     sum(!is.na(bp))
   })
 })
 
-all_hansen <- lapply(all_models, function(sect){
-  sapply(sect, function(model){
-    test <- hansen_test(
-      model,
-      # On enlève les indicatrices
-      var = grep("ind", names(coef(model)), invert = TRUE)
-    )
-    test$L_c > hansen_table[length(test$selected_var),"5%"]
+
+all_hansen <- lapply(all_models, function(sect) {
+  sapply(sect, function(model) {
+    test <- hansen_test(model,
+                        # On enlève les indicatrices
+                        var = grep("ind", names(coef(model)), invert = TRUE))
+    test$L_c > hansen_table[length(test$selected_var), "5%"]
   })
 })
 
+########################################################
+################ Estimation des modèles ################
+########################################################
 
-if (!file.exists("results/reg_morc.RDS")){
+if (!file.exists("results/reg_morc.RDS")) {
   reg_morc <- lapply(seq_along(all_models), function(i_sect) {
-    lapply(seq_along(all_models[[i_sect]]), function(i_mod){
+    lapply(seq_along(all_models[[i_sect]]), function(i_mod) {
       mod <- all_models[[i_sect]][[i_mod]]
       bp <- all_bp[[i_sect]][[i_mod]]
       if (all(is.na(bp))) {
@@ -126,7 +128,7 @@ if (!file.exists("results/reg_morc.RDS")){
 
 if (!file.exists("results/reg_loc.RDS")) {
   reg_loc <- lapply(all_models, function(sect) {
-    lapply(sect, function(mod){
+    lapply(sect, function(mod) {
       data <- get_data(mod)
       formula <- sprintf("%s ~ .", colnames(data)[1])
       tvReg::tvLM(as.formula(formula),
@@ -138,9 +140,9 @@ if (!file.exists("results/reg_loc.RDS")) {
   reg_loc <- readRDS("results/reg_loc.RDS")
 }
 
-if (!file.exists("results/reg_morc_loc.RDS")){
+if (!file.exists("results/reg_morc_loc.RDS")) {
   reg_morc_loc <- lapply(seq_along(all_models), function(i_sect) {
-    lapply(seq_along(all_models[[i_sect]]), function(i_mod){
+    lapply(seq_along(all_models[[i_sect]]), function(i_mod) {
       mod <- all_models[[i_sect]][[i_mod]]
       bp <- all_bp[[i_sect]][[i_mod]]
       if (all(is.na(bp))) {
@@ -149,7 +151,12 @@ if (!file.exists("results/reg_morc_loc.RDS")){
         var_fixe = grep("ind", names(coef(mod)))
         if (length(var_fixe) == 0)
           var_fixe = NULL
-        piece_reg(mod, break_dates = bp, fixed_var = var_fixe, tvlm = TRUE)
+        piece_reg(
+          mod,
+          break_dates = bp,
+          fixed_var = var_fixe,
+          tvlm = TRUE
+        )
       }
     })
   })
@@ -159,18 +166,25 @@ if (!file.exists("results/reg_morc_loc.RDS")){
   reg_morc_loc <- readRDS("results/reg_morc_loc.RDS")
 }
 
-if (!file.exists("results/ssm.RDS")){
+if (!file.exists("results/ssm.RDS")) {
   ssm <- lapply(all_models, function(sect) {
-    lapply(sect, function(mod){
+    lapply(sect, function(mod) {
       var <- names(coef(mod))[-1] # On enlève la constante
       fixed_var <- rep(FALSE, length(var))
-      variance <- rep(0.01, length(var))
-      fixed_var[grep("ind", names(coef(mod)))] <- TRUE
-      variance[grep("ind", names(coef(mod)))] <- 0
-      ssm_lm(mod,
-             fixed_var_intercept = FALSE,
-             fixed_var_variables = fixed_var,
-             var_variables =variance)
+      # Lorsque la variance est estimée, la valeur initiale n'a pas d'importance
+      # Toutefois certaines valeurs conduisent à des erreurs d'estimation
+      # ici la valeur de 0.001 ne conduisait pas à des erreurs 
+      # (contrairement à 0)
+      variance <- rep(0.001, length(var))
+      fixed_var[grep("ind", var)] <- TRUE
+      variance[grep("ind", var)] <- 0
+      ssm_lm(
+        mod,
+        fixed_var_intercept = FALSE,
+        fixed_var_variables = fixed_var,
+        var_variables = variance,
+        var_intercept = 0.001
+      )
     })
   })
   saveRDS(ssm, "results/ssm.RDS")
@@ -178,3 +192,76 @@ if (!file.exists("results/ssm.RDS")){
   ssm <- readRDS("results/ssm.RDS")
 }
 
+##########################################################
+################ Estimation en temps réel ################
+##########################################################
+
+# Dernière rupture en 2011Q4 :
+max(unlist(all_bp), na.rm = TRUE)
+first_period_oos <- 60
+
+if (!file.exists("results/lm_oos.RDS")) {
+  lm_oos <- lapply(all_models, function(sect) {
+    lapply(sect, oos_prev, date = first_period_oos)
+  })
+  saveRDS(lm_oos, "results/lm_oos.RDS")
+  rm(lm_oos)
+} 
+
+if (!file.exists("results/reg_morc_oos.RDS")) {
+  reg_morc_oos <- lapply(reg_morc, function(sect) {
+    lapply(sect, oos_prev, date = first_period_oos)
+  })
+  saveRDS(reg_morc_oos, "results/reg_morc_oos.RDS")
+  rm(reg_morc_oos)
+} 
+
+if (!all(file.exists(c("results/reg_loc_oos.RDS", "results/reg_loc_fixed_bw_oos.RDS")))) {
+  reg_loc_oos_all <- lapply(reg_loc, function(sect) {
+    lapply(sect, oos_prev, fixed_bw = FALSE, date = first_period_oos)
+  })
+  reg_loc_oos_fixed_bw <- lapply(reg_loc, function(sect) {
+    lapply(sect, oos_prev, fixed_bw = TRUE, date = first_period_oos)
+  })
+  saveRDS(reg_loc_oos_all,
+          "results/reg_loc_oos.RDS")
+  saveRDS(reg_loc_oos_fixed_bw,
+          "results/reg_loc_fixed_bw_oos.RDS")
+  rm(reg_loc_oos_all, reg_loc_oos_fixed_bw)
+} 
+
+if (!all(file.exists("results/reg_morc_loc_oos.RDS", "results/reg_morc_loc_fixed_bw_oos.RDS"))) {
+  reg_morc_loc_oos_all <- lapply(reg_morc_loc, function(sect) {
+    lapply(sect, oos_prev, fixed_bw = FALSE, date = first_period_oos)
+  })
+  reg_morc_loc_oos_fixed_bw <- lapply(reg_morc_loc, function(sect) {
+    lapply(sect, oos_prev, fixed_bw = TRUE, date = first_period_oos)
+  })
+  saveRDS(reg_morc_loc_oos_all,
+          "results/reg_morc_loc_oos.RDS")
+  saveRDS(reg_morc_loc_oos_fixed_bw,
+          "results/reg_morc_loc_fixed_bw_oos.RDS")
+  rm(reg_morc_loc_oos_all, reg_morc_loc_oos_fixed_bw)
+} 
+
+if (!file.exists("results/ssm_oos.RDS")) {
+  ssm_oos <- lapply(all_models, function(sect) {
+    lapply(sect, function(mod) {
+      var <- names(coef(mod))[-1] # On enlève la constante
+      fixed_var <- rep(FALSE, length(var))
+      variance <- rep(0.001, length(var))
+      fixed_var[grep("ind", var)] <- TRUE
+      variance[grep("ind", var)] <- 0
+      ssm_lm_oos(
+        mod,
+        fixed_var_intercept = FALSE,
+        fixed_var_variables = fixed_var,
+        var_variables = variance,
+        date = first_period_oos,
+        var_intercept = 0.001
+      )
+    })
+  })
+  saveRDS(ssm_oos, "results/ssm_oos.RDS")
+  rm(ssm_oos)
+} 
