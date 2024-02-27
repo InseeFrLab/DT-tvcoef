@@ -66,7 +66,7 @@ coef2plot <- function(x, linetype = 1, start = NULL, end = NULL){
   x <- lapply(x, window, start = start, end = end, extend =TRUE)
   plot_i <- function(x, col){
     p <- autoplot(x[[1]][,col], series = noms_mod[1], linetype=linetype[1]) + 
-      labs(y = colnames(x[[1]])[col], x = NULL)
+      labs(y = NULL, x = NULL, title = colnames(x[[1]])[col])
     
     for (i in seq_len(length(x)-1)+1) {
       p <- p + autolayer(x[[i]][,col], series = noms_mod[i], linetype=linetype[i])
@@ -143,22 +143,22 @@ Objectifs :
 Dans cet article, nous nous placerons dans le cadre de la régression linéaire avec des variables à une dimension.
 À chaque date $t$, la variable $y_t$ (e.g. : taux de croissance du PIB) est expliquée par une combinaison linéaire de $p$ variables explicatives, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
 $$
-y_t=\beta_{0}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t 
+y_t=\alpha_{0}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t 
 $$
 où $\varepsilon_t$ représente l'erreur d'approximation.
 En notant ${\bf X}_t=\transp{\begin{pmatrix}1 & x_{1,t} &\cdots & x_{p,t} \end{pmatrix}}$ et 
-${\bf \beta}=\transp{\begin{pmatrix}\beta_0 & \beta_1 &\cdots & \beta_p \end{pmatrix}}$, cela s'écrit matriciellement\ :
+${\bf \alpha}=\transp{\begin{pmatrix}\alpha_0 & \alpha_1 &\cdots & \alpha_p \end{pmatrix}}$, cela s'écrit matriciellement\ :
 $$
-y_t=\transp{\bf\beta} \bf X_t +\varepsilon_t.
+y_t=\transp{\bf X_t} \bf\alpha +\varepsilon_t.
 $$
 
-Dans le cadre de la régression linéaire, les coefficients $\bf\beta$ sont supposés constants dans le temps et estimés en utilisant l'ensemble des données.
+Dans le cadre de la régression linéaire, les coefficients $\bf\alpha$ sont supposés constants dans le temps et estimés en utilisant l'ensemble des données.
 Cela suppose donc que la relation économique entre les différentes variables est stable dans le temps.
 Même si cette hypothèse est généralement vraie sur le court-terme, elle peut être invalidée sur le long-terme du fait de changements structurels (mesures économiques, crises, changement de nomenclature, etc.)
 L'objectif de cet article est d'étudier différent modèles permettant de relâcher cette hypothèse de constance des coefficients.
 Le modèle général s'écrit donc :
 $$
-y_t=\transp{\bf\beta_t} \bf X_t +\varepsilon_t.
+y_t=\transp{\bf X_t} \bf\alpha_t  +\varepsilon_t.
 $$
 Pour faciliter l'utilisation des modèles ici présentés, le package {{< fa brands r-project >}} `tvCoef` [@tvcoef] a été développé pour cette étude.
 
@@ -173,7 +173,7 @@ Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de do
 
 Le modèle s'écrit donc :
 $$
-\% PIB_t=\beta_0 + \beta_1\times climat\_fr_t^{m_1} + \beta_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
+\% PIB_t=\alpha_0 + \alpha_1\times climat\_fr_t^{m_1} + \alpha_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
 $$
 
 Il est estimé en utilisant les données entre les années 1980 et 2019.
@@ -215,11 +215,11 @@ cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \
 L'idée la plus simple pour tester s'il y a une rupture dans l'estimation des coefficients à une date $t_1$, est d'estimer deux sous-modèles avant et après cette date :
 $$
 \begin{cases}
-\forall t \leq t_1 :\quad \% PIB_t = \beta_0' + \beta_1' climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad \% PIB_t = \beta_0'' + \beta_1'' climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
+\forall t \leq t_1 :\quad \% PIB_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad \% PIB_t = \alpha_0'' + \alpha_1'' climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
-Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux\ : $\beta_0' = \beta_0''$, $\beta_1' = \beta_1''$ et $\beta_2' = \beta_2''.$
+Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux\ : $\alpha_0' = \alpha_0''$, $\alpha_1' = \alpha_1''$ et $\alpha_2' = \alpha_2''.$
 L'hypothèse alternative et qu'au moins un des coefficients est différent entre les deux sous-périodes.
 C'est le principe du test de @chowtest.
 
@@ -245,18 +245,18 @@ Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yea
 Cet algorithme est très simple à utiliser mais possède plusieurs inconvénients :
 
 - L'implémentation sous {{< fa brands r-project >}} de l'algorithme de Bai et Perron ne permet pas de chercher des ruptures sur un sous-ensemble de variables : on ne cherche des ruptures que sur l'ensemble du modèle.
-Par exemple, on ne peut pas tester $\beta_2' = \beta_2''$ dans le modèle :
+Par exemple, on ne peut pas tester $\alpha_2' = \alpha_2''$ dans le modèle :
 $$
 \begin{cases}
-\forall t \leq t_1 :\quad \% PIB_t = \beta_0 + \beta_1 climat\_fr_t + \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad \% PIB_t = \beta_0 + \beta_1 climat\_fr_t + \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
+\forall t \leq t_1 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
-Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\beta_0$ et $\beta_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle\ :
+Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\alpha_0$ et $\alpha_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle\ :
 $$
 \begin{cases}
-\forall t \leq t_1 :\quad (\% PIB - \hat\beta_0-\hat \beta_1 climat\_fr)_t = \beta_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad (\% PIB - \hat\beta_0-\hat \beta_1 climat\_fr)_t = \beta_2'' \Delta climat\_fr_t + \varepsilon_t''
+\forall t \leq t_1 :\quad (\% PIB - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad (\% PIB - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
 
@@ -272,18 +272,18 @@ Alors que l'algorithme de Bai et Perron cherche une date spécifique où il y au
 
 En repartant de la modélisation générale de la régression linéaire :
 \begin{align*}
-y_t&=\beta_{0}x_{0,t}+\beta_{1} x_{1,t}+\dots+\beta_{p} x_{p,t} +\varepsilon_t  \\
-&= \transp{\bf\beta} \bf X_t +\varepsilon_t\\
+y_t&=\alpha_{0}x_{0,t}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t  \\
+&= \transp{\bf X_t} \bf\alpha  +\varepsilon_t\\
 \E{\varepsilon_t|x_t}&=0 \text{ (exogénéité stricte)} \\
 \E{\varepsilon_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
 \end{align*}
 On suppose également que toutes les variables sont faiblement dépendantes (cas général de la régression linéaire).
 Les variables ne doivent donc pas contenir de tendance déterministe ou stochastique (comme des racines unitaires).
 
-Le test consiste à tester si l'ensemble des paramètres $(\beta,\sigma^2)$ sont constants.
+Le test consiste à tester si l'ensemble des paramètres $(\alpha,\sigma^2)$ sont constants.
 L'hypothèse alternative est qu'au moins un paramètre suit une martingale.
 
-Notons $\hat \varepsilon_t =y_t- \transp{\hat{\bf\beta}} \bf X_t$ et
+Notons $\hat \varepsilon_t =y_t- \transp{\bf X_t} \hat{\bf\alpha} $ et
 $$
 f_{i,t} = \begin{cases}
 x_{i,t}\hat \varepsilon_t &\text{ si }i\leq p\\
@@ -394,8 +394,8 @@ date_rupture <- format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")
 cat(
   sprintf("
 \\begin{align*}
-\\%% PIB_t &= \\beta_0\\1_{t\\leq %s} + \\beta_1 climat\\_fr_t\\1_{t\\leq %s} + \\beta_2 \\Delta climat\\_fr_t\\1_{t\\leq %s} + \\\\
-&\\phantom{=} \\beta_0'\\1_{t > %s} + \\beta_1' climat\\_fr_t\\1_{t > %s} + \\beta_2' \\Delta climat\\_fr_t\\1_{t > %s} + \\varepsilon_t
+\\%% PIB_t &= \\alpha_0\\1_{t\\leq %s} + \\alpha_1 climat\\_fr_t\\1_{t\\leq %s} + \\alpha_2 \\Delta climat\\_fr_t\\1_{t\\leq %s} + \\\\
+&\\phantom{=} \\alpha_0'\\1_{t > %s} + \\alpha_1' climat\\_fr_t\\1_{t > %s} + \\alpha_2' \\Delta climat\\_fr_t\\1_{t > %s} + \\varepsilon_t
 \\end{align*}
           ",date_rupture,date_rupture,date_rupture,date_rupture,date_rupture,date_rupture
   )
@@ -409,8 +409,8 @@ cat(
 cat(
   sprintf("$$
 \\begin{cases}
-\\forall t \\leq %s :\\quad \\%% PIB_t = \\beta_0 + \\beta_1 climat\\_fr_t + \\beta_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\
-\\forall t > %s :\\quad \\%% PIB_t = \\beta_0' + \\beta_1' climat\\_fr_t + \\beta_2' \\Delta climat\\_fr_t + \\varepsilon_t'
+\\forall t \\leq %s :\\quad \\%% PIB_t = \\alpha_0 + \\alpha_1 climat\\_fr_t + \\alpha_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\
+\\forall t > %s :\\quad \\%% PIB_t = \\alpha_0' + \\alpha_1' climat\\_fr_t + \\alpha_2' \\Delta climat\\_fr_t + \\varepsilon_t'
 \\end{cases}.
 $$          ",date_rupture,date_rupture
   )
@@ -485,7 +485,7 @@ forecast::autoplot(prev[,1],
     legend.background = element_rect(fill = alpha('gray99', 0.4),
                                      colour = "gray80", linetype = "solid"),
     legend.justification = c(0,0),
-    legend.position = c(0,0),
+    legend.position.inside = c(0,0),
     legend.key = element_blank(),
     legend.title = element_blank()
   )
@@ -551,6 +551,7 @@ coef_lin <- ts(matrix(coef(reg_lin), nrow = 1),
                start = start(coef_pr),
                end = end(coef_pr),
                frequency = frequency(coef_pr))
+colnames(coef_lin) <- names(coef(reg_lin))
 
 coef2plot(
   list(
@@ -582,19 +583,19 @@ Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvR
 D'autres packages sont disponibles pour effectuer de la régression locale, dont par exemple `locfit` de @locfit.
 Toutefois, nous avons ici privilégié le package `tvReg` du fait de sa simplicité d'utilisation et parce qu'il implémente également une fonction `tvReg::tvAR()` pour permet de prendre en compte de manière optimale les retards de la variable endogène (non étudiée dans cette étude).
 ].
-On suppose ici que les coefficients $\bf\beta_t$ dépendent d'une variable aléatoire $z_t$ : $\bf\beta_t=\beta(z_t).$
+On suppose ici que les coefficients $\bf\alpha_t$ dépendent d'une variable aléatoire $z_t$ : $\bf\alpha_t=\alpha(z_t).$
 Par défaut $z_t=t/T$ avec $T$ le nombre d'observations : les coefficients dépendent donc d'une mesure normalisée du temps.
-On suppose que la fonction $\beta$ est localement constante ($\beta(z_t)\simeq \beta(z)$, option par défaut) ou localement linéaire  ($\beta(z_t)\simeq \beta(z)+\beta'(z)(z_t-z)$), c'est-à-dire que pour toute date $t$ on a pour toute date $i$ proche de $t$ : $\beta(z_i)\simeq\beta(z_t)$ ou $\beta(z_i)\simeq\beta(z_t)+\beta'(z_t)(z_i-z_t).$ 
+On suppose que la fonction $\alpha$ est localement constante ($\alpha(z_t)\simeq \alpha(z)$, option par défaut) ou localement linéaire  ($\alpha(z_t)\simeq \alpha(z)+\alpha'(z)(z_t-z)$), c'est-à-dire que pour toute date $t$ on a pour toute date $i$ proche de $t$ : $\alpha(z_i)\simeq\alpha(z_t)$ ou $\alpha(z_i)\simeq\alpha(z_t)+\alpha'(z_t)(z_i-z_t).$ 
 Cette approximation locale est justifiée par le théorème de Taylor.
 
-Pour chaque date $t$, le coefficient $\beta_t=\beta(z_t)$ est obtenu par moindre carrés pondérés.
-Lorsque $\beta$ est supposé localement constant il s'agit du système :
+Pour chaque date $t$, le coefficient $\alpha_t=\alpha(z_t)$ est obtenu par moindre carrés pondérés.
+Lorsque $\alpha$ est supposé localement constant il s'agit du système :
 $$
-\hat{\bf\beta_t}=\hat{\beta}(z_t)=\underset{\bf\theta_0}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf\theta_0} \bf X_i\right]^2K_{b_t}(z_i-z_t).
+\hat{\bf\alpha_t}=\hat{\alpha}(z_t)=\underset{\bf\theta_0}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf X_i}\bf\theta_0 \right]^2K_{b_t}(z_i-z_t).
 $$
-Lorsque $\beta$ est supposé localement linéaire il s'agit du système :
+Lorsque $\alpha$ est supposé localement linéaire il s'agit du système :
 $$
-(\hat{\beta}(z_t), \hat{\beta}'(z_t))=\underset{\bf \theta_0,\bf \theta_1}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf \theta_0} X_i - (z_i-z_t)\transp{\bf \theta_1}\bf X_i\right]^2K_{b_t}(z_i-z_t).
+(\hat{\alpha}(z_t), \hat{\alpha}'(z_t))=\underset{\bf \theta_0,\bf \theta_1}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf X_i}\bf\theta_0 - (z_i-z_t)\transp{\bf X_i}\bf\theta_1\right]^2K_{b_t}(z_i-z_t).
 $$
 Avec $K_{b_t}(z_i-z_t)=\frac{1}{b_t}K\left(\frac{z_i-z_t}{b_t}\right)$ et $K(\cdot)$ une fonction de noyau.
 La fonction $K$ permet de pondérer les observations : pour l'estimation du coefficient à la date $t$ on accorde généralement plus d'importance (i.e., un poids plus important) aux observations qui sont proches de $t$ qu'à celles qui sont éloignées de $t.$
@@ -634,7 +635,7 @@ Avec $z_t=t/T$ et indexant chaque observation entre 1 et $T,$ la régression mob
 En effet, dans ce cas $K(z_t-z_i)\ne0$ si et seulement si $|t-i|\leq30$ : on utilise donc 30 observations ($=7,5$ ans) autour de $t$ pour estimer le coefficient à la date $t.$
 
 Dans `tvReg`, le paramètre $b$ est par défaut obtenu en minimisant une statistique de validation croisée dans l'intervalle $\left[\frac{5}{T},20\right].$
-Lorsque $b$ est plus grand que 1, toutes les observations sont utilisées pour l'estimation de chaque coefficient $\bf\beta_t.$
+Lorsque $b$ est plus grand que 1, toutes les observations sont utilisées pour l'estimation de chaque coefficient $\bf\alpha_t.$
 Plus $b$ se rapproche de 1 plus on se rapproche du cas de la régression linéaire puisque dans ce cas les poids donnés par $K$ tendent à être constants pour toutes les observations.
 En effet, dans ce cas, pour $T=160,$ $\frac{\max_u K(u)}{\min_u K(u)}$ est compris entre $1,001$ et $1,008$ pour les noyaux cubiques, paraboliques et gaussiens.
 
@@ -695,37 +696,84 @@ autoplot(oos_bw) +
 
 Pour l'estimation en temps réel, la méthode utilisée est l'utilisation d'une fonction de noyau tronquée : plus de points dans le passé que dans le futur sont utilisés pour estimer les derniers coefficients.
 C'est donc également une source de révision au fur et à mesure que des nouveaux points seront connus.
-Même si des méthodes optimales existent pour minimiser les erreurs d'estimation des coefficients en temps réel (voir par exemple @FengSchafer2021), cela devrait ici avoir peu d'impact car un modèle très simple est ici utilisé pour estimer les coefficients (approximation de la fonction $\beta$ par une constante).
+Même si des méthodes optimales existent pour minimiser les erreurs d'estimation des coefficients en temps réel (voir par exemple @FengSchafer2021), cela devrait ici avoir peu d'impact car un modèle très simple est ici utilisé pour estimer les coefficients (approximation de la fonction $\alpha$ par une constante).
 
 
-Un autre inconvénient de ces méthodes est que tous les coefficients varient.
-Si l'on souhaite fixer certaints coefficients
+Un autre inconvénient de ces méthodes est que tous les coefficients varient dans la temps alors que dans certains cas on peut supposer la relation constante.
+Si l'on souhaite fixer certains coefficients, on peut procéder comme dans la [section -@sec-test-baiperron] en faisant une régression linéaire, pour estimer les coefficients fixes, suivie d'une régression mobile.
 
 ## Modélisation espace-état {#sec-ssm}
 
 La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
-Dans cette approche, on suppose que tout problème est déterminé par une série de vecteurs non observés $\alpha_1,\dots,\alpha_n$ associés aux observations $y_1,\dots,y_n$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
-Ces modèles sont largement décrits dans @durbinkoopman.
+Dans cette approche, on suppose que tout modèle est déterminé par une série de vecteurs non observés $\alpha_1,\dots,\alpha_n$ associés aux observations $y_1,\dots,y_n$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
+Ces modèles sont largement décrits dans la littérature, notamment par @durbinkoopman.
 Dans cet article, nous nous placerons dans un cadre simplifié des modèles linéaires gaussiens appliqués aux régressions linéaires.
 Les modèles sont déterminés par un ensemble de deux équations :
 $$
-TODO
+\begin{cases}
+y_t=\transp{\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
+\bf\alpha_{t+1}=\bf\alpha_t+\bf\eta_t,\quad&\bf\eta_t\sim\mathcal N(\bf 0,\bf\Sigma)
+\end{cases},\text{ avec }\eta_t\text{ et }\varepsilon_t\text{ indépendants.}
 $$
-avec $\alpha_t$ le vecteur d'états (*state vector*) de dimension $p \times 1$.
+La première équation est l'équation d'observation (*observation equation*), la seconde l'équation d'état (*state equation*) et $\bf\alpha_t$ le vecteur d'états (*state vector*).
 
-La première équation est l'équation d'observation (*observation equation*) et la seconde l'équation d'état (*state equation*).
+Dans cette étude, la matrice de variance-covariance $\bf\Sigma$ est supposée diagonale : la dynamique d'évolution des coefficients d'une variable est donc indépendante de la dynamique d'évolution des autres variables.
+Lorsque des contraintes entre les différents coefficients existent, des spécifications différentes de la matrice de variance-covariance $\bf\Sigma$ peuvent être faites : c'est par exemple ce qui a été fait par @abs2006 pour estimer des coefficients jours ouvrables variant dans le temps.
+On retrouve le cas de la régression linéaire lorsque $\bf\Sigma=\bf 0$ puisque dans ce cas tous les $\alpha_t$ sont égaux.
+
+Ces modèles sont implémentés dans la fonction `tvCoef::ssm_lm()` qui prend en entrée un modèle de régression linéaire.
+L'implémentation est basée sur le package `rjd3sts` [@rjd3sts] qui permet d'implémenter très facilement les modèles espaces-état sans devoir écrire explicitement le modèle.
+Par défaut les variances du vecteur d'états ($\bf \Sigma$) ne sont pas estimés et fixés à 0 : on retrouve donc les coefficients estimés par régression linéaire.
+
+```{r}
+ssm <- ssm_lm(reg_lin)
+ssm
+```
+
+L'estimation des hyperparamètres (variances des bruits blancs) est faite par maximum de vraisemblance différentes méthodes existent pour initialiser les modèles (calculer $\bf \alpha_1$).
+Pour plus de détails voir par exemple @durbinkoopman.
+Le filtre de Kalman permet ensuite de calculer toutes les coefficients.
+Parmi les paramètres calculés, les deux principaux sont : 
+
+1. Les états lissés (*smoothed states*) : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant toute l'information disponible disponible : $\E{\alpha_t|y_1,\dots,y_n}.$
+Dans le cadre de la régression linéaire, les états lissés sont donc constants sur toutes les dates et correspondent aux coefficients estimés en utilisant l'ensemble des données disponibles :
+
+```{r}
+window(ssm$smoothed_states, start = 2019)
+```
+
+2. Les états filtrés (*filtered states*) : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant l'information disponible jusqu'à la date précédente : $\E{\alpha_t|y_1,\dots,y_{t-1}}.$
+Dans le cadre de la régression linéaire, cela correspond aux coefficients estimés en temps réel : la valeur des états filtrés en 2010T2 correspond aux coefficients estimés en utilisant les données jusqu'au 2010T1.
+Ils permettent donc d'avoir une estimation en temps réel des prévisions du modèle.
+```{r}
+round(window(ssm$filtering_states, start = c(2010, 2), end = c(2010, 2)), 6)
+round(coef(dynlm(
+  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
+  data = window(gdp, start = 1980, end = c(2010,1))
+)), 6)
+```
+Lorsque les variances sont estimées, les états filtrés ne correspondent pas à exactement à des estimations en temps réel car les hyperparamètres sont fixés (variances $\bf\Sigma$ et initialisation).
+Les estimations en temps réel peuvent être calculées en utilisant la fonction `tvCoef::ssm_lm_oos()`.
+
+Pour faciliter l'estimation des variances $\bf\Sigma,$ le paramètre est souvent reparamétré :
+
+$$
+\begin{cases}
+y_t=\transp{\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
+\bf\alpha_{t+1}=\bf\alpha_t+\bf\eta_t,\quad&\bf\eta_t\sim\mathcal N(\bf 0,\sigma^2\bf Q)
+\end{cases},\text{ avec }\eta_t\text{ et }\varepsilon_t\text{ indépendants.}
+$$
+
+```{r}
+sqrt(ssm$parameters$parameters *
+ssm$parameters$scaling)
+```
+
+
 
 texte sur la variance des coefficients.
 
 
-On retrouve le cas de la régression linéaire lorsque...
-
-Ces modèles sont implémentés dans la fonction `tvCoef::ssm_lm()` qui prend en entrée un modèle de régression linéaire.
-L'implémentation est basée sur le package `rjd3sts` @rjd3sts
-
-```{r}
-ssm_lm(reg_lin)
-```
 
 
 
