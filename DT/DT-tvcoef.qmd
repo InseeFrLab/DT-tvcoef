@@ -65,16 +65,16 @@ coef2plot <- function(x, linetype = 1, start = NULL, end = NULL){
   linetype <- rep(linetype, length(x))
   x <- lapply(x, window, start = start, end = end, extend =TRUE)
   plot_i <- function(x, col){
-    p <- autoplot(x[[1]][,col], series = noms_mod[1], linetype=linetype[1]) + 
+    p <- autoplot(x[[1]][,col], series = noms_mod[1], linetype=linetype[1],size = 1.2) + 
       labs(y = NULL, x = NULL, title = colnames(x[[1]])[col])
     
     for (i in seq_len(length(x)-1)+1) {
-      p <- p + autolayer(x[[i]][,col], series = noms_mod[i], linetype=linetype[i])
+      p <- p + autolayer(x[[i]][,col], series = noms_mod[i], linetype=linetype[i], size = 1.2)
     }
     p +
       theme_bw() + 
       theme(legend.title=element_blank())+
-    scale_color_grey(breaks = noms_mod)
+      scale_color_grey(breaks = noms_mod)
   }
   (plot_i(x, 1) + plot_i(x, 2) / plot_i(x, 3)) + 
     plot_layout(guides = 'collect') 
@@ -436,12 +436,12 @@ car::linearHypothesis(
   c("`(Intercept)_2000.25` = `(Intercept)_2019.75`",
     "bc_fr_m1_2000.25 = bc_fr_m1_2019.75"),
   test = "F")
-reg_morc <- piece_reg(reg_lin, fixed_var = 2)
+reg_morc2 <- piece_reg(reg_lin, fixed_var = 2)
 car::linearHypothesis(
-  reg_morc$model,
+  reg_morc2$model,
   c("diff_bc_fr_m1_2000.25 = diff_bc_fr_m1_2019.75"),
   test = "F")
-coef(reg_morc$model)
+coef(reg_morc2$model)
 ```
 
 La qualité prédictive du nouveau modèle peut s'apprécier de plusieurs façons, les plus classiques étant la minimisation du critère d'information d'Akaike (AIC et fonction `AIC()`) ou la minimisation des erreurs de prévisions en temps réel (fonction `tvCoef::oos_prev()`).
@@ -453,9 +453,9 @@ Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces
 ```{r}
 # AIC minimisé :
 AIC(reg_morc$model) < AIC(reg_lin)
-oos_pr <- oos_prev(reg_morc)
+oos_reg_morc <- oos_prev(reg_morc)
 oos_lm <- oos_prev(reg_lin)
-res <- ts.union(oos_pr$residuals, oos_lm$residuals)
+res <- ts.union(oos_reg_morc$residuals, oos_lm$residuals)
 # Les deux modèles étant équivalents avant la rupture,
 # on n'étudie les prévisions qu'après celle-ci
 res <- window(res, start = 2003)  
@@ -472,7 +472,7 @@ Pour les analyses en temps réel, il faut donc faire attention aux valeurs préd
 #| echo: false
 #| fig-cap: Prévision du PIB à partir d'un modèle de régression linéaire et d'un modèle de régression linéaire par morceaux.
 #| label: fig-prev-piecereg
-prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_pr$forecast)
+prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_reg_morc$forecast)
 colnames(prev) <- c("% PIB", "Reg. lin.",
                     "Reg. par morceaux")
 forecast::autoplot(prev[,1],
@@ -509,7 +509,7 @@ bp_ts <- ts(time(get_data(reg_morc))[bpd],
             end = end(oos_lm$forecast),
             frequency = frequency(oos_lm$forecast))
 ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
-       y = as.numeric(bp_ts))),
+                                 y = as.numeric(bp_ts))),
        aes(x = x, y = y)) +
   geom_point() +
   theme_bw() +
@@ -560,7 +560,7 @@ coef2plot(
     "Reg. mobile" = coef_roll_regres
   ),
   start = start(coef_roll_regres)
-  )
+)
 ```
 
 Lecture : la régression mobile est estimée sur une fenêtre de 15 ans.
@@ -656,7 +656,7 @@ Avec ce paramètre pour la fenêtre, les ruptures brutales sont donc difficiles 
 ```{r}
 #| echo: false
 #| label: fig-coef-reg-mobile
-#| fig-cap: Coefficients estimés par régression locale (avec $b=0,74$) et régression par morceaux.
+#| fig-cap: Coefficients estimés par régression linéaire, régression par morceaux et régression locale (avec $b=0,74$).
 # coef_roll_regres <- ts(coef_roll_regres, start = 1980+15/2-0.25,
 #                        frequency = 4)
 coef_pr <- coef(reg_morc)
@@ -763,25 +763,90 @@ y_t=\transp{\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(
 \bf\alpha_{t+1}=\bf\alpha_t+\bf\eta_t,\quad&\bf\eta_t\sim\mathcal N(\bf 0,\sigma^2\bf Q)
 \end{cases},\text{ avec }\eta_t\text{ et }\varepsilon_t\text{ indépendants.}
 $$
+Les variances sont donc définies à un facteur multiplicatif près et une estimation en deux étapes est faite : la vraisemblance est dite *concentrée*.
+C'est ce qui est utilisé par défaut dans `tvCoef::ssm_lm()`.
+Dans notre exemple, l'erreur standard de la régression (*residual standar error*) peut se calculer de la façon suivante :
 
 ```{r}
 sqrt(ssm$parameters$parameters *
-ssm$parameters$scaling)
+       ssm$parameters$scaling)
+summary(reg_lin)$sigma
 ```
 
+Afin d'estimer les variances associées à l'équation d'état, il faut utiliser les paramètres `fixed_var_intercept = FALSE` et `fixed_var_trend = FALSE`.
+Même si la valeur des variances (`var_intercept` et `var_variables` qui valent 0 par défaut) n'aura aucun effet sur les variances finales estimées, il est parfois nécessaire de modifier ces valeurs afin d'éviter une erreur dans l'optimisation.
+Sur notre modèle, l'optimisation conduit à garder fixe le coefficient associé au climat des affaires en niveau (variance nulle) mais considère que les autres variables varient dans le temps :
 
+```{r}
+ssm <- ssm_lm(reg_lin, fixed_var_intercept = FALSE, fixed_var_variables = FALSE)
+sqrt(ssm$parameters$parameters *
+       ssm$parameters$scaling)
+```
 
-texte sur la variance des coefficients.
+La [figure -@fig-coef-ssm] montre les coefficients estimés avec toutes les méthodes présentés dans ce papier.
+Les résultats du modèle espace-état sont sensiblement différent
 
+```{r}
+#| echo: false
+#| label: fig-coef-ssm
+#| fig-cap: Coefficients estimés par régression linéaire, régression par morceaux, régression locale (avec $b=0,74$) et modèle espace-état.
 
+coef_ssm <- coef(ssm)
+
+coef2plot(
+  list(
+    "Reg. linéaire" = coef_lin,
+    "Reg. par morceaux" = coef_pr,
+    "Reg. locale" = coef_reg_loc,
+    "Mod. espace-état" = coef_ssm
+  )
+)
+```
+
+@tbl-res-model-pib
+
+::: {#tbl-res-model-pib}
+```{r}
+#| echo: false
+oos_ssm <- ssm_lm_oos(reg_lin, fixed_var_intercept = FALSE, fixed_var_variables = FALSE,
+                      date = 70)
+
+res_is <- ts.union(ts(residuals(reg_lin), end = c(2019,4), frequency = 4),
+                   residuals(reg_morc),
+                   ts(residuals(reg_loc), end = c(2019,4), frequency = 4),
+                   residuals(ssm)[,"smoothed"]
+)
+res_oos <- ts.union(oos_lm$residuals,
+                    oos_reg_morc$residuals,
+                    ts(oos_reg_loc$residuals, end = c(2019,4), frequency = 4),
+                    oos_ssm$oos_noise
+)
+res_oos <- window(res_oos, start = 2003)
+table <- data.frame(apply(res_is, 2, rmse),
+                    apply(res_oos, 2, rmse))
+colnames(table) <- c("Dans l'échantillon", "Hors échantillon")
+rownames(table) <- c(
+  "Régression linéaire",
+  "Régression par morceaux",
+  "Régression locale",
+  "Modèle espace-état")
+forecast::dm.test(res_oos[,1], res_oos[,4], "greater")
+forecast::dm.test(res_oos[,2], res_oos[,4], "greater")
+forecast::dm.test(res_is[,1], res_is[,4], "greater")
+forecast::dm.test(res_is[,2], res_is[,4], "greater")
+knitr::kable(table, format.args = list(decimal.mark = ",", digits = 2))
+```
+
+Note : 
+
+Erreurs quadratiques moyennes des erreurs de prévisions entre les différentes méthodes.
+:::
 
 
 
 Smoothing, filtering
 
-```{r}
-ssm_lm(reg_lin)
-```
+
 
 ## Autres modèles
 
