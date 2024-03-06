@@ -13,6 +13,12 @@ toc: true
 number-sections: true
 bibliography: biblio.bib
 biblio-style: authoryear
+crossref:
+  # tbl-title: Tableau
+  tbl-prefix: table
+  fig-prefix: figure
+  sec-prefix: section
+  title-delim: "-"
 author:
   - name: Alain Quartier-la-Tente 
     affiliation: Insee
@@ -24,6 +30,10 @@ citation:
   url: https://github.com/InseeFrLab/DT-tvcoef
   pdf-url: https://www.insee.fr/fr/statistiques/7759578
   # key: inseeDTM2024XX
+comments: 
+    hypothesis:
+      theme: clean
+      # openSidebar: false
 # license:
 #   text: > 
 #     Copyright (c) 2024 Alain Quartier-la-Tente, INSEE
@@ -162,7 +172,9 @@ y_t=\transp{\bf X_t} \bf\alpha_t  +\varepsilon_t.
 $$
 Pour faciliter l'utilisation des modèles ici présentés, le package {{< fa brands r-project >}} `tvCoef` [@tvcoef] a été développé pour cette étude.
 
-Les différentes méthodes seront illustrées à travers l'exemple de la prévision du taux de croissance trimestriel du PIB à partir du climat des affaires France publié par l'Insee.
+Les différentes méthodes seront illustrées à travers l'exemple de la prévision du taux de croissance trimestriel du PIB à partir du climat des affaires France publié par l'Insee^[
+Cette série est disponible à l'URL <https://www.insee.fr/fr/statistiques/serie/001565530>.
+].
 Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de donnée `tvCoef::gdp` :
 
 - `growth_gdp` correspond au taux de croissance trimestriel du PIB ;
@@ -187,13 +199,13 @@ library(tvCoef)
 library(dynlm)
 reg_lin <- dynlm(
   formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
-  data = window(gdp, start = 1980, end = c(2019,4))
+  data = window(gdp, start = 1980, end = c(2019, 4))
 )
 # # Equivalent à :
 # reg_lin <- dynlm(
 #   formula = growth_gdp ~ bc_fr_m1 + diff(bc_fr_m1, 1),
 #   # Date de début changée car on perd une donnée avec la différenciation
-#   data = window(gdp, start = c(1979,4), end = c(2019,4))
+#   data = window(gdp, start = c(1979, 4), end = c(2019, 4))
 # )
 coefficients(reg_lin)
 ```
@@ -202,7 +214,7 @@ Le modèle estimé est donc :
 ```{r}
 #| echo: false
 #| output: asis
-cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+\\hat\\varepsilon_t.$$",
+cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+{\\hat\\varepsilon}_t.$$",
             coef(reg_lin)[1],
             coef(reg_lin)[2],
             coef(reg_lin)[3]))
@@ -283,7 +295,7 @@ Les variables ne doivent donc pas contenir de tendance déterministe ou stochast
 Le test consiste à tester si l'ensemble des paramètres $(\alpha,\sigma^2)$ sont constants.
 L'hypothèse alternative est qu'au moins un paramètre suit une martingale.
 
-Notons $\hat \varepsilon_t =y_t- \transp{\bf X_t} \hat{\bf\alpha} $ et
+Notons ${\hat \varepsilon}_t =y_t- \transp{\bf X_t} \hat{\bf\alpha}$ et
 $$
 f_{i,t} = \begin{cases}
 x_{i,t}\hat \varepsilon_t &\text{ si }i\leq p\\
@@ -320,7 +332,7 @@ Toutefois, si modèle contient des indicatrices alors le test joint ne pourra pa
 Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
 Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
 L'hypothèse nulle de stabilité des coefficients est donc rejetée lorsque la statistique de test est grande.
-Sous l'hypothèse nulle, la loi de distribution asymptotique est non standard, les valeurs critiques sont présentés dans la [table @tbl-hansen-table].
+Sous l'hypothèse nulle, la loi de distribution asymptotique est non standard, les valeurs critiques sont présentés dans la @tbl-hansen-table.
 
 ::: {#tbl-hansen-table}
 
@@ -387,41 +399,52 @@ Par exemple, pour le modèle de prévision de la croissance, deux régressions s
 Deux méthodes d'estimations sont possibles :
 
 1. Une régression en une étape est faite en doublant découpant les régresseurs en fonction de la date de rupture (fonction `tvCoef::piece_reg()`) :
-```{r}
-#| echo: false
-#| output: asis
-date_rupture <- format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")
-cat(
-  sprintf("
-\\begin{align*}
-\\%% PIB_t &= \\alpha_0\\1_{t\\leq %s} + \\alpha_1 climat\\_fr_t\\1_{t\\leq %s} + \\alpha_2 \\Delta climat\\_fr_t\\1_{t\\leq %s} + \\\\
-&\\phantom{=} \\alpha_0'\\1_{t > %s} + \\alpha_1' climat\\_fr_t\\1_{t > %s} + \\alpha_2' \\Delta climat\\_fr_t\\1_{t > %s} + \\varepsilon_t
-\\end{align*}
-          ",date_rupture,date_rupture,date_rupture,date_rupture,date_rupture,date_rupture
-  )
-)
-```
+\begin{align*}
+\% PIB_t &= \alpha_0\1_{t\leq 2000T2} + \alpha_1 climat\_fr_t\1_{t\leq 2000T2} + \alpha_2 \Delta climat\_fr_t\1_{t\leq 2000T2} + \\
+&\phantom{=} \alpha_0'\1_{t > 2000T2} + \alpha_1' climat\_fr_t\1_{t > 2000T2} + \alpha_2' \Delta climat\_fr_t\1_{t > 2000T2} + \varepsilon_t
+\end{align*}
+<!-- ```{r} -->
+<!-- #| echo: false -->
+<!-- #| output: asis -->
+<!-- date_rupture <- format(zoo::as.yearqtr(breakdates(bp)), "%YT%q") -->
+<!-- cat( -->
+<!--   sprintf(" -->
+<!-- \\begin{align*} -->
+<!-- \\%% PIB_t &= \\alpha_0\\1_{t\\leq %s} + \\alpha_1 climat\\_fr_t\\1_{t\\leq %s} + \\alpha_2 \\Delta climat\\_fr_t\\1_{t\\leq %s} + \\\\ -->
+<!-- &\\phantom{=} \\alpha_0'\\1_{t > %s} + \\alpha_1' climat\\_fr_t\\1_{t > %s} + \\alpha_2' \\Delta climat\\_fr_t\\1_{t > %s} + \\varepsilon_t -->
+<!-- \\end{align*} -->
+<!--           ",date_rupture,date_rupture,date_rupture,date_rupture,date_rupture,date_rupture -->
+<!--   ) -->
+<!-- ) -->
+<!-- ``` -->
 
 2. En effectuant deux régressions linéaires distinctes (fonction `tvCoef::bp_lm()`) :
-```{r}
-#| echo: false
-#| output: asis
-cat(
-  sprintf("$$
-\\begin{cases}
-\\forall t \\leq %s :\\quad \\%% PIB_t = \\alpha_0 + \\alpha_1 climat\\_fr_t + \\alpha_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\
-\\forall t > %s :\\quad \\%% PIB_t = \\alpha_0' + \\alpha_1' climat\\_fr_t + \\alpha_2' \\Delta climat\\_fr_t + \\varepsilon_t'
-\\end{cases}.
-$$          ",date_rupture,date_rupture
-  )
-)
-```
+$$
+\begin{cases}
+\forall t \leq 2000T2 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2 \Delta climat\_fr_t + \varepsilon_t \\
+\forall t > 2000T2 :\quad \% PIB_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t'
+\end{cases}.
+$$
+<!-- ```{r} -->
+<!-- #| echo: false -->
+<!-- #| output: asis -->
+<!-- cat( -->
+<!--   sprintf("$$ -->
+<!-- \\begin{cases} -->
+<!-- \\forall t \\leq %s :\\quad \\%% PIB_t = \\alpha_0 + \\alpha_1 climat\\_fr_t + \\alpha_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\ -->
+<!-- \\forall t > %s :\\quad \\%% PIB_t = \\alpha_0' + \\alpha_1' climat\\_fr_t + \\alpha_2' \\Delta climat\\_fr_t + \\varepsilon_t' -->
+<!-- \\end{cases}. -->
+<!-- $$          ",date_rupture,date_rupture -->
+<!--   ) -->
+<!-- ) -->
+<!-- ``` -->
+
 Dans les deux cas les coefficients estimés sont les mêmes mais les écarts-types seront en général différents.
 En effet, dans la première modélisation on suppose que la variance du résidu est constante dans les deux sous-périodes alors que dans la seconde on autorise la variance à évoluer dans le temps.
 
 Dans la majorité des cas, nous suggérons de privilégier la première modélisation car elle offre plus de flexibilité, notamment pour fixer les coefficients de certaines variables.
 
-Dans notre exemple, les coefficients associés à la constante et au climat des affaires en niveau sont proches avant et après la rupture, ce qui est cohérent avec le résultat du test de Hansen (section [-@sec-hansen-test]) :
+Dans notre exemple, les coefficients associés à la constante et au climat des affaires en niveau sont proches avant et après la rupture, ce qui est cohérent avec le résultat du test de Hansen (@sec-hansen-test) :
 ```{r}
 reg_morc <- piece_reg(reg_lin)
 coef(reg_morc$model)
@@ -463,7 +486,7 @@ res <- window(res, start = 2003)
 apply(res, 2, rmse)
 ```
 
-La [figure -@fig-prev-piecereg] montre les prévisions en temps réel des deux modèles étudiés.
+La @fig-prev-piecereg montre les prévisions en temps réel des deux modèles étudiés.
 Autour de la date de rupture, la régression linéaire par morceaux produit des prévisions peu réalistes : cela s'explique par le fait que très peu d'observations sont utilisées pour estimer les coefficients associés aux régresseurs après la rupture, les estimateurs sont donc peu précis (grande variance).
 Pour les analyses en temps réel, il faut donc faire attention aux valeurs prédites autour de la rupture !
 
@@ -491,8 +514,8 @@ forecast::autoplot(prev[,1],
   )
 ```
 
-Comme indiqué dans la [section -@sec-test-baiperron], l'inconvénient de cette méthode provient du choix de la date de rupture lorsque celle-ci n'est pas imposée par l'utilisateur.
-La [figure -@fig-temps-reel-bp] montre les dates de la rupture détectée par la procédure de Bai et Perron en fonction de la date de fin de fin d'estimation du modèle de régression linéaire : aucune rupture n'est détectée avant 2009 ou lorsque le modèle est estimé en utilisant des données jusqu'en 2013T2-2015T3.
+Comme indiqué dans la @sec-test-baiperron, l'inconvénient de cette méthode provient du choix de la date de rupture lorsque celle-ci n'est pas imposée par l'utilisateur.
+La @fig-temps-reel-bp montre les dates de la rupture détectée par la procédure de Bai et Perron en fonction de la date de fin de fin d'estimation du modèle de régression linéaire : aucune rupture n'est détectée avant 2009 ou lorsque le modèle est estimé en utilisant des données jusqu'en 2013T2-2015T3.
 En fonction de la date de fin d'estimation, la rupture détectée automatiquement peut tout aussi bien être en 2000 qu'en 2004 ou 2006.
 Même s'il est possible que cela n'ait que très peu d'effet sur les prévisions estimées en fin de période, l'interprétation faite du modèle sera vraisemblablement différente !
 
@@ -502,9 +525,9 @@ Même s'il est possible que cela n'ait que très peu d'effet sur les prévisions
 #| label: fig-temps-reel-bp
 #| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'estimation du modèle.
 # On enlève les premières observations car pas de rupture
-bp <- lapply(oos_lm$model[-(1:74)],breakpoints)
-bpd <- sapply(bp, breakdates)
-bpd <- bpd * sapply(bp, `[[`, "nobs")
+bp_hist <- lapply(oos_lm$model[-(1:74)], breakpoints)
+bpd <- sapply(bp_hist, breakdates)
+bpd <- bpd * sapply(bp_hist, `[[`, "nobs")
 bp_ts <- ts(time(get_data(reg_morc))[bpd], 
             end = end(oos_lm$forecast),
             frequency = frequency(oos_lm$forecast))
@@ -538,7 +561,7 @@ roll_regres <- rollRegres::roll_regres(
 coef_roll_regres <- ts(roll_regres$coefs, start = 1980, frequency = 4)
 ```
 
-La [figure -@fig-coef-rollreg] montre les coefficients estimés par cette régression mobile.
+La @fig-coef-rollreg montre les coefficients estimés par cette régression mobile.
 Seule ceux estimés sur le climat des affaires en différence montrent une rupture nette.
 Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T2).
 
@@ -546,17 +569,17 @@ Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fe
 ```{r}
 #| echo: true
 coef_roll_regres <- na.omit(coef_roll_regres)
-coef_pr <- coef(reg_morc)
+coef_morc <- coef(reg_morc)
 coef_lin <- ts(matrix(coef(reg_lin), nrow = 1), 
-               start = start(coef_pr),
-               end = end(coef_pr),
-               frequency = frequency(coef_pr))
+               start = start(coef_morc),
+               end = end(coef_morc),
+               frequency = frequency(coef_morc))
 colnames(coef_lin) <- names(coef(reg_lin))
 
 coef2plot(
   list(
     "Reg. linéaire" = coef_lin,
-    "Reg. par morceaux" = coef_pr,
+    "Reg. par morceaux" = coef_morc,
     "Reg. mobile" = coef_roll_regres
   ),
   start = start(coef_roll_regres)
@@ -649,7 +672,7 @@ reg_loc <- tvReg::tvLM(
 summary(reg_loc)
 ```
 La fenêtre estimée par défaut est de `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")`, c'est-à-dire que pour estimer le coefficient à la date $t$ on utilise au plus `{r} round(reg_loc$bw*nrow(reg_lin$model)/4)` ans avant et après $t$ : on utilise tous les points dans la majorité des cas.
-Cela explique le caractère très lisse des coefficients ([graphique @fig-coef-reg-mobile]).
+Cela explique le caractère très lisse des coefficients (@fig-coef-reg-mobile).
 Avec ce paramètre pour la fenêtre, les ruptures brutales sont donc difficiles à prendre en compte.
 
 
@@ -659,21 +682,20 @@ Avec ce paramètre pour la fenêtre, les ruptures brutales sont donc difficiles 
 #| fig-cap: Coefficients estimés par régression linéaire, régression par morceaux et régression locale (avec $b=0,74$).
 # coef_roll_regres <- ts(coef_roll_regres, start = 1980+15/2-0.25,
 #                        frequency = 4)
-coef_pr <- coef(reg_morc)
 coef_reg_loc <- ts(coef(reg_loc), start = 1980, frequency = 4)
 
 coef2plot(
   list(
     "Reg. linéaire" = coef_lin,
     # "Reg. mobile" = coef_roll_regres,
-    "Reg. par morceaux" = coef_pr,
+    "Reg. par morceaux" = coef_morc,
     "Reg. locale" = coef_reg_loc
   )
 )
 ```
 
 Un des inconvénients de méthode de sélection automatique de la fenêtre est que la statistique de validation croisée est un critère peu discriminant (voir @Loader1999) : il peut y avoir très peu de différences entre différentes valeurs de la fenêtre alors que celle-ci a un impact fort sur l'interprétation du modèle !
-Cela a également pour effet que la méthode est peu stable dans le temps ([figure @fig-oos-bw]), ce qui augmente les sources de révisions des simulations en temps réel, calculables en utilisant la fonction `oos_prev()` :
+Cela a également pour effet que la méthode est peu stable dans le temps (@fig-oos-bw), ce qui augmente les sources de révisions des simulations en temps réel, calculables en utilisant la fonction `oos_prev()` :
 
 ```{r}
 oos_reg_loc <- oos_prev(reg_loc)
@@ -700,7 +722,7 @@ Même si des méthodes optimales existent pour minimiser les erreurs d'estimatio
 
 
 Un autre inconvénient de ces méthodes est que tous les coefficients varient dans la temps alors que dans certains cas on peut supposer la relation constante.
-Si l'on souhaite fixer certains coefficients, on peut procéder comme dans la [section -@sec-test-baiperron] en faisant une régression linéaire, pour estimer les coefficients fixes, suivie d'une régression mobile.
+Si l'on souhaite fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire, pour estimer les coefficients fixes, suivie d'une régression mobile.
 
 ## Modélisation espace-état {#sec-ssm}
 
@@ -783,8 +805,9 @@ sqrt(ssm$parameters$parameters *
        ssm$parameters$scaling)
 ```
 
-La [figure -@fig-coef-ssm] montre les coefficients estimés avec toutes les méthodes présentés dans ce papier.
-Les résultats du modèle espace-état sont sensiblement différent
+La @fig-coef-ssm montre les coefficients estimés avec toutes les méthodes présentés dans ce papier.
+Pour toutes les méthodes, le coefficient du climat des affaires en niveau est stable dans le temps (coefficients estimés compris entre 0,020 et 0,023).
+En revanche, les résultats du modèle espace-état sont sensiblement différents pour le coefficient associé au climat des affaires, avec des périodes où le coefficient est plus faible que pour les autres méthodes (avant 1983, entre 1995 et 1999 et après 2011) et d'autres où il est plus élevé (notamment pendant la crise financière).
 
 ```{r}
 #| echo: false
@@ -796,19 +819,23 @@ coef_ssm <- coef(ssm)
 coef2plot(
   list(
     "Reg. linéaire" = coef_lin,
-    "Reg. par morceaux" = coef_pr,
+    "Reg. par morceaux" = coef_morc,
     "Reg. locale" = coef_reg_loc,
     "Mod. espace-état" = coef_ssm
   )
 )
 ```
 
-@tbl-res-model-pib
+La @tbl-res-model-pib compare la qualité prédictive des différents modèles dans l'échantillon (en utilisant toutes les données et pour estimer les paramètres des modèles) et hors échantillon (reproduction du processus de prévision en estimant, de manière récursive les modèles jusqu'à la date $t$ pour calculer les prévisions à la date $t+1$).
+C'est la modélisation espace-état qui minimise les erreurs de prévision, suivie de la régression par morceaux.
+La régression locale a une erreur hors échantillon plus élevée notamment du fait des instabilités sur l'estimation de la fenêtre.
+Le test de Diebold-Mariano (voir notamment @DMtest), implémenté dans la fonction `forecast::dm.test()`, permet de tester si cette différence est significative.
+Dans et hors échantillon, les modèles espace-état ont des erreurs de prévisions significativement plus petites que la régression linéaire (p-valeurs respectivement de 0,00 et 0,05).
+Dans l'échantillon elles sont également significativement plus petites que celles de la régression par morceau (p-valeur de 0,00) mais la différence n'est pas significative hors échantillon (p-valeur de 0,10) : l'interprétation économique sur les périodes récentes est en revanche différente (coefficient sur le climat des affaires en différence), ce qui conduit donc à des prévisions différentes.
 
-::: {#tbl-res-model-pib}
 ```{r}
-#| echo: false
-oos_ssm <- ssm_lm_oos(reg_lin, fixed_var_intercept = FALSE, fixed_var_variables = FALSE,
+oos_ssm <- ssm_lm_oos(reg_lin, fixed_var_intercept = FALSE, 
+                      fixed_var_variables = FALSE,
                       date = 70)
 
 res_is <- ts.union(ts(residuals(reg_lin), end = c(2019,4), frequency = 4),
@@ -822,6 +849,21 @@ res_oos <- ts.union(oos_lm$residuals,
                     oos_ssm$oos_noise
 )
 res_oos <- window(res_oos, start = 2003)
+# (H0) : Modèle espace-état meilleur que modèle linéaire
+forecast::dm.test(res_is[, 1], res_is[, 4], "greater")
+# (H0) : Modèle espace-état meilleur que régression par morceaux
+forecast::dm.test(res_is[, 2], res_is[, 4], "greater")
+# (H0) : Modèle espace-état meilleur que modèle linéaire
+forecast::dm.test(res_oos[, 1], res_oos[, 4], "greater")
+# (H0) : Modèle espace-état meilleur que régression par morceaux
+forecast::dm.test(res_oos[, 2], res_oos[, 4], "greater")
+```
+
+
+
+::: {#tbl-res-model-pib}
+```{r}
+#| echo: false
 table <- data.frame(apply(res_is, 2, rmse),
                     apply(res_oos, 2, rmse))
 colnames(table) <- c("Dans l'échantillon", "Hors échantillon")
@@ -830,27 +872,139 @@ rownames(table) <- c(
   "Régression par morceaux",
   "Régression locale",
   "Modèle espace-état")
-forecast::dm.test(res_oos[,1], res_oos[,4], "greater")
-forecast::dm.test(res_oos[,2], res_oos[,4], "greater")
-forecast::dm.test(res_is[,1], res_is[,4], "greater")
-forecast::dm.test(res_is[,2], res_is[,4], "greater")
 knitr::kable(table, format.args = list(decimal.mark = ",", digits = 2))
 ```
 
-Note : 
+Note : Les prévisions dans l'échantillon sont calculées en estimant les modèles à partir des données disponibles entre 1980T1 et 2019T4.
+Les prévisions hors échantillon sont calculées en à partir de 2003T1: la première prévision (2003T1) correspond à celle que l'on aurait eu en estimant les modèles à partir des données disponibles jusqu'en 2002T4 (trimestre précédente).
 
 Erreurs quadratiques moyennes des erreurs de prévisions entre les différentes méthodes.
 :::
 
 
 
-Smoothing, filtering
+## Prise en compte de la période du COVID-19 et prévision
 
+Dans les sections précédentes, les modèles ont été estimés jusqu'en 2019T4 dans le but de simplifier la présentation des modèles.
+Toutefois, si l'on veut effectuer de la prévision sur les périodes récentes, il est indispensable de prendre en compte la période du COVID-19.
+Cela se fait généralement en ajoutant, dans le modèle de prévision, des variables explicatives modélisant les chocs de cette période.
+La méthode la plus simple consiste à ajouter des indicatrices sur les trimestres concernés (ici l'année 2020) :
 
+```{r}
+ind <- cbind(time(gdp) == 2020, time(gdp) == 2020.25, 
+             time(gdp) == 2020.5, time(gdp) == 2020.75)
+ind <- ts(apply(ind,2, as.numeric), start = start(gdp), frequency = 4)
+colnames(ind) <- sprintf("ind2020T%i", 1:4)
+data_covid <- ts.union(gdp, ind)
+colnames(data_covid) <- c(colnames(gdp), colnames(ind))
 
-## Autres modèles
+reg_lin_covid <- dynlm(
+  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1 +
+    ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4,
+  data = window(data_covid, start = 1980)
+)
+coef(reg_lin_covid)
+```
+Pour la construction des autres modèles, nous gardons les paramètres estimés en utilisant les données avant la période du COVID-19, cette dernière pouvant biaiser les résultats.
+Ainsi :
 
-Modèles à seuil et à changement de régime
+- Pour la régression par morceaux, la date de rupture retenue est toujours 2000T2 (contre 2016T1 en utilisant les données après 2020).
+- Pour la régression locale, la fenêtre utilisée est `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")` (contre 0,04 en utilisant les données après 2020).
+- Pour la modélisation espace-état, le coefficient du climat des affaires en niveau est toujours considéré comme fixe (il est considéré comme mobile en utilisant les données après 2020).
+Toutefois les variances des autres coefficients sont à nouveaux estimées.
+
+```{r}
+# Date différente de rupture détectée mais l'on garde 2000T2 par continuité
+bp_covid <- breakpoints(reg_lin_covid)
+c(breakdates(bp), breakdates(bp_covid))
+bw_covid <- bw(window(
+  data_covid[, c("bc_fr_m1", "diff_bc_fr_m1", "ind2020T1", "ind2020T2", 
+                "ind2020T3", "ind2020T4")], start = 1980, end = c(2022, 4)), 
+  window(data_covid[, "growth_gdp"], start = 1980, end = c(2022, 4))
+  )
+c(reg_loc$bw, bw_covid)
+
+reg_morc_covid <- piece_reg(reg_lin_covid, break_dates = 2000.25,
+                            # Les indicatrices ne sont pas découpées
+                            fixed_var = 4:7)
+reg_loc_covid <- tvReg::tvLM(
+  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1+
+    ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4,
+  data = window(data_covid, start = 1980),
+  # On reprend l'ancienne fenêtre
+  bw = reg_loc$bw 
+)
+ssm_covid <- ssm_lm(
+  reg_lin_covid, 
+  fixed_var_intercept = FALSE,
+  # On fixe les coefficients des indicatrices
+  # et le coefficient du climat des affaires en niveau 
+  # (sinon il varie dans le temps)
+  fixed_var_variables = c(c(TRUE, FALSE), rep(TRUE, 4))
+)
+
+coef_morc_covid <- coef(reg_morc_covid)
+coef_lin_covid <- ts(matrix(coef(reg_lin_covid), nrow = 1), 
+               start = start(coef_morc_covid),
+               end = end(coef_morc_covid),
+               frequency = frequency(coef_morc_covid))
+colnames(coef_lin_covid) <- names(coef(reg_lin_covid))
+coef_reg_loc_covid <- ts(coef(reg_loc_covid), start = 1980, frequency = 4)
+coef_ssm_covid <- coef(ssm_covid)
+```
+
+La @fig-coef-covid montre les coefficients estimés avec en prenant en compte les données jusqu'au 2022T4.
+L'analyse est similaire à celle de la @fig-coef-ssm.
+
+```{r}
+#| echo: false
+#| label: fig-coef-covid
+#| fig-cap: Coefficients estimés (hors indicatrices) par régression linéaire, régression par morceaux, régression locale (avec $b=0,74$) et modèle espace-état en utilisant les données jusqu'en 2022T4.
+
+# res_is <- ts.union(ts(residuals(reg_lin_covid), start = c(1980, 1), frequency = 4),
+#                    residuals(reg_morc_covid),
+#                    ts(residuals(reg_loc_covid), start = c(1980, 1), frequency = 4),
+#                    residuals(ssm_covid)[,"smoothed"]
+# )
+# apply(res_is, 2, rmse)
+coef2plot(
+  list(
+    "Reg. linéaire" = coef_lin,
+    "Reg. par morceaux" = coef_morc,
+    "Reg. locale" = coef_reg_loc,
+    "Mod. espace-état" = coef_ssm
+  )
+)
+```
+
+Dans les données ici utilisées, le taux de croissance trimestriel du PIB est connu jusqu'au 2022T4 alors que les variables explicatives sont connues jusqu'au 2023T1 :
+```{r}
+tail(data_covid[, c("growth_gdp", "bc_fr_m1", "diff_bc_fr_m1")])
+```
+Il est donc possible d'effectuer une prévision sur le dernier trimestre et nous allons maintenant montrer comment procéder.
+Le plus simple est d'effectuer une somme pondérée des variables explicatives avec les coefficients estimés.
+Dans cet exemple, les variables explicatives sont directement calculées dans la base de données en entrée et sont donc facile à extraire.
+Lorsque ce n'est pas le cas (par exemple lorsque des variables retardées ou en différence sont directement calculées dans la formule de la fonction `dynlm()`^[
+Ce qui aurait pu être le cas si le modèle avait été estimé en utilisant le paramètre `formula = growth_gdp ~ bc_fr_m1 + diff(bc_fr_m1, 1)` dans la fonction `dynlm()`.
+]) il faut alors recalculer toutes les variables explicatives.
+La fonction `tvCoef::full_exogeneous_matrix()` peut aider à effectuer cette tache et calcule également le régresseur associé à la constante (égal à 1) :
+```{r}
+data_prev <- full_exogeneous_matrix(reg_lin_covid)
+# On extrait le dernier trimestre :
+der_period <- tail(data_prev, 1)
+der_period
+# On transforme en numeric pour eviter d'avoir des erreurs dues au format ts()
+der_period <- as.numeric(der_period)
+
+prev_reg_lin <- sum(coef(reg_lin_covid) * der_period)
+# Pour les autres méthodes on prend les derniers coefficients estimés
+prev_reg_morc <- sum(tail(coef(reg_morc_covid), 1) * der_period)
+prev_reg_loc <- sum(tail(coef(reg_loc_covid), 1) * der_period)
+prev_ssm <- sum(tail(coef(ssm_covid), 1) * der_period)
+round(c(prev_reg_lin, prev_reg_morc,
+  prev_reg_loc, prev_ssm), 2)
+```
+
 
 # Comparaison générale
 
@@ -862,6 +1016,9 @@ tableau agrégé
 
 
 # Conclusion
+
+
+Modèles à seuil et à changement de régime, 
 
 
 # Installation de `tvCoef` {.appendix}
@@ -906,7 +1063,9 @@ b. modifier le `.Renviron` : depuis R lancer le code `file.edit("~/.Renviron")`{
 Il reste maintenant à installer les packages :
 
 ```{r, eval = FALSE}
+# Nécessaire pour installer rjd3sts
 remotes::install_github("rjdemetra/rjd3toolkit")
+# Pour installer rjd3sts (modèles espace-état)
 remotes::install_github("rjdemetra/rjd3sts")
 remotes::install_github("InseeFrLab/tvCoef")
 ```
