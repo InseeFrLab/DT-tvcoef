@@ -1114,7 +1114,7 @@ read.csv2("img/error_table.csv", check.names = FALSE) |>
   )
 ```
 
-Note : Un modèle est qualifié de "sans rupture" lorsqu'aucune rupture n'est détectée par la procédure de Bai et Perron.
+Note : les modèles sans rupture sont ceux où aucune rupture n'est détectée par la procédure de Bai et Perron.
 
 Lecture : pour les prévisions hors échantillon la modélisation permet, par rapport à la régression linéaire, le MASE est réduit d'en moyenne de 7 % pour les modèles avec rupture et de 1 % pour les modèles sans rupture.
 Trois modèles sans rupture sont améliorés grâce à la modélisation espace-état (avec un réduction maximale de la MASE de 27 %) et les erreurs de prévisions sont augmentées pour quatre modèles (avec une hausse maximale de 7 %).
@@ -1131,9 +1131,16 @@ Moyenne absolue des erreurs normalisées (MASE) rapportée à celle des modèles
 En conclusion, cette étude montre comment, à partir d'un modèle de régression linéaire, on peut tester l'hypothèse de constance des coefficients et relâcher cette hypothèse en implémentant des modèles de régression par morceaux, de régression mobile et espace-état.
 Cette implémentation est facilitée grâce au package `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) qui accompagne cette étude.
 
+Lorque les tests classiques indiquent une non-constance des coefficients, ces trois méthodes permettent de réduire les erreurs de prévisions dans l'échantillon (lorsque les coefficients sont estimés sur l'ensemble des données).
+Toutefois, ces trois méthodes reposent sur des hypothèses qui peuvent conduire à des fortes instabilités, notamment si elles sont utilisées naïement lors des exercices de prévision en temps réel (hors échantillon).\
+La régression par morceaux supposent la connaissance de dates de ruptures : même si des procédures existes pour leur détection automatique [@bai2003computation], les instabilités autour de celles-ci font qu'il est préférable de s'appuyer sur un raisonnement économique.
+En effet, si rupture brutale il y a, elle doit pouvoir s'expliquer et le statisticien devrait pouvoir en trouver la cause.\
+Le paramètre principal de la régression locale est la fenêtre, qui permet de jouer sur la sensibilité des estimations aux observations lointaines.
+Même s'il existe également des procédures de sélection automatique, celles-ci sont également instables, ce qui conduit, lors des exercices de prévisions en temps réel, à des erreurs de prévisions plus élevées que la régression linéaire lorsque la fenêtre n'est pas fixée.\
+Enfin, dans les modèles espace-état, des instabilités numériques d'optimisation peuvent conduire à une volatilité dans l'estimation des variances des coefficients (qui déterminent si le coefficient varie ou non dans le temps et à quelle vitesse).
+C'est toutefois la méthode qui donnent les meilleurs résultats et qui permet dans la majorité des cas de réduire les erreurs de prévision par rapport à la régression linéaire, même les tests classiques indiquent une constance des coefficients !
 
-Nous montrons que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision. 
-Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la modélisation espace-état peut permettre de réduire les erreurs de prévision.
+Même si ces méthodes permettent, par rapport à la régression linéaire, d'améliorer la qualité des prévisions, elles n'ont pas vocation à remplacer les modèles déjà utilisés
 
 Pour remédier à cette problématique, nous avons exploré trois catégories de méthodes permettant d'estimer des coefficients variant dans le temps : les modèles de régression par morceaux, les régressions locales et les modèles espace-état. Notre étude met en évidence que l'utilisation de ces méthodes, en particulier la modélisation espace-état, conduit à des prévisions plus précises, même lorsque les tests classiques indiquent une stabilité des coefficients.
 
@@ -1145,6 +1152,7 @@ De nombreux modèles peuvent être estimés autour des régressions linéaires :
 Même s’ils peuvent améliorer les performances des modèles « classiques » ils ne les remplacent pas pour autant
 Modèles parfois complexes à implémenter (notamment espace-état)
 tvCoef peut vous aider (https://github.com/AQLT/tvCoef)
+
 \appendix
 
 # Installation de `tvCoef` {.appendix}
