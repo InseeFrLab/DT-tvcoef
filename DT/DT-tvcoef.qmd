@@ -157,10 +157,10 @@ $$
 y_t=\alpha_{0}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t 
 $$
 où $\varepsilon_t$ représente l'erreur d'approximation.
-En notant ${\bf X}_t=\transp{\begin{pmatrix}1 & x_{1,t} &\cdots & x_{p,t} \end{pmatrix}}$ et 
+En notant ${\bf X}_t=\begin{pmatrix}1 & x_{1,t} &\cdots & x_{p,t} \end{pmatrix}$ et 
 ${\bf \alpha}=\transp{\begin{pmatrix}\alpha_0 & \alpha_1 &\cdots & \alpha_p \end{pmatrix}}$, cela s'écrit matriciellement\ :
 $$
-y_t=\transp{\bf X_t} \bf\alpha +\varepsilon_t.
+y_t={\bf X_t} \bf\alpha +\varepsilon_t.
 $$
 
 Dans le cadre de la régression linéaire, les coefficients $\bf\alpha$ sont supposés constants dans le temps et estimés en utilisant l'ensemble des données.
@@ -169,7 +169,7 @@ Même si cette hypothèse est généralement vraie sur le court-terme, elle peut
 L'objectif de cet article est d'étudier différent modèles permettant de relâcher cette hypothèse de constance des coefficients.
 Le modèle général s'écrit donc :
 $$
-y_t=\transp{\bf X_t} \bf\alpha_t  +\varepsilon_t.
+y_t={\bf X_t} \bf\alpha_t  +\varepsilon_t.
 $$
 Pour faciliter l'utilisation des modèles ici présentés, le package {{< fa brands r-project >}} `tvCoef` [@tvcoef] a été développé pour cette étude.
 
@@ -286,7 +286,7 @@ Alors que l'algorithme de Bai et Perron cherche une date spécifique où il y au
 En repartant de la modélisation générale de la régression linéaire :
 \begin{align*}
 y_t&=\alpha_{0}x_{0,t}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t  \\
-&= \transp{\bf X_t} \bf\alpha  +\varepsilon_t\\
+&= {\bf X_t} \bf\alpha  +\varepsilon_t\\
 \E{\varepsilon_t|x_t}&=0 \text{ (exogénéité stricte)} \\
 \E{\varepsilon_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
 \end{align*}
@@ -296,7 +296,7 @@ Les variables ne doivent donc pas contenir de tendance déterministe ou stochast
 Le test consiste à tester si l'ensemble des paramètres $(\alpha,\sigma^2)$ sont constants.
 L'hypothèse alternative est qu'au moins un paramètre suit une martingale.
 
-Notons ${\hat \varepsilon}_t =y_t- \transp{\bf X_t} \hat{\bf\alpha}$ et
+Notons ${\hat \varepsilon}_t =y_t- {\bf X_t} \hat{\bf\alpha}$ et
 $$
 f_{i,t} = \begin{cases}
 x_{i,t}\hat \varepsilon_t &\text{ si }i\leq p\\
@@ -616,11 +616,11 @@ Cette approximation locale est justifiée par le théorème de Taylor.
 Pour chaque date $t$, le coefficient $\alpha_t=\alpha(z_t)$ est obtenu par moindre carrés pondérés.
 Lorsque $\alpha$ est supposé localement constant il s'agit du système :
 $$
-\hat{\bf\alpha_t}=\hat{\alpha}(z_t)=\underset{\bf\theta_0}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf X_i}\bf\theta_0 \right]^2K_{b_t}(z_i-z_t).
+\hat{\bf\alpha_t}=\hat{\alpha}(z_t)=\underset{\bf\theta_0}\argmin\sum_{i=1}^T\left[y_i-{\bf X_i}\bf\theta_0 \right]^2K_{b_t}(z_i-z_t).
 $$
 Lorsque $\alpha$ est supposé localement linéaire il s'agit du système :
 $$
-(\hat{\alpha}(z_t), \hat{\alpha}'(z_t))=\underset{\bf \theta_0,\bf \theta_1}\argmin\sum_{i=1}^T\left[y_i-\transp{\bf X_i}\bf\theta_0 - (z_i-z_t)\transp{\bf X_i}\bf\theta_1\right]^2K_{b_t}(z_i-z_t).
+(\hat{\alpha}(z_t), \hat{\alpha}'(z_t))=\underset{\bf \theta_0,\bf \theta_1}\argmin\sum_{i=1}^T\left[y_i-{\bf X_i}\bf\theta_0 - (z_i-z_t){\bf X_i}\bf\theta_1\right]^2K_{b_t}(z_i-z_t).
 $$
 Avec $K_{b_t}(z_i-z_t)=\frac{1}{b_t}K\left(\frac{z_i-z_t}{b_t}\right)$ et $K(\cdot)$ une fonction de noyau.
 La fonction $K$ permet de pondérer les observations : pour l'estimation du coefficient à la date $t$ on accorde généralement plus d'importance (i.e., un poids plus important) aux observations qui sont proches de $t$ qu'à celles qui sont éloignées de $t.$
@@ -735,7 +735,7 @@ Dans cet article, nous nous placerons dans un cadre simplifié des modèles lin�
 Les modèles sont déterminés par un ensemble de deux équations :
 $$
 \begin{cases}
-y_t=\transp{\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
+y_t={\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
 \bf\alpha_{t+1}=\bf\alpha_t+\bf\eta_t,\quad&\bf\eta_t\sim\mathcal N(\bf 0,\bf\Sigma)
 \end{cases},\text{ avec }\eta_t\text{ et }\varepsilon_t\text{ indépendants.}
 $$
@@ -783,7 +783,7 @@ Pour faciliter l'estimation des variances $\bf\Sigma,$ le paramètre est souvent
 
 $$
 \begin{cases}
-y_t=\transp{\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
+y_t={\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
 \bf\alpha_{t+1}=\bf\alpha_t+\bf\eta_t,\quad&\bf\eta_t\sim\mathcal N(\bf 0,\sigma^2\bf Q)
 \end{cases},\text{ avec }\eta_t\text{ et }\varepsilon_t\text{ indépendants.}
 $$
