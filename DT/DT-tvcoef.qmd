@@ -9,6 +9,7 @@ format:
     self-contained: true
     include-before-body: template/preambule.html
     css: [template/style.css]
+  docx: default
 execute:
   freeze: true 
 toc: true
@@ -140,42 +141,28 @@ Dans la statistique publique, de nombreux modèles de prévision s'appuient sur 
 Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes. 
 Pour la prévision des grands agrégats macroéconomiques, le département de la conjoncture de l'Insee utilise notamment des étalonnages (voir par exemple @ndc2015prev) et le modèle macroéconomiques Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
 Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. 
-Cependant, ils supposent que les relations entre les variables sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
+Cependant, ils supposent que les relations entre les variables (i.e les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
 
 Pour palier à ce problème, une solution simple consiste à utiliser moins de données pour estimer les modèles.
 Par exemple, les guide des bonnes pratiques sur l'ajustement saisonnier [@eurostat2015guidelines] recommandent de ne pas désaisonnaliser des séries de plus de 20 ans.
-Toutefois, cela conduit à perdre l'historique des données et l'information que l'on peut en tirer, ne résout pas le problème lorsque la rupture est récente et conduit
+Toutefois, cela conduit à perdre l'historique des données et l'information que l'on peut en tirer et ne résout pas le problème lorsque la rupture est récente.
+Par ailleurs, comme montré par @JMS2018 pour la désaisonnalisation des séries d'indice de production industrielle, lorsqu'il faut analyser les modèles sur l'ensemble de la période (par exemple dans le cadre de la correction des jours ouvrables), il est nécessaire de mettre en place des méthodes de chaînage afin de prendre en compte la rupture introduite par l'utilisation de plusieurs modèle.
+Ainsi, dans certains cas il peut être préférable d'utiliser des modèles qui prennent directement en compte les ruptures.
 
-L'objectif de cette étude est d'étudier différentes méthodes d'estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. Ces méthodes se regroupent en trois catégories : 
+L'objectif de cette étude est d'étudier différentes méthodes d'estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. 
+Cela permet d'avoir des modèles qui ont l'avantage d'être plus facilement interprétables que des méthodes de machine learning, puisqu'ils s'appuient sur des modèles de régression linéaire.
+Ces méthodes se regroupent en trois catégories : les modèles de régression par morceaux, les régressions locales et les modèles espace-état.
+La première suppose l'existence d'une rupture brutale sur les coefficients à une certaine date ; les deux autres supposent que les coefficients évoluent progressivement sans le temps sans existence de rupture brutale.
+Pour simplifier l'implémentation de ces méthodes, ainsi que leur comparaison, le package R `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) a également été développé lors de cette étude. 
 
-- les modèles de régression par morceaux
-
-- les régressions locales
-
-- les modèles espace-état
-
-Pour simplifier l'implémentation de ces méthodes, ainsi que leur comparaison, un package R a également été développé lors de cette étude. 
-Les premiers résultats montrent que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision (en temps réel et dans l'échantillon). De plus, ils ont l'avantage d'être plus facilement interprétables que des méthodes de machine learning, puisqu'ils s'appuient sur des modèles de régression linéaire.
-L'atelier montrera comment mettre en application ces différentes méthodes, interpréter et comparer les résultats.
-
-Sur longue période, les institutions, les normes de sociétés ainsi que les comportements des agents économiques évoluent, induisant des changements dans la dynamique des séries économiques étudiées.
-
-De nombreux modèles de l'Insee sont basés sur des régressions linéaires (CJO, prévisions, calage...) qui supposent que les relations entre les variables sont fixes dans le temps.
+Après une description de deux tests permettant vérifier si les coefficients sont fixes dans le temps (@sec-tests), nous décrivons trois méthodes pour estimer des coefficients variant dans le temps et montrons comment les implémenter (@sec-desc-meth).
+Enfin, nous comparons les qualités prédictives des différentes méthodes sur une trentaine de modèles de prévision trimestrielle (@sec-comp-generales).
+Nous montrons que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision. 
+Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la modélisation espace-état peut permettre de réduire les erreurs de prévision.
 
 
-Hypothèse vraie sur le court-terme mais généralement fausse sur le long-terme ou en présence de changements structurels (changement de nomenclature, de définition, COVID...)
 
-
-Objectifs : 
-
-- étudier des méthodes qui permettent de relâcher cette contrainte ;
-
-- proposer une façon simple d'implémenter et de comparer ces méthodes (package {{< fa brands r-project >}} `tvCoef`)
-
-@JMS2018 et @eurostat2015guidelines
-
-
-# Modélisation générale et tests
+# Modélisation générale et tests {#sec-tests}
 
 Dans cet article, nous nous placerons dans le cadre de la régression linéaire avec des variables à une dimension.
 À chaque date $t$, la variable $y_t$ (e.g. : taux de croissance du PIB) est expliquée par une combinaison linéaire de $p$ variables explicatives, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
@@ -299,7 +286,7 @@ $$
 \end{cases}.
 $$
 
-- Il y a une instabilité sur le choix de la date et il suppose que la rupture est brutale à partir d'une certaine date.
+- Il y a une instabilité sur le choix de la date et il suppose que la rupture est brutale à une certaine date.
 Si la rupture est brutale, le statisticien doit pouvoir expliquer son origine (changement de nomenclature, de champ dans les données, crise...) et a déjà un a priori sur la date de rupture.
 Si l'on n'a aucune information sur la présence d'une rupture, on peut raisonnablement penser que celle-ci n'est pas brutale mais que la relation entre les variables a évolué de manière progressive dans le temps.
 
@@ -399,7 +386,7 @@ Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le te
 
 
 
-# Différents modèles utilisés
+# Descriptions des méthodes {#sec-desc-meth} 
 
 Si un des tests précédents conclut à la non constance des coefficients du modèle estimé c'est qu'il est mal spécifié et donc qu'il faut utiliser une modélisation alternative qui pourrait notamment provenir d'un problème de variables omises.
 Dans cet article, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
@@ -579,14 +566,15 @@ ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
 La régression mobile est une des méthodes empiriques les plus simples pour savoir si les coefficients évoluent dans le temps.
 Celle-ci consiste à estimer des régression en utilisant un intervalle de temps fixe et à observer la courbe des coefficients estimés.
 En reprenant notre exemple où les données commencent en 1980, avec une fenêtre fixe de 15 ans (par exemple), cela consiste à estimer une première régression entre 1980T1 et 1994T4, une deuxième entre 1980T2 et 1995T1... et une dernière entre 2005T1 et 2019T4.
-Sous R cela peut par exemple s'estimer en utilisant la fonction `rollRegres::roll_regres()` :
+Sous R cela peut par exemple s'estimer en utilisant la fonction `roll::roll_lm()` :
 ```{r}
-roll_regres <- rollRegres::roll_regres(
-  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
-  data = window(gdp, start = 1980, end = c(2019,4)),
-  width = 4 * 15
+roll_regres <- roll::roll_lm(
+  x = window(gdp, start = 1980, end = c(2019,4))[, c("bc_fr_m1", "diff_bc_fr_m1")],
+  y = window(gdp, start = 1980, end = c(2019,4))[, "growth_gdp"],
+  width = 4 * 15,
+  online = FALSE
 )
-coef_roll_regres <- ts(roll_regres$coefs, start = 1980, frequency = 4)
+coef_roll_regres <- ts(roll_regres$coefficients, start = 1980, frequency = 4)
 ```
 
 La @fig-coef-rollreg montre les coefficients estimés par cette régression mobile.
@@ -658,9 +646,9 @@ $$
 K(u)=\frac{35}{32}\left(
 1-
 \left\lvert
-x
+u
 \right\lvert^2
-\right)^3\1_{[-1,1]}(x).
+\right)^3\1_{[-1,1]}(u).
 $$
 
 - Le noyau d'Epanechnikov (ou parabolique) :
@@ -668,14 +656,14 @@ $$
 K(u)=\frac{3}{4}\left(
 1-
 \left\lvert
-x
+u
 \right\lvert^2
-\right)\1_{[-1,1]}(x).
+\right)\1_{[-1,1]}(u).
 $$
 
 - Le noyau Gaussien :
 $$
-K(u)=\frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2}x^2\right)
+K(u)=\frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2}u^2\right).
 $$
 
 Le paramètre $b_t$ permet de calibrer la largeur de la fenêtre (i.e., le nombre de points utilisés pour chaque estimation).
@@ -1039,7 +1027,7 @@ round(c(prev_reg_lin, prev_reg_morc,
 ```
 
 
-# Comparaison générale
+# Comparaison générale {#sec-comp-generales}
 
 Dans cette section nous effectuons une comparaison plus détaillée des différentes méthodes utilisées.
 Pour cela, nous utilisons 28 modèles de prévisions des taux de croissance trimestriels de l'industrie manufacturière et de ses principales sous-branches.
