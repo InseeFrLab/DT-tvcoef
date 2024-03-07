@@ -346,7 +346,7 @@ Toutefois, si modèle contient des indicatrices alors le test joint ne pourra pa
 Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
 Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
 L'hypothèse nulle de stabilité des coefficients est donc rejetée lorsque la statistique de test est grande.
-Sous l'hypothèse nulle, la loi de distribution asymptotique est non standard, les valeurs critiques sont présentés dans la @tbl-hansen-table.
+Sous l'hypothèse nulle, la loi de distribution asymptotique est non standard, les valeurs critiques sont présentées dans la @tbl-hansen-table.
 
 ::: {#tbl-hansen-table}
 
@@ -583,7 +583,7 @@ Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fe
 
 ::: {#fig-coef-rollreg}
 ```{r}
-#| echo: true
+#| echo: false
 coef_roll_regres <- na.omit(coef_roll_regres)
 coef_morc <- coef(reg_morc)
 coef_lin <- ts(matrix(coef(reg_lin), nrow = 1), 
@@ -826,7 +826,7 @@ En effet, dans ce cas il faudrait utiliser une modélisation différente afin de
 :::
 
 
-La @fig-coef-ssm montre les coefficients estimés avec toutes les méthodes présentés dans ce papier.
+La @fig-coef-ssm montre les coefficients estimés avec toutes les méthodes présentées dans ce papier.
 Pour toutes les méthodes, le coefficient du climat des affaires en niveau est stable dans le temps (coefficients estimés compris entre 0,020 et 0,023).
 En revanche, les résultats du modèle espace-état sont sensiblement différents pour le coefficient associé au climat des affaires, avec des périodes où le coefficient est plus faible que pour les autres méthodes (avant 1983, entre 1995 et 1999 et après 2011) et d'autres où il est plus élevé (notamment pendant la crise financière).
 
