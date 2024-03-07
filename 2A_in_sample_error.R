@@ -52,8 +52,7 @@ lapply(is$lm,
        function(sec){
          sapply(sec, function(x)time(x)[1])
        })
-res <- is$lm[[1]][[2]]
-y = all_y[[1]][[2]]
+
 accuracy_mod <- function(res, y, start = start(res)){
   res <- window(res, start = start, extend = TRUE)
   y <- window(y, start = start, extend = TRUE)
@@ -79,9 +78,7 @@ is_stats <- do.call(rbind, lapply(seq_along(is), function(i_meth) {
     }))
   }))
 }))
-fixed <- is_stats[is_stats$Method=="lm",c("RMSE")] ==
-  is_stats[is_stats$Method=="reg_morc",c("RMSE")]
-fixed <- data.frame(is_stats[is_stats$Method=="lm",c("Sector", "Model")], 
-                    fixed)
-is_stats <- merge(is_stats, fixed, all.x = TRUE)
+ruptures <- readRDS("results/ruptures.RDS") 
+
+is_stats <- merge(is_stats, ruptures, all.x = TRUE)
 saveRDS(is_stats, "results/is_stats.RDS")

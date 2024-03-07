@@ -6,7 +6,7 @@ if (!dir.exists("results"))
   dir.create("results")
 
 data <- window(manufacturing,
-               start = c(1992, 2),
+               start = c(1992, 1),
                end = c(2019, 4))
 all_models_formula <-
   list(
@@ -85,7 +85,7 @@ all_bp <- lapply(all_models, function(sect) {
   # On restreint à au plus deux ruptures
   lapply(lapply(sect, breakpoints, breaks = 2), breakdates)
 })
-lapply(all_bp, function(sect) {
+nb_rupture_bp <- lapply(all_bp, function(sect) {
   sapply(sect, function(bp) {
     sum(!is.na(bp))
   })
@@ -100,6 +100,22 @@ all_hansen <- lapply(all_models, function(sect) {
     test$L_c > hansen_table[length(test$selected_var), "5%"]
   })
 })
+mod_by_sect <- lapply(all_models_formula, length)
+Sector <- unlist(lapply(names(mod_by_sect), function(sect){
+  rep(sect, mod_by_sect[[sect]])
+}))
+Model <- unlist(lapply(mod_by_sect, function(nb){
+  seq_len(nb)
+}))
+ruptures <- data.frame(
+  Sector = Sector,
+  Model = Model,                
+  `Bai et Perron` = unlist(nb_rupture_bp) > 0,
+  Hansen = unlist(all_hansen),
+  check.names = FALSE
+  )
+rownames(ruptures) <- NULL
+saveRDS(ruptures, "results/ruptures.RDS")
 
 ########################################################
 ################ Estimation des modèles ################
@@ -265,3 +281,4 @@ if (!file.exists("results/ssm_oos.RDS")) {
   saveRDS(ssm_oos, "results/ssm_oos.RDS")
   rm(ssm_oos)
 } 
+

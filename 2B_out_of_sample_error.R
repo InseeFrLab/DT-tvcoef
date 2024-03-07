@@ -86,9 +86,8 @@ oos_stats <- do.call(rbind, lapply(seq_along(oos), function(i_meth) {
     }))
   }))
 }))
-fixed <- oos_stats[oos_stats$Method=="lm",c("RMSE")] ==
-  oos_stats[oos_stats$Method=="reg_morc",c("RMSE")]
-fixed <- data.frame(oos_stats[oos_stats$Method=="lm",c("Sector", "Model")], 
-                    fixed)
-oos_stats <- merge(oos_stats, fixed, all.x = TRUE)
+
+ruptures <- readRDS("results/ruptures.RDS") 
+
+oos_stats <- merge(oos_stats, ruptures, all.x = TRUE)
 saveRDS(oos_stats, "results/oos_stats.RDS")
