@@ -1025,7 +1025,7 @@ Dans la suite, nous considérerons qu'un modèle n'a pas de rupture lorsque le t
 ::: {#tbl-nb-models}
 ```{r}
 #| echo: false
-readRDS("img/nb_models.RDS") |> 
+read.csv2("img/nb_models.csv", check.names = FALSE) |> 
   gt(groupname_col = NULL,
      rowname_col = "Branche") |> 
   tab_spanner(columns = 3:4,
@@ -1084,7 +1084,7 @@ Ainsi, @abs2006 proposent une procédure de tests basée sur la modélisation es
 ::: {#tbl-error-table}
 ```{r}
 #| echo: false
-readRDS("img/error_table.RDS") |> 
+read.csv2("img/error_table.csv", check.names = FALSE) |> 
   gt(groupname_col = c("fixed", "Error")) |> 
   fmt_number(decimals = 2, dec_mark = ",", sep_mark = " ") |> 
   fmt_integer(

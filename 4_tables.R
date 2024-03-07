@@ -18,9 +18,10 @@ nb_models <- all_models |>
   rename(Branche = Sector) |> 
   relocate(Total, .after = Branche)
 nb_models
-saveRDS(nb_models, "DT/img/nb_models.RDS")
-knitr::kable(nb_models, align = c("l","c","c"))
-nb_models |> 
+write.csv2(nb_models, "DT/img/nb_models.csv", row.names = FALSE)
+# saveRDS(nb_models, "DT/img/nb_models.RDS")
+
+read.csv2("DT/img/nb_models.csv", check.names = FALSE) |> 
   gt(groupname_col = NULL,
      rowname_col = "Branche") |> 
   tab_spanner(columns = 3:4,
@@ -55,9 +56,11 @@ format_tbl_error <- function(
     ) |> 
     filter(Method %in% selected_methods) |> 
     mutate(Method = factor(Method, levels = selected_methods, ordered = TRUE),
-           Method = recode_factor(Method, reg_loc = "Rég. locale", reg_morc = "Rég. par morceaux", ssm = "Mod. espace-état")) |> 
+           Method = recode_factor(Method, reg_morc = "Rég. par morceaux", reg_loc = "Rég. locale", ssm = "Mod. espace-état"), ordered = TRUE) |> 
     group_by(Method, fixed) |> 
     summarise(Moyenne = mean(MASE),
+              `Moyenne baisse`= mean(MASE[MASE < 1]),
+              `Moyenne hausse`= mean(MASE[MASE > 1]),
               Min = min(MASE),
               D1 = quantile(MASE, 0.25),
               Médiane = median(MASE),
@@ -78,13 +81,17 @@ error_table <- is_error |>
       mutate(Error = "Hors échantillon")
   )  |> 
   arrange(desc(fixed), Error, Method) |> 
-  rename(rowname = Method) |> 
-  select(!c(D1, D3, Médiane))
+  rename(rowname = Method) 
 error_table
-saveRDS(error_table, "DT/img/error_table.RDS")
+error_table <- error_table |> 
+  select(!c(D1, D3, Médiane, `Moyenne baisse`, `Moyenne hausse`)) 
+write.csv2(error_table, "DT/img/error_table.csv", row.names = FALSE)
+
+# saveRDS(error_table, "DT/img/error_table.RDS")
 
 library(gt)
-error_table |> 
+
+read.csv2("DT/img/error_table.csv", check.names = FALSE)|> 
   gt(groupname_col = c("fixed", "Error")) |> 
   fmt_number(decimals = 2, dec_mark = ",", sep_mark = " ") |> 
   fmt_integer(
