@@ -238,7 +238,7 @@ C'est le principe du test de @chowtest.
 
 L'inconvénient est que cela suppose d'avoir un a priori sur la date de la rupture à tester.
 Pour palier à ce problème, @bai2003computation ont proposé un algorithme efficace afin de chercher la présence de ruptures multiples dans des modèles de régression linéaire.
-Cet algorithme a été implémenté sous {{< fa brands r-project >}} dans le package `strucchange` @strucchangeBP.
+Cet algorithme a été implémenté sous {{< fa brands r-project >}} dans le package `strucchange` [@strucchangeBP].
 La fonction `strucchange::breakpoints()` permet de chercher les ruptures et la fonction `strucchange::breakdates()` d'extraire facilement les dates associées.
 Le package `tvCoef` implémente une méthode `breakpoints.lm()` afin de pouvoir directement appliquer cette fonction aux régressions linéaires estimées :
 
@@ -450,7 +450,7 @@ coef(reg_morc$model)
 Cette égalité peut être testée en utilisant un test de Fisher, par exemple avec la fonction `car::linearHypothesis()`.
 Dans notre exemple, on ne rejette pas l'hypothèse nulle d'égalité des coefficients de la constante et du climat des affaires en niveau avant et après la rupture, modèle peut donc être simplifié.
 Par ailleurs, on rejette l'hypothèse nulle d'égalité du coefficient associé au climat des affaires en différence : la prise en compte de la rupture est donc justifiée.
-Toutefois, nous conseillons de toujours considérer que la constante varie dans le temps, même lorsque que ce n'est statistiquement pas significatif : cela permet de s'assurer que le modèle ne sera pas biaisé par des résidus qui ne seraient pas de moyenne nulle.
+Toutefois, nous conseillons de toujours considérer que la constante varie dans le temps, même lorsque que ce n'est statistiquement pas significatif\ : cela permet de s'assurer que le modèle ne sera pas biaisé par des résidus qui ne seraient pas de moyenne nulle.
 ```{r}
 car::linearHypothesis(
   reg_morc$model,
@@ -468,7 +468,7 @@ coef(reg_morc2$model)
 La qualité prédictive du nouveau modèle peut s'apprécier de plusieurs façons, les plus classiques étant la minimisation du critère d'information d'Akaike (AIC et fonction `AIC()`) ou la minimisation des erreurs de prévisions hors échantillon (également appelées pseudo temps-réel, fonction `tvCoef::oos_prev()`).
 Pour le calcul des erreurs de prévisions hors échantillon, la méthodologie retenue consiste à calculer pour chaque date $t$ la prévision obtenue à la date $t+1$ en estimant le modèle à partir des observations disponibles jusqu'à la date $t$ uniquement.
 Avec cette méthode, appelée le *leave-one-out cross-validation*, on ne s'intéresse donc qu'à la qualité de prévision à l'horizon d'un trimestre (ce qui est le cas d'utilisation pour les modèles étudiés).
-Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces erreurs de prévisions hors échantillon (voir @AIC).
+Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces erreurs de prévisions hors échantillon [@AIC].
 
 Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères :
 ```{r}
@@ -1117,6 +1117,8 @@ Moyenne absolue des erreurs normalisées (MASE) rapportée à celle des modèles
 
 Modèles à seuil et à changement de régime, 
 
+
+\appendix
 
 # Installation de `tvCoef` {.appendix}
 
