@@ -155,7 +155,7 @@ Ces méthodes se regroupent en trois catégories : les modèles de régression p
 La première suppose l'existence d'une rupture brutale sur les coefficients à une certaine date ; les deux autres supposent que les coefficients évoluent progressivement sans le temps sans existence de rupture brutale.
 Pour simplifier l'implémentation de ces méthodes, ainsi que leur comparaison, le package R `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) a également été développé lors de cette étude. 
 
-Après une description de deux tests permettant vérifier si les coefficients sont fixes dans le temps (@sec-tests), nous décrivons trois méthodes pour estimer des coefficients variant dans le temps et montrons comment les implémenter (@sec-desc-meth).
+Après une description de deux tests permettant vérifier si les coefficients sont fixes dans le temps (@sec-tests), nous décrivons trois méthodes pour estimer des coefficients variant dans le temps et montrons comment les implémenter à partir d'un modèle de prévision de la croissance du PIB français (@sec-desc-meth).
 Enfin, nous comparons les qualités prédictives des différentes méthodes sur une trentaine de modèles de prévision trimestrielle (@sec-comp-generales).
 Nous montrons que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision. 
 Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la modélisation espace-état peut permettre de réduire les erreurs de prévision.
@@ -736,7 +736,6 @@ Pour l'estimation hors échantillon, la méthode utilisée est l'utilisation d'u
 C'est donc également une source de révision au fur et à mesure que des nouveaux points seront connus.
 Même si des méthodes optimales existent pour minimiser les erreurs d'estimation des coefficients hors échantillon (voir par exemple @FengSchafer2021), cela devrait ici avoir peu d'impact car un modèle très simple est ici utilisé pour estimer les coefficients (approximation de la fonction $\alpha$ par une constante).
 
-
 Un autre inconvénient de ces méthodes est que tous les coefficients varient dans la temps alors que dans certains cas on peut supposer la relation constante.
 Si l'on souhaite fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire, pour estimer les coefficients fixes, suivie d'une régression mobile.
 
@@ -1129,9 +1128,23 @@ Moyenne absolue des erreurs normalisées (MASE) rapportée à celle des modèles
 # Conclusion
 
 
-Modèles à seuil et à changement de régime, 
+En conclusion, cette étude montre comment, à partir d'un modèle de régression linéaire, on peut tester l'hypothèse de constance des coefficients et relâcher cette hypothèse en implémentant des modèles de régression par morceaux, de régression mobile et espace-état.
+Cette implémentation est facilitée grâce au package `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) qui accompagne cette étude.
 
 
+Nous montrons que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision. 
+Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la modélisation espace-état peut permettre de réduire les erreurs de prévision.
+
+Pour remédier à cette problématique, nous avons exploré trois catégories de méthodes permettant d'estimer des coefficients variant dans le temps : les modèles de régression par morceaux, les régressions locales et les modèles espace-état. Notre étude met en évidence que l'utilisation de ces méthodes, en particulier la modélisation espace-état, conduit à des prévisions plus précises, même lorsque les tests classiques indiquent une stabilité des coefficients.
+
+De plus, afin de faciliter l'application et la comparaison de ces méthodes, le package R tvCoef a été développé, offrant ainsi un outil pratique pour les praticiens et les chercheurs dans le domaine de la prévision conjoncturelle.
+
+Enfin, nos résultats suggèrent que l'adoption de modèles flexibles prenant en compte la variabilité des coefficients peut contribuer à améliorer la qualité des prévisions, même dans des contextes où la stabilité des relations entre les variables est traditionnellement supposée. Cette approche offre ainsi de nouvelles perspectives pour l'amélioration des modèles de prévision, ouvrant la voie à des analyses plus robustes et plus précises dans le domaine de la statistique publique et de la macroéconomie.
+
+De nombreux modèles peuvent être estimés autour des régressions linéaires : le cadre reste simple mais la modélisation est plus complexe choix de modélisations doivent être faits
+Même s’ils peuvent améliorer les performances des modèles « classiques » ils ne les remplacent pas pour autant
+Modèles parfois complexes à implémenter (notamment espace-état)
+tvCoef peut vous aider (https://github.com/AQLT/tvCoef)
 \appendix
 
 # Installation de `tvCoef` {.appendix}
