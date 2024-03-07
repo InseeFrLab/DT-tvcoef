@@ -3,6 +3,8 @@ title: "Utilisation de modèles de régression à coefficients variant dans le t
 format: 
   pdf:
     include-in-header: template/preambule.tex
+    keep-tex: true
+    classoption: french
   html: 
     self-contained: true
     include-before-body: template/preambule.html
@@ -19,6 +21,8 @@ crossref:
   fig-prefix: figure
   sec-prefix: section
   title-delim: "-"
+tbl-cap-location: top
+fig-cap-location: top
 author:
   - name: Alain Quartier-la-Tente 
     affiliation: Insee
@@ -125,12 +129,34 @@ Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de
 Keywords: time series, trend-cycle, seasonal adjustment, turning points.
 ::::
 
-JEL Classification: E32, E37.
+JEL Classification: C22, C53.
 
 \newpage
 
 
 # Introduction
+
+Dans la statistique publique, de nombreux modèles de prévision s'appuient sur des régressions linéaires. 
+Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes. 
+Pour la prévision des grands agrégats macroéconomiques, le département de la conjoncture de l'Insee utilise notamment des étalonnages (voir par exemple @ndc2015prev) et le modèle macroéconomiques Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
+Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. 
+Cependant, ils supposent que les relations entre les variables sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
+
+Pour palier à ce problème, une solution simple consiste à utiliser moins de données pour estimer les modèles.
+Par exemple, les guide des bonnes pratiques sur l'ajustement saisonnier [@eurostat2015guidelines] recommandent de ne pas désaisonnaliser des séries de plus de 20 ans.
+Toutefois, cela conduit à perdre l'historique des données et l'information que l'on peut en tirer, ne résout pas le problème lorsque la rupture est récente et conduit
+
+L'objectif de cette étude est d'étudier différentes méthodes d'estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. Ces méthodes se regroupent en trois catégories : 
+
+- les modèles de régression par morceaux
+
+- les régressions locales
+
+- les modèles espace-état
+
+Pour simplifier l'implémentation de ces méthodes, ainsi que leur comparaison, un package R a également été développé lors de cette étude. 
+Les premiers résultats montrent que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision (en temps réel et dans l'échantillon). De plus, ils ont l'avantage d'être plus facilement interprétables que des méthodes de machine learning, puisqu'ils s'appuient sur des modèles de régression linéaire.
+L'atelier montrera comment mettre en application ces différentes méthodes, interpréter et comparer les résultats.
 
 Sur longue période, les institutions, les normes de sociétés ainsi que les comportements des agents économiques évoluent, induisant des changements dans la dynamique des séries économiques étudiées.
 
@@ -328,7 +354,7 @@ L_c = \frac{1}{n}
 \text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}.
 $$
 Il s'adapte facilement à un test de joint de constance d'un sous-ensemble de paramètres en utilisant des sous-vecteurs de $\bf f_t$ et $\bf S_t.$
-Toutefois, si modèle contient des indicatrices alors le test joint ne pourra pas être calcule (la matrice $\bf V$ ne sera pas inversible).
+Toutefois, si modèle contient des indicatrices alors le test joint ne pourra pas être calculé (la matrice $\bf V$ n'est alors pas inversible).
 
 Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
 Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
