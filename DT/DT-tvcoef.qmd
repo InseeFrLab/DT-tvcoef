@@ -13,8 +13,13 @@ format:
     self-contained: false
     include-before-body: template/preambule.html
     css: [template/style.css]
+    code-links:
+      - text: InseeFrLab/DT-tvcoef
+        icon: github
+        href: https://github.com/AQLT/DT-tvcoef
     crossref: 
       title-delim: "-"
+    output-file: index
   # docx: default
 toc: true
 number-sections: true
@@ -175,7 +180,7 @@ Par ailleurs, même lorsque les tests classiques concluent à la constance des c
 # Modélisation générale et tests {#sec-tests}
 
 Dans cet article, nous nous placerons dans le cadre de la régression linéaire avec des variables à une dimension.
-À chaque date $t$, la variable $y_t$ (e.g. : taux de croissance du PIB) est expliquée par une combinaison linéaire de $p$ variables explicatives, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
+À chaque date $t$, la variable $y_t$ (e.g., taux de croissance du PIB) est expliquée par une combinaison linéaire de $p$ variables explicatives, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
 $$
 y_t=\alpha_{0}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t 
 $$
@@ -401,7 +406,7 @@ Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le te
 
 Si un des tests précédents conclut à la non constance des coefficients du modèle estimé c'est qu'il est mal spécifié et donc qu'il faut utiliser une modélisation alternative qui pourrait notamment provenir d'un problème de variables omises.
 Dans cet article, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
-Dans certains cas, par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g. : des indicatrices).
+Dans certains cas, par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g., des indicatrices).
 
 Trois méthodes sont étudiées dans cet article :
 
