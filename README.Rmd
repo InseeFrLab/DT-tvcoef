@@ -24,7 +24,7 @@ Ce dépôt contient tous les programmes du document de travail
 Pour citer cet article :
 
 ```
-@article{inseeDTG2024XX,
+@article{inseeDTM2024XX,
   title={Utilisation de mod{\`e}les de r{\'e}gression à coefficients variant dans le temps pour la pr{\'e}vision conjoncturelle},
   author={Quartier{-la-}Tente, Alain},
   journal={Document de travail méthodologique Insee},
