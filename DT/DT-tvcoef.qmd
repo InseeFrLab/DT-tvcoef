@@ -107,27 +107,21 @@ Remerciements :
 # Résumé {-}
 
 :::: {.abstract}
-Dans la statistique publique, de nombreux modèles de prévision s'appuient sur des régressions linéaires. En effet, les producteurs appliquent des modèles RegARIMA pour la correction des effets de calendrier. Pour la prévision des grands agrégats macroéconomiques, le département de la conjoncture de l'Insee utilise notamment des étalonnages et le modèle Mésange s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. Cependant, ils supposent que les relations entre les variables sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
-L'objectif de cette étude est d'étudier différentes méthodes d'estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. Ces méthodes se regroupent en trois catégories : 
+Cette étude s'intéresse à trois méthodes permettant de construire des modèles de régression linéaire avec des coefficients variant dans le temps : régression par morceaux, régression locale et modélisation espace-état.
+Elle montre comment implémenter ces méthodes sous R avec le package `tvCoef`.
+En les comparant sur une trentaine de modèles de prévision trimestrielle, nous montrons que l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision lorsque des ruptures sont détectées dans les coefficients.
+Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la modélisation espace-état peut permettre de réduire les erreurs de prévision.
+Toutefois, les incertitudes liés à l'estimation de certains hyperparamètres peut conduire à accroître les erreurs de prévisions en temps réel (notamment pour la régression locale) : il est donc important de garder une analyse économique des paramètres estimés.
 
-- les modèles de régression par morceaux
+Cette étude est entièrement reproductible et tous les codes utilisés sont disponibles sous <https://github.com/InseeFrLab/DT-tvcoef>.
 
-- les régressions locales
-
-- les modèles espace-état
-
-Pour simplifier l'implémentation de ces méthodes, ainsi que leur comparaison, un package R a également été développé lors de cette étude. 
-Les premiers résultats montrent que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision (en temps réel et dans l'échantillon). De plus, ils ont l'avantage d'être plus facilement interprétables que des méthodes de machine learning, puisqu'ils s'appuient sur des modèles de régression linéaire.
-L'atelier montrera comment mettre en application ces différentes méthodes, interpréter et comparer les résultats.
-
-
-Mots clés : séries temporelles, tendance-cycle, désaisonnalisation, points de retournement.
+Mots clés : séries temporelles, prévisions, séries longues.
 ::::
 
 :::: {.abstract}
 
 
-Keywords: time series, trend-cycle, seasonal adjustment, turning points.
+Keywords: time series, forecast, long time series.
 ::::
 
 JEL Classification: C22, C53.
@@ -461,7 +455,7 @@ Dans notre exemple, les coefficients associés à la constante et au climat des 
 reg_morc <- piece_reg(reg_lin)
 coef(reg_morc$model)
 ```
-Cette égalité peut être testée en utilisant un test de Fisher, par exemple avec la fonction `car::linearHypothesis()`.
+Cette égalité peut être testée en utilisant un test de Fisher, par exemple avec la fonction `car::linearHypothesis()` [@car].
 Dans notre exemple, on ne rejette pas l'hypothèse nulle d'égalité des coefficients de la constante et du climat des affaires en niveau avant et après la rupture, modèle peut donc être simplifié.
 Par ailleurs, on rejette l'hypothèse nulle d'égalité du coefficient associé au climat des affaires en différence : la prise en compte de la rupture est donc justifiée.
 Toutefois, nous conseillons de toujours considérer que la constante varie dans le temps, même lorsque que ce n'est statistiquement pas significatif\ : cela permet de s'assurer que le modèle ne sera pas biaisé par des résidus qui ne seraient pas de moyenne nulle.
@@ -567,7 +561,7 @@ ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
 La régression mobile est une des méthodes empiriques les plus simples pour savoir si les coefficients évoluent dans le temps.
 Celle-ci consiste à estimer des régression en utilisant un intervalle de temps fixe et à observer la courbe des coefficients estimés.
 En reprenant notre exemple où les données commencent en 1980, avec une fenêtre fixe de 15 ans (par exemple), cela consiste à estimer une première régression entre 1980T1 et 1994T4, une deuxième entre 1980T2 et 1995T1... et une dernière entre 2005T1 et 2019T4.
-Sous R cela peut par exemple s'estimer en utilisant la fonction `roll::roll_lm()` :
+Sous R cela peut par exemple s'estimer en utilisant la fonction `roll::roll_lm()` [@roll] :
 ```{r}
 roll_regres <- roll::roll_lm(
   x = window(gdp, start = 1980, end = c(2019,4))[, c("bc_fr_m1", "diff_bc_fr_m1")],
@@ -850,7 +844,7 @@ coef2plot(
 La @tbl-res-model-pib compare la qualité prédictive des différents modèles dans l'échantillon (en utilisant toutes les données et pour estimer les paramètres des modèles) et hors échantillon (reproduction du processus de prévision en estimant, de manière récursive les modèles jusqu'à la date $t$ pour calculer les prévisions à la date $t+1$).
 C'est la modélisation espace-état qui minimise les erreurs de prévision, suivie de la régression par morceaux.
 La régression locale a une erreur hors échantillon plus élevée notamment du fait des instabilités sur l'estimation de la fenêtre.
-Le test de Diebold-Mariano (voir notamment @DMtest), implémenté dans la fonction `forecast::dm.test()`, permet de tester si cette différence est significative.
+Le test de Diebold-Mariano (voir notamment @DMtest), implémenté dans la fonction `forecast::dm.test()` [@forecastR], permet de tester si cette différence est significative.
 Dans et hors échantillon, les modèles espace-état ont des erreurs de prévisions significativement plus petites que la régression linéaire (p-valeurs respectivement de 0,00 et 0,05).
 Dans l'échantillon elles sont également significativement plus petites que celles de la régression par morceau (p-valeur de 0,00) mais la différence n'est pas significative hors échantillon (p-valeur de 0,10) : l'interprétation économique sur les périodes récentes est en revanche différente (coefficient sur le climat des affaires en différence), ce qui conduit donc à des prévisions différentes.
 
