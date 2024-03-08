@@ -5,10 +5,16 @@ format:
     include-in-header: template/preambule.tex
     keep-tex: true
     classoption: french
+    cite-method: biblatex
+    pdf-engine: pdflatex
+    papersize: A4
+    fig-width: 7.5
   html: 
-    self-contained: true
+    self-contained: false
     include-before-body: template/preambule.html
     css: [template/style.css]
+    crossref: 
+      title-delim: "-"
   # docx: default
 execute:
   freeze: true 
@@ -17,11 +23,9 @@ number-sections: true
 bibliography: biblio.bib
 biblio-style: authoryear
 crossref:
-  # tbl-title: Tableau
   tbl-prefix: table
   fig-prefix: figure
   sec-prefix: section
-  title-delim: "-"
 tbl-cap-location: top
 fig-cap-location: top
 author:
@@ -119,6 +123,9 @@ Cette étude est entièrement reproductible et tous les codes utilisés sont dis
 Mots clés : séries temporelles, prévisions, séries longues.
 ::::
 
+
+# Abstract {-}
+
 :::: {.abstract}
 This study describes three methods for estimating linear regression models with time-varying coefficients: piecewise regression, local regression, and state-space modeling.
 It also details their implementation in R using the `tvCoef` package.
@@ -141,7 +148,7 @@ JEL Classification: C22, C53.
 
 Dans la statistique publique, de nombreux modèles de prévision s'appuient sur des régressions linéaires. 
 Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes. 
-Pour la prévision des grands agrégats macroéconomiques, le département de la conjoncture de l'Insee utilise notamment des étalonnages (voir par exemple @ndc2015prev) et le modèle macroéconomique Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
+Pour la prévision des grands agrégats macroéconomiques, l'Insee et la Banque de France utilisent notamment des modèles de régression linéaire pour prévoir la croissance [voir par exemple @ndc2015prev et @OPTIM] et le modèle macroéconomique Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
 Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. 
 Cependant, ils supposent que les relations entre les variables (i.e les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
 
@@ -214,9 +221,10 @@ Toutefois, nous recommandons d'utiliser le package `dynlm` [@dynlm] qui offre un
 #| message: false
 library(tvCoef)
 library(dynlm)
+data_gdp <- window(gdp, start = 1980, end = c(2019, 4))
 reg_lin <- dynlm(
   formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
-  data = window(gdp, start = 1980, end = c(2019, 4))
+  data = data_gdp
 )
 # # Equivalent à :
 # reg_lin <- dynlm(
@@ -486,7 +494,7 @@ Pour le calcul des erreurs de prévisions hors échantillon, la méthodologie re
 Avec cette méthode, appelée le *leave-one-out cross-validation*, on ne s'intéresse donc qu'à la qualité de prévision à l'horizon d'un trimestre (ce qui est le cas d'utilisation pour les modèles étudiés).
 Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces erreurs de prévisions hors échantillon [@AIC].
 
-Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères :
+Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères\ :
 ```{r}
 # AIC minimisé :
 AIC(reg_morc$model) < AIC(reg_lin)
@@ -571,13 +579,12 @@ Celle-ci consiste à estimer des régression en utilisant un intervalle de temps
 En reprenant notre exemple où les données commencent en 1980, avec une fenêtre fixe de 15 ans (par exemple), cela consiste à estimer une première régression entre 1980T1 et 1994T4, une deuxième entre 1980T2 et 1995T1... et une dernière entre 2005T1 et 2019T4.
 Sous R cela peut par exemple s'estimer en utilisant la fonction `roll::roll_lm()` [@roll] :
 ```{r}
-roll_regres <- roll::roll_lm(
-  x = window(gdp, start = 1980, end = c(2019,4))[, c("bc_fr_m1", "diff_bc_fr_m1")],
-  y = window(gdp, start = 1980, end = c(2019,4))[, "growth_gdp"],
-  width = 4 * 15,
-  online = FALSE
+roll_lm <- roll::roll_lm(
+  x = data_gdp[, c("bc_fr_m1", "diff_bc_fr_m1")],
+  y = data_gdp[, "growth_gdp"],
+  width = 4 * 15
 )
-coef_roll_regres <- ts(roll_regres$coefficients, start = 1980, frequency = 4)
+coef_roll_lm <- ts(roll_lm$coefficients, start = 1980, frequency = 4)
 ```
 
 La @fig-coef-rollreg montre les coefficients estimés par cette régression mobile.
@@ -587,7 +594,8 @@ Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fe
 ::: {#fig-coef-rollreg}
 ```{r}
 #| echo: false
-coef_roll_regres <- na.omit(coef_roll_regres)
+#| label: ffig-coef-rollreg
+coef_roll_lm <- na.omit(coef_roll_lm)
 coef_morc <- coef(reg_morc)
 coef_lin <- ts(matrix(coef(reg_lin), nrow = 1), 
                start = start(coef_morc),
@@ -599,9 +607,9 @@ coef2plot(
   list(
     "Rég. linéaire" = coef_lin,
     "Rég. par morceaux" = coef_morc,
-    "Rég. mobile" = coef_roll_regres
+    "Rég. mobile" = coef_roll_lm
   ),
-  start = start(coef_roll_regres)
+  start = start(coef_roll_lm)
 )
 ```
 
@@ -616,7 +624,7 @@ La régression mobile a l'avantage d'être très simple mais repose sur plusieur
 - La longueur de la fenêtre : elle doit être suffisamment large pour avoir des bonnes estimations mais suffisamment courte afin de permettre de prendre en compte les ruptures.
 
 - La date à laquelle les coefficients sont associés.
-Dans la fonction `rollRegres::roll_regres()` ils sont associés à la dernière date de la fenêtre : les coefficients de la date $t$ correspondent à ceux obtenus en utilisant les données jusqu'à la date $t.$
+Dans la fonction `roll::roll_lm()` ils sont associés à la dernière date de la fenêtre : les coefficients de la date $t$ correspondent à ceux obtenus en utilisant les données jusqu'à la date $t.$
 Ils auraient également pu être associés à la première date de la fenêtre ou encore à son milieu (coefficients de la date $t$ estimés en utilisant autant d'observations avant et après $t$).
 Dans tous les cas une stratégie doit être adoptée afin de gérer les observations manquantes (dans notre exemple il s'agit donc d'estimer les coefficients avant 1994).
 
@@ -686,7 +694,7 @@ Reprenons notre exemple de prévision du PIB avec une détection automatique de 
 ```{r}
 reg_loc <- tvReg::tvLM(
   formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1,
-  data = window(gdp, start = 1980, end = c(2019,4))
+  data = data_gdp
 )
 summary(reg_loc)
 ```
@@ -699,14 +707,14 @@ Avec ce paramètre pour la fenêtre, les ruptures brutales sont donc difficiles 
 #| echo: false
 #| label: fig-coef-reg-mobile
 #| fig-cap: Coefficients estimés par régression linéaire, régression par morceaux et régression locale (avec $b=0,74$).
-# coef_roll_regres <- ts(coef_roll_regres, start = 1980+15/2-0.25,
+# coef_roll_lm <- ts(coef_roll_lm, start = 1980+15/2-0.25,
 #                        frequency = 4)
 coef_reg_loc <- ts(coef(reg_loc), start = 1980, frequency = 4)
 
 coef2plot(
   list(
     "Rég. linéaire" = coef_lin,
-    # "Rég. mobile" = coef_roll_regres,
+    # "Rég. mobile" = coef_roll_lm,
     "Rég. par morceaux" = coef_morc,
     "Rég. locale" = coef_reg_loc
   )
@@ -727,12 +735,13 @@ oos_bw <- ts(sapply(oos_reg_loc$model, `[[`,"bw"),
 ```{r}
 #| echo: false
 #| label: fig-oos-bw
-#| fig-cap: Fenêtre $b$ détectée automatique en fonction de la date de fin d'estimation du modèle.
+#| fig-cap: Fenêtre $b$ détectée automatiquement en fonction de la date de fin d'estimation du modèle.
 autoplot(oos_bw) +
   # geom_abline(slope = 0, intercept = 1) +
   theme_bw() +
   labs(x = "Date de fin d'estimation",
-       y = latex2exp::TeX("Fenêtre $b$"))
+       y = latex2exp::TeX("Fenêtre $b$")) +
+  scale_x_continuous(breaks = seq.int(1990, 2020, by = 5))
 ```
 
 Pour l'estimation hors échantillon, la méthode utilisée est l'utilisation d'une fonction de noyau tronquée : plus de points dans le passé que dans le futur sont utilisés pour estimer les derniers coefficients.
@@ -775,14 +784,14 @@ Pour plus de détails voir par exemple @durbinkoopman.
 Le filtre de Kalman permet ensuite de calculer tous les coefficients.
 Parmi les paramètres calculés, les deux principaux sont : 
 
-1. Les états lissés (*smoothed states*) : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant toute l'information disponible : $\E{\alpha_t|y_1,\dots,y_n}.$
+1. Les états lissés (*smoothed states*) $\E{\alpha_t|y_1,\dots,y_n}$ : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant toute l'information disponible. 
 Dans le cadre de la régression linéaire, les états lissés sont donc constants sur toutes les dates et correspondent aux coefficients estimés en utilisant l'ensemble des données disponibles :
 
 ```{r}
 window(ssm$smoothed_states, start = 2019)
 ```
 
-2. Les états filtrés (*filtered states*) : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant l'information disponible jusqu'à la date précédente : $\E{\alpha_t|y_1,\dots,y_{t-1}}.$
+2. Les états filtrés (*filtered states*) $\E{\alpha_t|y_1,\dots,y_{t-1}}$ : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant l'information disponible jusqu'à la date précédente.
 Dans le cadre de la régression linéaire, cela correspond aux coefficients estimés hors échantillon : la valeur des états filtrés en 2010T2 correspond aux coefficients estimés en utilisant les données jusqu'au 2010T1.
 Ils permettent donc d'avoir une estimation des prévisions hors échantillon du modèle.
 ```{r}
@@ -796,7 +805,6 @@ Lorsque les variances sont estimées, les états filtrés ne correspondent pas �
 Les estimations hors échantillon peuvent être calculées en utilisant la fonction `tvCoef::ssm_lm_oos()`.
 
 Pour faciliter l'estimation des variances $\bf\Sigma,$ le paramètre est souvent reparamétré :
-
 $$
 \begin{cases}
 y_t={\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
@@ -808,8 +816,7 @@ C'est ce qui est utilisé par défaut dans `tvCoef::ssm_lm()`.
 Dans notre exemple, l'erreur standard de la régression (*residual standar error*) peut se calculer de la façon suivante :
 
 ```{r}
-sqrt(ssm$parameters$parameters *
-       ssm$parameters$scaling)
+sqrt(ssm$parameters$parameters * ssm$parameters$scaling)
 summary(reg_lin)$sigma
 ```
 
@@ -818,9 +825,10 @@ Même si la valeur des variances (`var_intercept` et `var_variables` qui valent 
 Sur notre modèle, l'optimisation conduit à garder fixe le coefficient associé au climat des affaires en niveau (variance nulle) mais considère que les autres variables varient dans le temps :
 
 ```{r}
-ssm <- ssm_lm(reg_lin, fixed_var_intercept = FALSE, fixed_var_variables = FALSE)
-sqrt(ssm$parameters$parameters *
-       ssm$parameters$scaling)
+ssm <- ssm_lm(reg_lin, 
+              fixed_var_intercept = FALSE, 
+              fixed_var_variables = FALSE)
+sqrt(ssm$parameters$parameters * ssm$parameters$scaling)
 ```
 ::: {.remark}
 Dans la version actuelle de `tvCoef`, les retards de la variable endogène (à prévoir) ne sont pas modélisés correctement.
@@ -861,15 +869,17 @@ oos_ssm <- ssm_lm_oos(reg_lin, fixed_var_intercept = FALSE,
                       fixed_var_variables = FALSE,
                       date = 70)
 
-res_is <- ts.union(ts(residuals(reg_lin), end = c(2019,4), frequency = 4),
-                   residuals(reg_morc),
-                   ts(residuals(reg_loc), end = c(2019,4), frequency = 4),
-                   residuals(ssm)[,"smoothed"]
+res_is <- ts.union(
+  ts(residuals(reg_lin), end = c(2019,4), frequency = 4),
+  residuals(reg_morc),
+  ts(residuals(reg_loc), end = c(2019,4), frequency = 4),
+  residuals(ssm)[,"smoothed"]
 )
-res_oos <- ts.union(oos_lm$residuals,
-                    oos_reg_morc$residuals,
-                    ts(oos_reg_loc$residuals, end = c(2019,4), frequency = 4),
-                    oos_ssm$oos_noise
+res_oos <- ts.union(
+  oos_lm$residuals,
+  oos_reg_morc$residuals,
+  ts(oos_reg_loc$residuals, end = c(2019,4), frequency = 4),
+  oos_ssm$oos_noise
 )
 res_oos <- window(res_oos, start = 2003)
 # (H0) : Modèle espace-état meilleur que modèle linéaire
@@ -899,7 +909,7 @@ knitr::kable(table, format.args = list(decimal.mark = ",", digits = 2))
 ```
 
 Note : Les prévisions dans l'échantillon sont calculées en estimant les modèles à partir des données disponibles entre 1980T1 et 2019T4.
-Les prévisions hors échantillon sont calculées en à partir de 2003T1: la première prévision (2003T1) correspond à celle que l'on aurait eu en estimant les modèles à partir des données disponibles jusqu'en 2002T4 (trimestre précédente).
+Les prévisions hors échantillon sont calculées en à partir de 2003T1 : la première prévision (2003T1) correspond à celle que l'on aurait eu en estimant les modèles à partir des données disponibles jusqu'en 2002T4 (trimestre précédente).
 
 Erreurs quadratiques moyennes des erreurs de prévisions entre les différentes méthodes.
 :::
@@ -951,7 +961,7 @@ reg_morc_covid <- piece_reg(reg_lin_covid, break_dates = 2000.25,
                             # Les indicatrices ne sont pas découpées
                             fixed_var = 4:7)
 reg_loc_covid <- tvReg::tvLM(
-  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1+
+  formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1 +
     ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4,
   data = window(data_covid, start = 1980),
   # On reprend l'ancienne fenêtre
@@ -1002,7 +1012,7 @@ coef2plot(
 
 Dans les données ici utilisées, le taux de croissance trimestriel du PIB est connu jusqu'au 2022T4 alors que les variables explicatives sont connues jusqu'au 2023T1 :
 ```{r}
-tail(data_covid[, c("growth_gdp", "bc_fr_m1", "diff_bc_fr_m1")])
+tail(data_covid[, c("growth_gdp", "bc_fr_m1", "diff_bc_fr_m1")], 2)
 ```
 Il est donc possible d'effectuer une prévision sur le dernier trimestre et nous allons maintenant montrer comment procéder.
 Le plus simple est d'effectuer une somme pondérée des variables explicatives avec les coefficients estimés.
@@ -1016,16 +1026,16 @@ data_prev <- full_exogeneous_matrix(reg_lin_covid)
 # On extrait le dernier trimestre :
 der_period <- tail(data_prev, 1)
 der_period
-# On transforme en numeric pour eviter d'avoir des erreurs dues au format ts()
+# Transformation en numeric pour éviter des erreurs dues au format ts()
 der_period <- as.numeric(der_period)
-
 prev_reg_lin <- sum(coef(reg_lin_covid) * der_period)
 # Pour les autres méthodes on prend les derniers coefficients estimés
 prev_reg_morc <- sum(tail(coef(reg_morc_covid), 1) * der_period)
 prev_reg_loc <- sum(tail(coef(reg_loc_covid), 1) * der_period)
 prev_ssm <- sum(tail(coef(ssm_covid), 1) * der_period)
-round(c(prev_reg_lin, prev_reg_morc,
-  prev_reg_loc, prev_ssm), 2)
+round(
+  c(prev_reg_lin, prev_reg_morc, prev_reg_loc, prev_ssm), 
+  2)
 ```
 
 
@@ -1065,7 +1075,7 @@ Dans 4 de ces modèles la procédure de Bai et Perron conclut à la présence d'
 Nombre de modèles étudiés par branche d'activité.
 :::
 
-Pour l'estimation des modèles des modèles de régression par morceaux, on limite le nombre maximal de ruptures à 2.
+Pour l'estimation des modèles des modèles de régression par morceaux, nous limitons le nombre maximal de ruptures à 2.
 La dernière rupture est détectée en 2011Q4 pour deux modèles de la branche des autres industries (C5).
 Les prévisions en hors échantillon sont donc calculées après 2013 afin d'éviter les fortes erreurs autour des ruptures.
 Pour la régression locale et la modélisation espace-état, les modèles sont estimés avec les paramètres par défaut sans chercher à optimiser les modèles (par exemple en ne fixant pas les coefficients des indicatrices).
@@ -1086,13 +1096,13 @@ $$
 
 La @tbl-error-table montre les résultats des MASE associées différentes méthodes relativement aux prévisions du modèle de régression linéaire.
 Dans l'ensemble ce sont les modèles espace-état qui donne les meilleurs résultats.
-Pour les modèles où une rupture a été détectée, les modèles espace état permettent d'améliorer la qualité d'en moyenne 18 % par rapport à la régression linéaire (avec un minimum de 6 %), contre une amélioration d'en moyenne 12 % ou 11 % pour la régression locale et la régression par morceaux.
-Hors échantillon, les résultats sont également améliorés avec la modélisation espace état pour la majorité des modèles (en moyenne de 7 % et au maximum de 20 %) mais sont dégradés pour 3 des 14 modèles (d'au plus 5 %).
-Pour la régression locale, les résultats sont, dans la majorité des cas (12 modèles sur 14) identiques ou dégradés par rapport à la régression linéaire (avec une dégradation d'au plus 17 %).
-Pour la régression par morceaux, même si pour 8 séries les résultats sont améliorées, cette amélioration semble moins forte qu'avec les modèles espace (au plus 11 %).
+Pour les modèles où une rupture a été détectée, les modèles espace état permettent d'améliorer la qualité d'en moyenne 18\ % par rapport à la régression linéaire (avec un minimum de 6\ %), contre une amélioration d'en moyenne 12\ % ou 11\ % pour la régression locale et la régression par morceaux.
+Hors échantillon, les résultats sont également améliorés avec la modélisation espace état pour la majorité des modèles (en moyenne de 7\ % et au maximum de 20\ %) mais sont dégradés pour 3 des 14 modèles (d'au plus 5\ %).
+Pour la régression locale, les résultats sont, dans la majorité des cas (12 modèles sur 14) identiques ou dégradés par rapport à la régression linéaire (avec une dégradation d'au plus 17\ %).
+Pour la régression par morceaux, même si pour 8 séries les résultats sont améliorées, cette amélioration semble moins forte qu'avec les modèles espace (au plus 11\ %).
 
-Étonnamment, lorsqu'aucune rupture n'est détectée les modèles espace-état permettent également d'améliorer les résultats : dans l'échantillon les erreurs de prévisions sont réduites d'en moyenne 7 % et d'au plus 22 % et ne sont jamais dégradées.
-Elles sont en revanche dégradées pour quelques modèles en temps réel (d'au plus 7 %), elle sont améliorées pour 3 modèles (jusqu'à 27 %).
+Étonnamment, lorsqu'aucune rupture n'est détectée les modèles espace-état permettent également d'améliorer les résultats : dans l'échantillon les erreurs de prévisions sont réduites d'en moyenne 7\ % et d'au plus 22\ % et ne sont jamais dégradées.
+Elles sont en revanche dégradées pour quelques modèles en temps réel (d'au plus 7\ %), elle sont améliorées pour 3 modèles (jusqu'à 27\ %).
 Cette instabilité provient également du fait qu'aucune optimisation n'est faite dans la spécification des modèles.
 Toutefois ces résultats suggèrent que les tests ici présentés pour tester la constance des coefficients ne sont pas toujours pertinents.
 Ainsi, @abs2006 proposent une procédure de tests basée sur la modélisation espace état (en testant la significativité de la variance des coefficients estimés).
@@ -1119,8 +1129,8 @@ read.csv2("img/error_table.csv", check.names = FALSE) |>
 
 Note : les modèles sans rupture sont ceux où aucune rupture n'est détectée par la procédure de Bai et Perron.
 
-Lecture : pour les prévisions hors échantillon la modélisation permet, par rapport à la régression linéaire, le MASE est réduit d'en moyenne de 7 % pour les modèles avec rupture et de 1 % pour les modèles sans rupture.
-Trois modèles sans rupture sont améliorés grâce à la modélisation espace-état (avec une réduction maximale de la MASE de 27 %) et les erreurs de prévisions sont augmentées pour quatre modèles (avec une hausse maximale de 7 %).
+Lecture : pour les prévisions hors échantillon la modélisation permet, par rapport à la régression linéaire, le MASE est réduit d'en moyenne de 7\ % pour les modèles avec rupture et de 1\ % pour les modèles sans rupture.
+Trois modèles sans rupture sont améliorés grâce à la modélisation espace-état (avec une réduction maximale de la MASE de 27\ %) et les erreurs de prévisions sont augmentées pour quatre modèles (avec une hausse maximale de 7\ %).
 
 Moyenne absolue des erreurs normalisées (MASE) rapportée à celle des modèles régression linéaire.
 :::
@@ -1185,7 +1195,7 @@ Si l'on a pas cette version d'installée et que l'on n'a pas les droits d'admini
 
 Pour installer une version portable de java, télécharger par exemple le fichier `Windows 10 x64 Java Development Kit` disponible sur <https://jdk.java.net/java-se-ri/17>, le dézipper et le mettre par exemple sous `""`.  
 
-Pour configurer R avec une version portable de Java, trois solutions :
+Pour configurer R avec une version portable de Java, trois solutions\ :
 
 1. Avant **avant tout chargement de package nécessitant Java (`rJava`...)** (si vous avez lancé le code précédent, relancez donc R) :
 ```{r, eval = FALSE}
@@ -1193,7 +1203,7 @@ Pour configurer R avec une version portable de Java, trois solutions :
 Sys.setenv(JAVA_HOME='D:/Programmes/jdk-17')
 ```
 
-2. Pour éviter de faire cette manipulation à chaque fois que l'on relance R, deux solutions :  
+2. Pour éviter de faire cette manipulation à chaque fois que l'on relance R, deux solutions\ :  
 
 a. modifier le `JAVA_HOME` dans les variables d'environnement de Windows (voir <https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html>).
 
