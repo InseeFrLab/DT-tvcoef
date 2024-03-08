@@ -9,7 +9,7 @@ format:
     self-contained: true
     include-before-body: template/preambule.html
     css: [template/style.css]
-  docx: default
+  # docx: default
 execute:
   freeze: true 
 toc: true
