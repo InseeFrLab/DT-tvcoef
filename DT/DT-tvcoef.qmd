@@ -155,10 +155,10 @@ Dans la statistique publique, de nombreux modèles de prévision s'appuient sur 
 Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes. 
 Pour la prévision des grands agrégats macroéconomiques, l'Insee [e.g., @ndc2015prev] et la Banque de France [e.g., @OPTIM] utilisent notamment des modèles de régression linéaire pour prévoir la croissance et le modèle macroéconomique Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
 Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. 
-Cependant, ils supposent que les relations entre les variables (i.e, les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
+Cependant, elles supposent que les relations entre les variables (i.e, les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
 
 Pour palier à ce problème, une solution simple consiste à utiliser moins de données pour estimer les modèles.
-Par exemple, le guide des bonnes pratiques sur l'ajustement saisonnier [@eurostat2015guidelines] recommandent de ne pas désaisonnaliser des séries de plus de 20 ans.
+Par exemple, le guide des bonnes pratiques sur l'ajustement saisonnier [@eurostat2015guidelines] recommande de ne pas désaisonnaliser des séries de plus de 20 ans.
 Toutefois, cela conduit à perdre l'historique des données et l'information que l'on peut en tirer et ne résout pas le problème lorsque la rupture est récente.
 Par ailleurs, comme montré par @JMS2018 pour la désaisonnalisation des séries d'indice de production industrielle, lorsqu'il faut analyser les modèles sur l'ensemble de la période (par exemple dans le cadre de la correction des jours ouvrables), il est nécessaire de mettre en place des méthodes de chaînage afin de prendre en compte la rupture introduite par l'utilisation de plusieurs modèles.
 Ainsi, dans certains cas il peut être préférable d'utiliser des modèles qui prennent directement en compte les ruptures.
