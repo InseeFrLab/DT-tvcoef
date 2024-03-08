@@ -16,8 +16,6 @@ format:
     crossref: 
       title-delim: "-"
   # docx: default
-execute:
-  freeze: true 
 toc: true
 number-sections: true
 bibliography: biblio.bib
@@ -108,6 +106,8 @@ coef2plot <- function(x, linetype = 1, start = NULL, end = NULL){
 Remerciements :
 :::
 
+\newpage
+
 # Résumé {-}
 
 :::: {.abstract}
@@ -148,9 +148,9 @@ JEL Classification: C22, C53.
 
 Dans la statistique publique, de nombreux modèles de prévision s'appuient sur des régressions linéaires. 
 Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes. 
-Pour la prévision des grands agrégats macroéconomiques, l'Insee et la Banque de France utilisent notamment des modèles de régression linéaire pour prévoir la croissance [voir par exemple @ndc2015prev et @OPTIM] et le modèle macroéconomique Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
+Pour la prévision des grands agrégats macroéconomiques, l'Insee [e.g., @ndc2015prev] et la Banque de France [e.g., @OPTIM] utilisent notamment des modèles de régression linéaire pour prévoir la croissance et le modèle macroéconomique Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
 Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. 
-Cependant, ils supposent que les relations entre les variables (i.e les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
+Cependant, ils supposent que les relations entre les variables (i.e, les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
 
 Pour palier à ce problème, une solution simple consiste à utiliser moins de données pour estimer les modèles.
 Par exemple, le guide des bonnes pratiques sur l'ajustement saisonnier [@eurostat2015guidelines] recommandent de ne pas désaisonnaliser des séries de plus de 20 ans.
@@ -271,13 +271,13 @@ library(strucchange)
 bp <- breakpoints(reg_lin)
 breakdates(bp)
 ```
-Une seule rupture est détectée au `{r} format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")`.
+Une seule rupture est détectée au `{r} format(zoo::as.yearqtr(strucchange::breakdates(bp)), "%YT%q")`.
 Un intervalle de confiance autour de la date détectée peut être calculée peut en utilisant la fonction `confint()` :
 ```{r}
 breakdates(confint(bp))
 ```
 L'incertitude autour de la date détectée est grande ! 
-Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yearqtr(breakdates(confint(bp))[1]), "%YT%q")` et `{r} format(zoo::as.yearqtr(breakdates(confint(bp))[3]), "%YT%q")`.
+Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yearqtr(strucchange::breakdates(confint(bp))[1]), "%YT%q")` et `{r} format(zoo::as.yearqtr(strucchange::breakdates(confint(bp))[3]), "%YT%q")`.
 
 Cet algorithme est très simple à utiliser mais possède plusieurs inconvénients :
 
@@ -416,7 +416,7 @@ Trois méthodes sont étudiées dans cet article :
 La régression par morceaux est la modélisation la plus simple : elle consiste à estimer le modèle sur un sous-ensemble des données.
 La modélisation est similaire à celle de la procédure de Bai et Perron puisque cette dernière donne directement les "morceaux" : entre les dates de ruptures.
 
-Par exemple, pour le modèle de prévision de la croissance, deux régressions seraient estimés en utilisant les données avant et après  `{r} format(zoo::as.yearqtr(breakdates(bp)), "%YT%q")`.
+Par exemple, pour le modèle de prévision de la croissance, deux régressions seraient estimés en utilisant les données avant et après  `{r} format(zoo::as.yearqtr(strucchange::breakdates(bp)), "%YT%q")`.
 
 Deux méthodes d'estimations sont possibles :
 
@@ -428,7 +428,7 @@ Deux méthodes d'estimations sont possibles :
 <!-- ```{r} -->
 <!-- #| echo: false -->
 <!-- #| output: asis -->
-<!-- date_rupture <- format(zoo::as.yearqtr(breakdates(bp)), "%YT%q") -->
+<!-- date_rupture <- format(zoo::as.yearqtr(strucchange::breakdates(bp)), "%YT%q") -->
 <!-- cat( -->
 <!--   sprintf(" -->
 <!-- \\begin{align*} -->
@@ -496,6 +496,7 @@ Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces 
 
 Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères\ :
 ```{r}
+#| cache: true
 # AIC minimisé :
 AIC(reg_morc$model) < AIC(reg_lin)
 oos_reg_morc <- oos_prev(reg_morc)
@@ -515,7 +516,7 @@ Pour les analyses hors échantillon, il faut donc faire attention aux valeurs pr
 
 ```{r}
 #| echo: false
-#| fig-cap: Prévision du PIB à partir d'un modèle de régression linéaire et d'un modèle de régression linéaire par morceaux.
+#| fig-cap: Prévision de la croissance du PIB à partir d'un modèle de régression linéaire et d'un modèle de régression linéaire par morceaux.
 #| label: fig-prev-piecereg
 prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_reg_morc$forecast)
 colnames(prev) <- c("% PIB", "Rég. lin.",
@@ -537,7 +538,8 @@ forecast::autoplot(prev[,1],
     legend.key = element_blank(),
     legend.title = element_blank()
   ) +
-  scale_color_grey()
+  scale_color_grey() +
+  scale_x_continuous(breaks = seq.int(1990, 2020, 10))
 ```
 
 Comme indiqué dans la @sec-test-baiperron, l'inconvénient de cette méthode provient du choix de la date de rupture lorsque celle-ci n'est pas imposée par l'utilisateur.
@@ -550,6 +552,7 @@ Même s'il est possible que cela n'ait que très peu d'effet sur les prévisions
 #| echo: false
 #| label: fig-temps-reel-bp
 #| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'estimation du modèle.
+#| cache: true
 # On enlève les premières observations car pas de rupture
 bp_hist <- lapply(oos_lm$model[-(1:74)], breakpoints)
 bpd <- sapply(bp_hist, breakdates)
@@ -725,6 +728,7 @@ Un des inconvénients de méthode de sélection automatique de la fenêtre est q
 Cela a également pour effet que la méthode est peu stable dans le temps (@fig-oos-bw), ce qui augmente les sources de révisions des simulations hors échantillon, calculables en utilisant la fonction `oos_prev()` :
 
 ```{r}
+#| cache: true
 oos_reg_loc <- oos_prev(reg_loc)
 oos_bw <- ts(sapply(oos_reg_loc$model, `[[`,"bw"),
              end = c(2019, 4),
@@ -865,6 +869,7 @@ Dans et hors échantillon, les modèles espace-état ont des erreurs de prévisi
 Dans l'échantillon elles sont également significativement plus petites que celles de la régression par morceau (p-valeur de 0,00) mais la différence n'est pas significative hors échantillon (p-valeur de 0,10) : l'interprétation économique sur les périodes récentes est en revanche différente (coefficient sur le climat des affaires en différence), ce qui conduit donc à des prévisions différentes.
 
 ```{r}
+#| cache: true
 oos_ssm <- ssm_lm_oos(reg_lin, fixed_var_intercept = FALSE, 
                       fixed_var_variables = FALSE,
                       date = 70)
