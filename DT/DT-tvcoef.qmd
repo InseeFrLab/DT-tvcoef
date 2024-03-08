@@ -1229,7 +1229,7 @@ remotes::install_github("rjdemetra/rjd3sts")
 remotes::install_github("InseeFrLab/tvCoef")
 ```
 
-Si vous utilisez un ordinateur professionnel, si c'est nécessaire,pensez à configurer le proxy pour que ces commandes puissent fonctionner (voir <https://www.book.utilitr.org/01_r_insee/fiche-personnaliser-r#le-fichier-.renviron>).
+Si vous utilisez un ordinateur professionnel, si c'est nécessaire, pensez à configurer le proxy pour que ces commandes puissent fonctionner (voir <https://www.book.utilitr.org/01_r_insee/fiche-personnaliser-r#le-fichier-.renviron>).
 Pour cela vous pouvez utiliser `curl::ie_get_proxy_for_url()` pour récupérer l'adresse du proxy et ajouter deux variable `http_proxy` et `https_proxy` dans les variables d'environnement (comme précédemment).
 
 <!-- {{< pagebreak >}} -->
