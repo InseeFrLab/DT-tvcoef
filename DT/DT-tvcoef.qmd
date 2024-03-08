@@ -107,11 +107,12 @@ Remerciements :
 # Résumé {-}
 
 :::: {.abstract}
-Cette étude s'intéresse à trois méthodes permettant de construire des modèles de régression linéaire avec des coefficients variant dans le temps : régression par morceaux, régression locale et modélisation espace-état.
-Elle montre comment implémenter ces méthodes sous R avec le package `tvCoef`.
-En les comparant sur une trentaine de modèles de prévision trimestrielle, nous montrons que l'utilisation de ces modèles (notamment la modélisation espace-état) permet de réduire les erreurs de prévision lorsque des ruptures sont détectées dans les coefficients.
+Cette étude décrit trois méthodes d'estimation de modèles de régression linéaire avec des coefficients variant dans le temps : régression par morceaux, régression locale et modélisation espace-état.
+Elle détaille également leur implémentation sous R grâce au package `tvCoef`.
+À travers une analyse comparative sur une trentaine de modèles de prévision trimestrielle, nous démontrons que l'utilisation de ces méthodes, notamment la modélisation espace-état, réduit les erreurs de prévision lorsque des ruptures sont présentes dans les coefficients.
 Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la modélisation espace-état peut permettre de réduire les erreurs de prévision.
-Toutefois, les incertitudes liés à l'estimation de certains hyperparamètres peut conduire à accroître les erreurs de prévisions en temps réel (notamment pour la régression locale) : il est donc important de garder une analyse économique des paramètres estimés.
+Cependant, les incertitudes liées à l'estimation de certains hyperparamètres peuvent augmenter les erreurs de prévision en temps réel, en particulier pour la régression locale. 
+Ainsi, une analyse économique des paramètres estimés demeure essentielle.
 
 Cette étude est entièrement reproductible et tous les codes utilisés sont disponibles sous <https://github.com/InseeFrLab/DT-tvcoef>.
 
@@ -119,7 +120,14 @@ Mots clés : séries temporelles, prévisions, séries longues.
 ::::
 
 :::: {.abstract}
+This study describes three methods for estimating linear regression models with time-varying coefficients: piecewise regression, local regression, and state-space modeling.
+It also details their implementation in R using the `tvCoef` package.
+Through a comparative analysis of around thirty quarterly forecasting models, we demonstrate that the use of these methods, especially state-space modeling, reduces forecast errors when breakpoints are present in the coefficients.
+Moreover, even when traditional tests conclude stability of coefficients, state-space modeling can still improve forecasts.
+However, uncertainties related to estimating certain hyperparameters can increase real-time forecast errors, especially for local regression.
+Thus, an economic analysis of estimated parameters remains essential.
 
+This study is fully reproducible and all the codes used are available under <https://github.com/InseeFrLab/DT-tvcoef>.
 
 Keywords: time series, forecast, long time series.
 ::::
