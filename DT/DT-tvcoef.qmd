@@ -139,14 +139,14 @@ JEL Classification: C22, C53.
 
 Dans la statistique publique, de nombreux modèles de prévision s'appuient sur des régressions linéaires. 
 Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes. 
-Pour la prévision des grands agrégats macroéconomiques, le département de la conjoncture de l'Insee utilise notamment des étalonnages (voir par exemple @ndc2015prev) et le modèle macroéconomiques Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
+Pour la prévision des grands agrégats macroéconomiques, le département de la conjoncture de l'Insee utilise notamment des étalonnages (voir par exemple @ndc2015prev) et le modèle macroéconomique Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
 Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. 
 Cependant, ils supposent que les relations entre les variables (i.e les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
 
 Pour palier à ce problème, une solution simple consiste à utiliser moins de données pour estimer les modèles.
-Par exemple, les guide des bonnes pratiques sur l'ajustement saisonnier [@eurostat2015guidelines] recommandent de ne pas désaisonnaliser des séries de plus de 20 ans.
+Par exemple, le guide des bonnes pratiques sur l'ajustement saisonnier [@eurostat2015guidelines] recommandent de ne pas désaisonnaliser des séries de plus de 20 ans.
 Toutefois, cela conduit à perdre l'historique des données et l'information que l'on peut en tirer et ne résout pas le problème lorsque la rupture est récente.
-Par ailleurs, comme montré par @JMS2018 pour la désaisonnalisation des séries d'indice de production industrielle, lorsqu'il faut analyser les modèles sur l'ensemble de la période (par exemple dans le cadre de la correction des jours ouvrables), il est nécessaire de mettre en place des méthodes de chaînage afin de prendre en compte la rupture introduite par l'utilisation de plusieurs modèle.
+Par ailleurs, comme montré par @JMS2018 pour la désaisonnalisation des séries d'indice de production industrielle, lorsqu'il faut analyser les modèles sur l'ensemble de la période (par exemple dans le cadre de la correction des jours ouvrables), il est nécessaire de mettre en place des méthodes de chaînage afin de prendre en compte la rupture introduite par l'utilisation de plusieurs modèles.
 Ainsi, dans certains cas il peut être préférable d'utiliser des modèles qui prennent directement en compte les ruptures.
 
 L'objectif de cette étude est d'étudier différentes méthodes d'estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. 
@@ -154,6 +154,7 @@ Cela permet d'avoir des modèles qui ont l'avantage d'être plus facilement inte
 Ces méthodes se regroupent en trois catégories : les modèles de régression par morceaux, les régressions locales et les modèles espace-état.
 La première suppose l'existence d'une rupture brutale sur les coefficients à une certaine date ; les deux autres supposent que les coefficients évoluent progressivement sans le temps sans existence de rupture brutale.
 Pour simplifier l'implémentation de ces méthodes, ainsi que leur comparaison, le package R `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) a également été développé lors de cette étude. 
+Cette étude est entièrement reproductible et tous les codes utilisés sont disponibles sous <https://github.com/InseeFrLab/DT-tvcoef>.
 
 Après une description de deux tests permettant vérifier si les coefficients sont fixes dans le temps (@sec-tests), nous décrivons trois méthodes pour estimer des coefficients variant dans le temps et montrons comment les implémenter à partir d'un modèle de prévision de la croissance du PIB français (@sec-desc-meth).
 Enfin, nous comparons les qualités prédictives des différentes méthodes sur une trentaine de modèles de prévision trimestrielle (@sec-comp-generales).
@@ -376,7 +377,7 @@ En revanche, le coefficient associé au climat des affaires en différences sera
 
 Le test de Hansen peut être vu comme une extension des tests de stabilité CUSUM (*cumulative sum control chart*) et CUSUM sur les carrés (pour le test sur la variance).
 Il est robuste à l'hétéroscédasticité.
-En appliquant les mêmes formules au modèle "transformé", ce test est également robustes à la prise en compte de l'autocorrélation via les moindres carrés généralisés.
+En appliquant les mêmes formules au modèle "transformé", ce test est également robuste à la prise en compte de l'autocorrélation via les moindres carrés généralisés.
 En revanche, ce test suppose que toutes les variables sont stationnaires : il ne peut donc directement s'appliquer sur des modèles du type modèle à correction d'erreur.
 Dans ce cas, une loi asymptotique différente doit être utilisée^[
 Voir par exemple @hansen1992I1.
@@ -390,7 +391,7 @@ Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le te
 
 Si un des tests précédents conclut à la non constance des coefficients du modèle estimé c'est qu'il est mal spécifié et donc qu'il faut utiliser une modélisation alternative qui pourrait notamment provenir d'un problème de variables omises.
 Dans cet article, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
-Dans certains cas, comme par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g. : des indicatrices).
+Dans certains cas, par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g. : des indicatrices).
 
 Trois méthodes sont étudiées dans cet article :
 
@@ -627,7 +628,7 @@ Par défaut $z_t=t/T$ avec $T$ le nombre d'observations : les coefficients dépe
 On suppose que la fonction $\alpha$ est localement constante ($\alpha(z_t)\simeq \alpha(z)$, option par défaut) ou localement linéaire  ($\alpha(z_t)\simeq \alpha(z)+\alpha'(z)(z_t-z)$), c'est-à-dire que pour toute date $t$ on a pour toute date $i$ proche de $t$ : $\alpha(z_i)\simeq\alpha(z_t)$ ou $\alpha(z_i)\simeq\alpha(z_t)+\alpha'(z_t)(z_i-z_t).$ 
 Cette approximation locale est justifiée par le théorème de Taylor.
 
-Pour chaque date $t$, le coefficient $\alpha_t=\alpha(z_t)$ est obtenu par moindre carrés pondérés.
+Pour chaque date $t$, le coefficient $\alpha_t=\alpha(z_t)$ est obtenu par moindres carrés pondérés.
 Lorsque $\alpha$ est supposé localement constant il s'agit du système :
 $$
 \hat{\bf\alpha_t}=\hat{\alpha}(z_t)=\underset{\bf\theta_0}\argmin\sum_{i=1}^T\left[y_i-{\bf X_i}\bf\theta_0 \right]^2K_{b_t}(z_i-z_t).
@@ -671,7 +672,7 @@ Il est généralement supposé constant ($b_t=b$).
 
 Dans notre exemple de prévision du PIB, $T=160$ observations sont utilisées.
 Avec $z_t=t/T$ et indexant chaque observation entre 1 et $T,$ la régression mobile sur 15 ans où l'on affecte le coefficient de la date $t$ au milieu de la fenêtre d'estimation est donc retrouvée en utilisant le noyau uniforme $K(u)=\1_{[-1,1]}(x)$ avec $b_t=b=\frac{30}{160}.$
-En effet, dans ce cas $K(z_t-z_i)\ne0$ si et seulement si $|t-i|\leq30$ : on utilise donc 30 observations ($=7,5$ ans) autour de $t$ pour estimer le coefficient à la date $t.$
+En effet, dans ce cas $K(z_t-z_i)\ne0$ si et seulement si $|t-i|\leq30$ : on utilise donc 30 observations (soit $7,5$ ans) autour de $t$ pour estimer le coefficient à la date $t.$
 
 Dans `tvReg`, le paramètre $b$ est par défaut obtenu en minimisant une statistique de validation croisée dans l'intervalle $\left[\frac{5}{T},20\right].$
 Lorsque $b$ est plus grand que 1, toutes les observations sont utilisées pour l'estimation de chaque coefficient $\bf\alpha_t.$
@@ -769,10 +770,10 @@ ssm
 
 L'estimation des hyperparamètres (variances des bruits blancs) est faite par maximum de vraisemblance différentes méthodes existent pour initialiser les modèles (calculer $\bf \alpha_1$).
 Pour plus de détails voir par exemple @durbinkoopman.
-Le filtre de Kalman permet ensuite de calculer toutes les coefficients.
+Le filtre de Kalman permet ensuite de calculer tous les coefficients.
 Parmi les paramètres calculés, les deux principaux sont : 
 
-1. Les états lissés (*smoothed states*) : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant toute l'information disponible disponible : $\E{\alpha_t|y_1,\dots,y_n}.$
+1. Les états lissés (*smoothed states*) : il s'agit de l'estimation des états ($\bf\alpha_t$) en utilisant toute l'information disponible : $\E{\alpha_t|y_1,\dots,y_n}.$
 Dans le cadre de la régression linéaire, les états lissés sont donc constants sur toutes les dates et correspondent aux coefficients estimés en utilisant l'ensemble des données disponibles :
 
 ```{r}
@@ -931,7 +932,7 @@ Ainsi :
 - Pour la régression par morceaux, la date de rupture retenue est toujours 2000T2 (contre 2016T1 en utilisant les données après 2020).
 - Pour la régression locale, la fenêtre utilisée est `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")` (contre 0,04 en utilisant les données après 2020).
 - Pour la modélisation espace-état, le coefficient du climat des affaires en niveau est toujours considéré comme fixe (il est considéré comme mobile en utilisant les données après 2020).
-Toutefois les variances des autres coefficients sont à nouveaux estimées.
+Toutefois les variances des autres coefficients sont de nouveau estimées.
 
 ```{r}
 # Date différente de rupture détectée mais l'on garde 2000T2 par continuité
@@ -1057,7 +1058,7 @@ read.csv2("img/nb_models.csv", check.names = FALSE) |>
   )
 ```
 Lecture : dans la branche des biens d'équipement (C3), 6 modèles sont étudiés.
-Dans 4 de ces modèles la procédure de Bai et Perron conclut à la présence d'au moins une rupture et le test d'Hansen conclut que les coefficient sont mobiles dans 5 de ces modèles.
+Dans 4 de ces modèles la procédure de Bai et Perron conclut à la présence d'au moins une rupture et le test d'Hansen conclut que les coefficients sont mobiles dans 5 de ces modèles.
 
 Nombre de modèles étudiés par branche d'activité.
 :::
@@ -1071,7 +1072,7 @@ Ainsi, même si les estimations pourrait être améliorées, cela permet d'étud
 Si l'on souhaite comparer les résultats entre les différentes branches, il est nécessaire de normaliser les erreurs de prévision.
 Les indicateurs classiques, tels que l’erreur absolue moyenne en pourcentage, normalisent en utilisant la variable à prévoir.
 Cela nécessite toutefois que ces variables soient positives et non nulles, ce qui n'est pas le cas des taux de croissance.
-C'est pourquoi dans cette section nous utilisons la moyenne absolue des erreurs normalisées --- Mean absolute scaled error (MASE) --- proposée par @HYNDMAN2006679 :
+C'est pourquoi dans cette section nous utilisons la moyenne absolue des erreurs normalisées --- *Mean absolute scaled error* (MASE) --- proposée par @HYNDMAN2006679 :
 $$
 MASE=moyenne\left(\frac{|{\hat y}_{t} - y_t|}{Q}\right),
 $$
@@ -1117,41 +1118,43 @@ read.csv2("img/error_table.csv", check.names = FALSE) |>
 Note : les modèles sans rupture sont ceux où aucune rupture n'est détectée par la procédure de Bai et Perron.
 
 Lecture : pour les prévisions hors échantillon la modélisation permet, par rapport à la régression linéaire, le MASE est réduit d'en moyenne de 7 % pour les modèles avec rupture et de 1 % pour les modèles sans rupture.
-Trois modèles sans rupture sont améliorés grâce à la modélisation espace-état (avec un réduction maximale de la MASE de 27 %) et les erreurs de prévisions sont augmentées pour quatre modèles (avec une hausse maximale de 7 %).
+Trois modèles sans rupture sont améliorés grâce à la modélisation espace-état (avec une réduction maximale de la MASE de 27 %) et les erreurs de prévisions sont augmentées pour quatre modèles (avec une hausse maximale de 7 %).
 
 Moyenne absolue des erreurs normalisées (MASE) rapportée à celle des modèles régression linéaire.
 :::
 
 
-
-
 # Conclusion
 
-
 En conclusion, cette étude montre comment, à partir d'un modèle de régression linéaire, on peut tester l'hypothèse de constance des coefficients et relâcher cette hypothèse en implémentant des modèles de régression par morceaux, de régression mobile et espace-état.
-Cette implémentation est facilitée grâce au package `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) qui accompagne cette étude.
+Cette implémentation est facilitée grâce au package `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) qui accompagne cette étude et tous les codes associés sont disponibles sous sous <https://github.com/InseeFrLab/DT-tvcoef>.
 
-Lorque les tests classiques indiquent une non-constance des coefficients, ces trois méthodes permettent de réduire les erreurs de prévisions dans l'échantillon (lorsque les coefficients sont estimés sur l'ensemble des données).
-Toutefois, ces trois méthodes reposent sur des hypothèses qui peuvent conduire à des fortes instabilités, notamment si elles sont utilisées naïement lors des exercices de prévision en temps réel (hors échantillon).\
-La régression par morceaux supposent la connaissance de dates de ruptures : même si des procédures existes pour leur détection automatique [@bai2003computation], les instabilités autour de celles-ci font qu'il est préférable de s'appuyer sur un raisonnement économique.
+Lorsque les tests classiques indiquent une non-constance des coefficients, ces trois méthodes permettent de réduire les erreurs de prévisions dans l'échantillon (lorsque les coefficients sont estimés sur l'ensemble des données).
+Toutefois, ces trois méthodes reposent sur des hypothèses qui peuvent conduire à des fortes instabilités, notamment si elles sont utilisées naïvement lors des exercices de prévision en temps réel (hors échantillon).\
+La régression par morceaux supposent la connaissance de dates de ruptures : même si des procédures existent pour leur détection automatique [@bai2003computation], les instabilités autour de celles-ci font qu'il est préférable de s'appuyer sur un raisonnement économique.
 En effet, si rupture brutale il y a, elle doit pouvoir s'expliquer et le statisticien devrait pouvoir en trouver la cause.\
 Le paramètre principal de la régression locale est la fenêtre, qui permet de jouer sur la sensibilité des estimations aux observations lointaines.
 Même s'il existe également des procédures de sélection automatique, celles-ci sont également instables, ce qui conduit, lors des exercices de prévisions en temps réel, à des erreurs de prévisions plus élevées que la régression linéaire lorsque la fenêtre n'est pas fixée.\
 Enfin, dans les modèles espace-état, des instabilités numériques d'optimisation peuvent conduire à une volatilité dans l'estimation des variances des coefficients (qui déterminent si le coefficient varie ou non dans le temps et à quelle vitesse).
 C'est toutefois la méthode qui donnent les meilleurs résultats et qui permet dans la majorité des cas de réduire les erreurs de prévision par rapport à la régression linéaire, même les tests classiques indiquent une constance des coefficients !
 
-Même si ces méthodes permettent, par rapport à la régression linéaire, d'améliorer la qualité des prévisions, elles n'ont pas vocation à remplacer les modèles déjà utilisés
+Même si ces méthodes permettent, par rapport à la régression linéaire, d'améliorer la qualité des prévisions, elles n'ont pas vocation à remplacer les modèles existants mais plutôt à les compléter.
+En effet, même si dans la majorité des cas les méthodes étudiées permettent de réduire les erreurs de prévision, cela peut ne pas être le cas sur tous les trimestres.
+D'une part la combinaison de prévisions issues de différents modèles permet généralement d'obtenir une prévision finale plus précise
+[voir par exemple @WANG20231518 pour une revue de littérature] ;
+d'autre part, l'interprétation économique et les hypothèses sous-jacentes sont différentes entre chaque modèle : l'analyse faite de la prévision dépend donc également de la conjoncture récente.
 
-Pour remédier à cette problématique, nous avons exploré trois catégories de méthodes permettant d'estimer des coefficients variant dans le temps : les modèles de régression par morceaux, les régressions locales et les modèles espace-état. Notre étude met en évidence que l'utilisation de ces méthodes, en particulier la modélisation espace-état, conduit à des prévisions plus précises, même lorsque les tests classiques indiquent une stabilité des coefficients.
+Cette étude pourrait être étendue de plusieurs manières.
+Tout d'abord, les méthodes ici présentées pourraient être améliorées.
+Par exemple, pour la régression locale et la modélisation espace-état, on suppose que les paramètres évoluent à la même vitesse au cours de toute la période d'estimation (fenêtre fixe et variance fixée).
+Toutefois, autour des périodes de crises (comme le COVID-19) on pourrait vouloir ajouter plus de flexibilités à l'évolution des coefficients (en réduisant la fenêtre ou en effectuant un choc sur la variance) : cela ajouterait plus de variabilité dans les estimations mais pourrait permettre de mieux prendre en compte les changements structurels.\
+Ensuite, d'autres méthodes d'estimations pourraient être utilisées pour modéliser l'évolution dans le temps des coefficients.
+Par exemple @melard modélise des variations déterministes des coefficients (plutôt que stochastiques comme pour les modèles espace-état).\
+Enfin, les modèles auraient également pu être comparés aux modèles à seuil et modèles à changement de régime markoviens [voir par exemple @PETROPOULOS2022705 pour une revue bibliographique de ces modèles] qui peuvent se voir comme des cas particuliers des méthodes étudiés.
+En effet, dans les modèles à seuil la rupture est brutale et dépend du niveau d'une variable exogène et dans les modèles à changement de régime markoviens, les coefficients dépendent d'une variable inobservée modélisant la position de l'économie dans le cycle : la rupture est donc brutale et dépend d'une variable externe (comme dans la régression locale).
+*In fine*, le choix entre toutes ces méthodes se fait surtout sur les hypothèses économiques que l'on souhaite modéliser. 
 
-De plus, afin de faciliter l'application et la comparaison de ces méthodes, le package R tvCoef a été développé, offrant ainsi un outil pratique pour les praticiens et les chercheurs dans le domaine de la prévision conjoncturelle.
 
-Enfin, nos résultats suggèrent que l'adoption de modèles flexibles prenant en compte la variabilité des coefficients peut contribuer à améliorer la qualité des prévisions, même dans des contextes où la stabilité des relations entre les variables est traditionnellement supposée. Cette approche offre ainsi de nouvelles perspectives pour l'amélioration des modèles de prévision, ouvrant la voie à des analyses plus robustes et plus précises dans le domaine de la statistique publique et de la macroéconomie.
-
-De nombreux modèles peuvent être estimés autour des régressions linéaires : le cadre reste simple mais la modélisation est plus complexe choix de modélisations doivent être faits
-Même s’ils peuvent améliorer les performances des modèles « classiques » ils ne les remplacent pas pour autant
-Modèles parfois complexes à implémenter (notamment espace-état)
-tvCoef peut vous aider (https://github.com/AQLT/tvCoef)
 
 \appendix
 
