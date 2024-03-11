@@ -21,6 +21,8 @@ format:
       title-delim: "-"
     output-file: index
   # docx: default
+execute: 
+  cache: true
 toc: true
 number-sections: true
 bibliography: biblio.bib
@@ -83,7 +85,12 @@ library(ggplot2)
 library(patchwork)
 library(forecast)
 library(gt)
-coef2plot <- function(x, linetype = 1, start = NULL, end = NULL){
+# # colors = pal_viridis()(4),
+# # colors = rev(pal_brewer("qual")(4)),
+# colors = pal_hue()(4)
+colors_graph <- c("#F8766D", "#7CAE00", "#00BFC4", "#C77CFF")
+coef2plot <- function(x, linetype = 1, start = NULL, end = NULL,
+                      colors = colors_graph){
   noms_mod <- names(x)
   linetype <- rep(linetype, length(x))
   x <- lapply(x, window, start = start, end = end, extend =TRUE)
@@ -97,7 +104,8 @@ coef2plot <- function(x, linetype = 1, start = NULL, end = NULL){
     p +
       theme_bw() + 
       theme(legend.title=element_blank())+
-      scale_color_grey(breaks = noms_mod)
+      scale_color_manual(breaks = noms_mod,
+                             values = colors)
   }
   (plot_i(x, 1) + plot_i(x, 2) / plot_i(x, 3)) + 
     plot_layout(guides = 'collect') 
@@ -118,7 +126,7 @@ Remerciements :
 :::: {.abstract}
 Cette étude décrit trois méthodes d'estimation de modèles de régression linéaire avec des coefficients variant dans le temps : régression par morceaux, régression locale et modélisation espace-état.
 Elle détaille également leur implémentation sous R grâce au package `tvCoef`.
-À travers une analyse comparative sur une trentaine de modèles de prévision trimestrielle, nous démontrons que l'utilisation de ces méthodes, notamment la modélisation espace-état, réduit les erreurs de prévision lorsque des ruptures sont présentes dans les coefficients.
+À travers une analyse comparative sur une trentaine de modèles de prévision trimestrielle, nous montrons que l'utilisation de ces méthodes, notamment la modélisation espace-état, réduit les erreurs de prévision lorsque des ruptures sont présentes dans les coefficients.
 Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la modélisation espace-état peut permettre de réduire les erreurs de prévision.
 Cependant, les incertitudes liées à l'estimation de certains hyperparamètres peuvent augmenter les erreurs de prévision en temps réel, en particulier pour la régression locale. 
 Ainsi, une analyse économique des paramètres estimés demeure essentielle.
@@ -134,7 +142,7 @@ Mots clés : séries temporelles, prévisions, séries longues.
 :::: {.abstract}
 This study describes three methods for estimating linear regression models with time-varying coefficients: piecewise regression, local regression, and state-space modeling.
 It also details their implementation in R using the `tvCoef` package.
-Through a comparative analysis of around thirty quarterly forecasting models, we demonstrate that the use of these methods, especially state-space modeling, reduces forecast errors when breakpoints are present in the coefficients.
+Through a comparative analysis of around thirty quarterly forecasting models, we show that the use of these methods, especially state-space modeling, reduces forecast errors when breakpoints are present in the coefficients.
 Moreover, even when traditional tests conclude stability of coefficients, state-space modeling can still improve forecasts.
 However, uncertainties related to estimating certain hyperparameters can increase real-time forecast errors, especially for local regression.
 Thus, an economic analysis of estimated parameters remains essential.
@@ -163,7 +171,7 @@ Toutefois, cela conduit à perdre l'historique des données et l'information que
 Par ailleurs, comme montré par @JMS2018 pour la désaisonnalisation des séries d'indice de production industrielle, lorsqu'il faut analyser les modèles sur l'ensemble de la période (par exemple dans le cadre de la correction des jours ouvrables), il est nécessaire de mettre en place des méthodes de chaînage afin de prendre en compte la rupture introduite par l'utilisation de plusieurs modèles.
 Ainsi, dans certains cas il peut être préférable d'utiliser des modèles qui prennent directement en compte les ruptures.
 
-L'objectif de cette étude est d'étudier différentes méthodes d'estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. 
+Cette étude s'intéresse à différentes méthodes d'estimation de coefficients variant dans le temps dans le cadre de la prévision conjoncturelle. 
 Cela permet d'avoir des modèles qui ont l'avantage d'être plus facilement interprétables que des méthodes de machine learning, puisqu'ils s'appuient sur des modèles de régression linéaire.
 Ces méthodes se regroupent en trois catégories : les modèles de régression par morceaux, les régressions locales et les modèles espace-état.
 La première suppose l'existence d'une rupture brutale sur les coefficients à une certaine date ; les deux autres supposent que les coefficients évoluent progressivement sans le temps sans existence de rupture brutale.
@@ -179,7 +187,7 @@ Par ailleurs, même lorsque les tests classiques concluent à la constance des c
 
 # Modélisation générale et tests {#sec-tests}
 
-Dans cet article, nous nous plaçons dans le cadre de la régression linéaire avec des variables à une dimension.
+Dans cette étude, nous nous plaçons dans le cadre de la régression linéaire avec des variables à une dimension.
 À chaque date $t$, la variable $y_t$ (e.g., taux de croissance du PIB) est expliquée par une combinaison linéaire de $p$ variables explicatives, $x_{0,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
 $$
 y_t=\alpha_{0}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t 
@@ -194,7 +202,7 @@ $$
 Dans le cadre de la régression linéaire, les coefficients $\bf\alpha$ sont supposés constants dans le temps et estimés en utilisant l'ensemble des données.
 Cela suppose donc que la relation économique entre les différentes variables est stable dans le temps.
 Même si cette hypothèse est généralement vraie sur le court-terme, elle peut être invalidée sur le long-terme du fait de changements structurels (mesures économiques, crises, changement de nomenclature, etc.).
-L'objectif de cet article est d'étudier différents modèles permettant de relâcher cette hypothèse de constance des coefficients.
+L'objectif de cette étude est d'étudier différents modèles permettant de relâcher cette hypothèse de constance des coefficients.
 Le modèle général s'écrit donc :
 $$
 y_t={\bf X_t} \bf\alpha_t  +\varepsilon_t.
@@ -311,7 +319,7 @@ Si l'on n'a aucune information sur la présence d'une rupture, on peut raisonnab
 Alors que l'algorithme de Bai et Perron cherche une date spécifique où il y aurait une rupture dans les modèles,
 @hansen1992testing propose une procédure permettant de tester uniquement si les coefficients sont constants ou non sans hypothèse sur la forme de la rupture (brutale ou non) et sur la date de la rupture.
 
-En repartant de la modélisation générale de la régression linéaire :
+La modélisation générale de la régression linéaire s'écrit :
 \begin{align*}
 y_t&=\alpha_{0}x_{0,t}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t  \\
 &= {\bf X_t} \bf\alpha  +\varepsilon_t\\
@@ -395,7 +403,7 @@ hansen_test(reg_lin, var = c(1, 2))
 
 Le test de Hansen peut être vu comme une extension des tests de stabilité CUSUM (*cumulative sum control chart*) et CUSUM sur les carrés (pour le test sur la variance).
 Il est robuste à l'hétéroscédasticité.
-En appliquant les mêmes formules au modèle "transformé", ce test est également robuste à la prise en compte de l'autocorrélation via les moindres carrés généralisés.
+En appliquant les mêmes formules au modèle « transformé », ce test est également robuste à la prise en compte de l'autocorrélation via les moindres carrés généralisés.
 En revanche, il suppose que toutes les variables sont stationnaires : il ne peut donc directement s'appliquer sur des modèles du type modèle à correction d'erreur.
 Dans ce cas, une loi asymptotique différente doit être utilisée^[
 Voir par exemple @hansen1992I1.
@@ -408,10 +416,10 @@ Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le te
 # Descriptions des méthodes {#sec-desc-meth} 
 
 Si un des tests précédents conclut à la non constance des coefficients du modèle estimé c'est qu'il est mal spécifié et donc qu'il faut utiliser une modélisation alternative qui pourrait notamment provenir d'un problème de variables omises.
-Dans cet article, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
+Dans cette étude, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
 Dans certains cas, par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g., des indicatrices).
 
-Trois méthodes sont étudiées dans cet article :
+Trois méthodes sont étudiées dans cette étude :
 
 - la régression linéaire par morceaux (@sec-reg-morceaux) ;
 
@@ -422,7 +430,7 @@ Trois méthodes sont étudiées dans cet article :
 ## Régression par morceaux {#sec-reg-morceaux}
 
 La régression par morceaux est la modélisation la plus simple : elle consiste à estimer le modèle sur un sous-ensemble des données.
-La modélisation est similaire à celle de la procédure de Bai et Perron puisque cette dernière donne directement les "morceaux" : entre les dates de ruptures.
+La modélisation est similaire à celle de la procédure de Bai et Perron puisque cette dernière donne directement les « morceaux » : entre les dates de ruptures.
 
 Par exemple, pour le modèle de prévision de la croissance, deux régressions seraient estimés en utilisant les données avant et après  `{r} format(zoo::as.yearqtr(strucchange::breakdates(bp)), "%YT%q")`.
 
@@ -506,7 +514,6 @@ Par ailleurs, minimiser l'AIC est asymptotiquement équivalent à minimiser ces 
 
 Sur notre exemple, la régression linéaire par morceaux permet de minimiser ces deux critères\ :
 ```{r}
-#| cache: true
 # AIC minimisé :
 AIC(reg_morc$model) < AIC(reg_lin)
 oos_reg_morc <- oos_prev(reg_morc)
@@ -548,7 +555,8 @@ suppressMessages(forecast::autoplot(prev[,1],
     legend.key = element_blank(),
     legend.title = element_blank()
   ) +
-  scale_color_grey() +
+  scale_color_manual(breaks = colnames(prev),
+                     values = colors_graph) +
   scale_x_continuous(breaks = seq.int(1990, 2020, 10))
 )
 ```
@@ -563,7 +571,6 @@ Même s'il est possible que cela n'ait que très peu d'effet sur les prévisions
 #| echo: false
 #| label: fig-temps-reel-bp
 #| fig-cap: Date de rupture détectée par l'algorithme de Bai et Perron en fonction de la date de fin d'estimation du modèle.
-#| cache: true
 # On enlève les premières observations car pas de rupture
 bp_hist <- lapply(oos_lm$model[-(1:74)], breakpoints)
 bpd <- sapply(bp_hist, breakdates)
@@ -630,7 +637,7 @@ coef2plot(
 Lecture : la régression mobile est estimée sur une fenêtre de 15 ans.
 Les coefficients estimés en 1994T4 correspondent aux coefficients estimés entre 1980T1 et 1994T4.
 
-Coefficients estimés par régression mobile et régression par morceaux.
+Coefficients estimés par régression linéaire, régression par morceaux et régression mobile.
 :::
 
 La régression mobile a l'avantage d'être très simple mais repose sur plusieurs paramètres qui ont ici été fixés arbitrairement dont notamment :
@@ -739,7 +746,6 @@ Un des inconvénients de la méthode de sélection automatique de la fenêtre ut
 Cela a également pour effet que la méthode est peu stable dans le temps (@fig-oos-bw), ce qui augmente les sources de révisions des simulations hors échantillon, calculables en utilisant la fonction `oos_prev()` :
 
 ```{r}
-#| cache: true
 oos_reg_loc <- oos_prev(reg_loc)
 oos_bw <- ts(sapply(oos_reg_loc$model, `[[`,"bw"),
              end = c(2019, 4),
@@ -766,14 +772,14 @@ C'est donc également une source de révision au fur et à mesure que des nouvea
 Même si des méthodes optimales existent pour minimiser les erreurs d'estimation des coefficients en temps réel [voir par exemple @FengSchafer2021], cela devrait ici avoir peu d'impact car un modèle très simple est ici utilisé pour estimer les coefficients (approximation de la fonction $\alpha$ par une constante).
 
 Un autre inconvénient de ces méthodes est que tous les coefficients varient dans la temps alors que dans certains cas on peut supposer la relation constante.
-Si l'on souhaite fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire, pour estimer les coefficients fixes, suivie d'une régression mobile.
+Pour fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire pour estimer les coefficients fixes, suivie d'une régression mobile.
 
 ## Modélisation espace-état {#sec-ssm}
 
 La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
 Dans cette approche, on suppose que tout modèle est déterminé par une série de vecteurs non observés $\bf \alpha_1,\dots,\bf\alpha_T$ associés aux observations $y_1,\dots,y_T$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
 Ces modèles sont largement décrits dans la littérature, notamment par @durbinkoopman.
-Dans cet article, nous nous placerons dans un cadre simplifié des modèles linéaires gaussiens appliqués aux régressions linéaires.
+Dans cette étude, nous nous placerons dans un cadre simplifié des modèles linéaires gaussiens appliqués aux régressions linéaires.
 Les modèles sont déterminés par un ensemble de deux équations :
 $$
 \begin{cases}
@@ -882,7 +888,6 @@ Dans et hors échantillon, les modèles espace-état ont des erreurs de prévisi
 Dans l'échantillon elles sont également significativement plus petites que celles de la régression par morceaux (p-valeur de 0,00) mais la différence n'est pas significative hors échantillon (p-valeur de 0,10) : l'interprétation économique sur les périodes récentes est en revanche différente (coefficient sur le climat des affaires en différence), ce qui conduit donc à des prévisions différentes.
 
 ```{r}
-#| cache: true
 oos_ssm <- ssm_lm_oos(reg_lin, fixed_var_intercept = FALSE, 
                       fixed_var_variables = FALSE,
                       date = 70)
@@ -926,7 +931,7 @@ rownames(table) <- c(
 knitr::kable(table, format.args = list(decimal.mark = ",", digits = 2))
 ```
 
-Note : Les prévisions dans l'échantillon sont calculées en estimant les modèles à partir des données disponibles entre 1980T1 et 2019T4.
+Note : les prévisions dans l'échantillon sont calculées en estimant les modèles à partir des données disponibles entre 1980T1 et 2019T4.
 Les prévisions hors échantillon sont calculées à partir de 2003T1 : la première prévision (2003T1) correspond à celle que l'on aurait eu en estimant les modèles à partir des données disponibles jusqu'en 2002T4 (trimestre précédente).
 
 Erreurs quadratiques moyennes des erreurs de prévision entre les différentes méthodes.
@@ -957,24 +962,37 @@ reg_lin_covid <- dynlm(
 coef(reg_lin_covid)
 ```
 Pour la construction des autres modèles, nous gardons certains paramètres estimés en utilisant les données avant la période du COVID-19, cette dernière pouvant biaiser les résultats.
-Ainsi :
+Ainsi\ :
 
 - Pour la régression par morceaux, la date de rupture retenue est toujours 2000T2 (contre 2016T1 en utilisant les données après 2020).
-- Pour la régression locale, la fenêtre utilisée est `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")` (contre 0,04 en utilisant les données après 2020).
-- Pour la modélisation espace-état, le coefficient du climat des affaires en niveau est toujours considéré comme fixe (il est considéré comme mobile en utilisant les données après 2020).
-Toutefois les variances des autres coefficients sont de nouveau estimées.
-
 ```{r}
-# Date différente de rupture détectée mais l'on garde 2000T2 par continuité
 bp_covid <- breakpoints(reg_lin_covid)
 c(breakdates(bp), breakdates(bp_covid))
+```
+
+- Pour la régression locale, la fenêtre utilisée est `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")` (contre 0,04 en utilisant les données après 2020).
+```{r}
 bw_covid <- bw(window(
   data_covid[, c("bc_fr_m1", "diff_bc_fr_m1", "ind2020T1", "ind2020T2", 
                 "ind2020T3", "ind2020T4")], start = 1980, end = c(2022, 4)), 
   window(data_covid[, "growth_gdp"], start = 1980, end = c(2022, 4))
   )
 c(reg_loc$bw, bw_covid)
+```
 
+- Pour la modélisation espace-état, les coefficients associés aux indicatrices sont fixés (variance nulle) et le coefficient du climat des affaires en niveau est toujours considéré comme fixe (il est considéré comme mobile en utilisant les données après 2020).
+Toutefois les variances des autres coefficients sont de nouveau estimées.
+```{r}
+ssm_covid <- ssm_lm(
+  reg_lin_covid, 
+  fixed_var_intercept = FALSE,
+  fixed_var_variables = c(FALSE, FALSE, rep(TRUE, 4))
+)
+sqrt(ssm_covid$parameters$parameters * ssm_covid$parameters$scaling)
+```
+
+Les modèles sont donc estimés avec le code suivant :
+```{r}
 reg_morc_covid <- piece_reg(reg_lin_covid, break_dates = 2000.25,
                             # Les indicatrices ne sont pas découpées
                             fixed_var = 4:7)
@@ -1095,7 +1113,7 @@ Nombre de modèles étudiés par branche d'activité.
 :::
 
 Pour l'estimation des modèles de régression par morceaux, nous limitons le nombre maximal de ruptures à 2.
-La dernière rupture est détectée en 2011Q4, pour deux modèles de la branche des autres industries (C5).
+La dernière rupture est détectée en 2011T4, pour deux modèles de la branche des autres industries (C5).
 Les prévisions hors échantillon sont calculées après 2013 afin d'éviter les fortes erreurs autour des ruptures.
 Pour la régression locale et la modélisation espace-état, les modèles sont estimés avec les paramètres par défaut sans chercher à optimiser les modèles (par exemple en ne fixant pas les coefficients des indicatrices).
 Ainsi, même si les estimations pourraient être améliorées, cela permet d'étudier leur qualité prédictive dans le cas le moins favorable.
@@ -1213,7 +1231,7 @@ Si l'on a pas cette version d'installée et que l'on n'a pas les droits d'admini
 
 - [Amazon Corretto](https://aws.amazon.com/corretto/)
 
-Pour installer une version portable de java, télécharger par exemple le fichier `Windows 10 x64 Java Development Kit` disponible sur <https://jdk.java.net/java-se-ri/17>, le dézipper et le mettre par exemple sous `""`.  
+Pour installer une version portable de java, télécharger par exemple le fichier `Windows 10 x64 Java Development Kit` disponible sur <https://jdk.java.net/java-se-ri/17>, le dézipper et le mettre par exemple sous `"D:/Programmes/jdk-17"`.  
 
 Pour configurer R avec une version portable de Java, trois solutions\ :
 
@@ -1225,9 +1243,9 @@ Sys.setenv(JAVA_HOME='D:/Programmes/jdk-17')
 
 2. Pour éviter de faire cette manipulation à chaque fois que l'on relance R, deux solutions\ :  
 
-a. modifier le `JAVA_HOME` dans les variables d'environnement de Windows (voir <https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html>).
+a. Modifier le `JAVA_HOME` dans les variables d'environnement de Windows (voir <https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html>).
 
-b. modifier le `.Renviron` : depuis R lancer le code `file.edit("~/.Renviron")`{.r}, ajouter dans le fichier le chemin vers la version portable de Java comme précédemment (`JAVA_HOME='D:/Programmes/jdk-17'`), sauvegarder et relancer R.
+b. Modifier le `.Renviron` : depuis R lancer le code `file.edit("~/.Renviron")`{.r}, ajouter dans le fichier le chemin vers la version portable de Java comme précédemment (`JAVA_HOME='D:/Programmes/jdk-17'`), sauvegarder et relancer R.
 
 Il reste maintenant à installer les packages :
 
