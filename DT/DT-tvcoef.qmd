@@ -1235,7 +1235,7 @@ Pour installer une version portable de java, télécharger par exemple le fichie
 
 Pour configurer R avec une version portable de Java, trois solutions\ :
 
-1. Avant **avant tout chargement de package nécessitant Java (`rJava`...)** (si vous avez lancé le code précédent, relancez donc R) :
+1. Avant **tout chargement de package nécessitant Java (`rJava`...)** (si vous avez lancé le code précédent, relancez donc R) :
 ```{r, eval = FALSE}
 # Si la version portable est installée sous D:/Programmes/jdk-17
 Sys.setenv(JAVA_HOME='D:/Programmes/jdk-17')
