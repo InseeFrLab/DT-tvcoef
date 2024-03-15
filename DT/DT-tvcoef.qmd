@@ -208,7 +208,7 @@ $$
 y_t={\bf X_t} \bf\alpha_t  +\varepsilon_t.
 $$
 Pour faciliter l'utilisation des modèles ici présentés, le package {{< fa brands r-project >}} `tvCoef` [@tvcoef] a été développé.
-Leur implémentation est illustrées à travers l'exemple de la prévision du taux de croissance trimestriel du PIB à partir du climat des affaires France publié par l'Insee^[
+Leur implémentation est illustrée à travers l'exemple de la prévision du taux de croissance trimestriel du PIB à partir du climat des affaires France publié par l'Insee^[
 Cette série est disponible à l'URL <https://www.insee.fr/fr/statistiques/serie/001565530>.
 ].
 Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de donnée `tvCoef::gdp` :
@@ -436,7 +436,7 @@ Par exemple, pour le modèle de prévision de la croissance, deux régressions s
 
 Deux méthodes d'estimations sont possibles :
 
-1. Une régression en une étape est faite en doublant découpant les régresseurs en fonction de la date de rupture (fonction `tvCoef::piece_reg()`) :
+1. Une régression en une étape est faite en dédoublant les régresseurs en fonction de la date de rupture (fonction `tvCoef::piece_reg()`) :
 \begin{align*}
 \% PIB_t &= \alpha_0\1_{t\leq 2000T2} + \alpha_1 climat\_fr_t\1_{t\leq 2000T2} + \alpha_2 \Delta climat\_fr_t\1_{t\leq 2000T2} + \\
 &\phantom{=} \alpha_0'\1_{t > 2000T2} + \alpha_1' climat\_fr_t\1_{t > 2000T2} + \alpha_2' \Delta climat\_fr_t\1_{t > 2000T2} + \varepsilon_t
@@ -478,7 +478,7 @@ $$
 <!-- ``` -->
 
 Dans les deux cas les coefficients estimés sont les mêmes mais les écarts-types seront en général différents.
-En effet, dans la première modélisation on suppose que la variance du résidu est constante dans les deux sous-périodes alors que dans la seconde on autorise la variance à évoluer dans le temps.
+En effet, dans la première modélisation on suppose que la variance du résidu est constante sur l’ensemble de la période alors que dans la seconde la variance est supposée constante sur les deux sous-périodes.
 
 Dans la majorité des cas, nous suggérons de privilégier la première modélisation car elle offre plus de flexibilité, notamment pour fixer les coefficients de certaines variables.
 
@@ -530,6 +530,7 @@ La @fig-prev-piecereg montre les prévisions hors échantillon des deux modèles
 Autour de la date de rupture, la régression linéaire par morceaux produit des prévisions peu réalistes : cela s'explique par le fait que très peu d'observations sont utilisées pour estimer les coefficients associés aux régresseurs après la rupture, les estimateurs sont donc peu précis (grande variance).
 Pour les analyses hors échantillon, il faut donc faire attention aux valeurs prédites autour de la rupture !
 
+<!-- ajouter un graphique avec les écarts de prévision? c’est plus directement ce que tu veux montrer -->
 
 ```{r}
 #| echo: false
@@ -609,7 +610,7 @@ coef_roll_lm <- ts(roll_lm$coefficients, start = 1980, frequency = 4)
 ```
 
 La @fig-coef-rollreg montre les coefficients estimés par cette régression mobile.
-Seule ceux estimés sur le climat des affaires en différence montrent une rupture nette.
+Seuls ceux estimés sur le climat des affaires en différence montrent une rupture nette.
 Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T2).
 
 ::: {#fig-coef-rollreg}
@@ -775,6 +776,7 @@ Un autre inconvénient de ces méthodes est que tous les coefficients varient da
 Pour fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire pour estimer les coefficients fixes, suivie d'une régression mobile.
 
 ## Modélisation espace-état {#sec-ssm}
+<!-- je vois cette modélisation effectivement comme très générale. je pense par ex qu’on peut écrire les 2 sections précédentes sous forme espace état (avec des processus particuliers pour l’évolution des coefficients et les variances). ce n’est pas tellement la modélisation espace-état en tant que telle que tu veux singulariser ici, mais les hypothèses que tu utilises avec cette méthode, non ? (sur epsilon, eta, X etc.) -->
 
 La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
 Dans cette approche, on suppose que tout modèle est déterminé par une série de vecteurs non observés $\bf \alpha_1,\dots,\bf\alpha_T$ associés aux observations $y_1,\dots,y_T$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
@@ -824,7 +826,7 @@ round(coef(dynlm(
   data = window(gdp, start = 1980, end = c(2010,1))
 )), 6)
 ```
-Lorsque les variances sont estimées, les états filtrés ne correspondent pas à exactement à des estimations hors échantillon car les hyperparamètres restent fixés (variances $\bf\Sigma$ et initialisation).
+Lorsque les variances sont estimées, les états filtrés ne correspondent pas exactement à des estimations hors échantillon car les hyperparamètres restent fixés (variances $\bf\Sigma$ et initialisation).
 Les estimations hors échantillon peuvent être calculées en utilisant la fonction `tvCoef::ssm_lm_oos()`.
 
 Pour faciliter l'estimation des variances $\bf\Sigma,$ le paramètre est souvent reparamétré :
@@ -1045,6 +1047,8 @@ coef2plot(
   )
 )
 ```
+<!-- 1) dans le graphique, on dirait que les données s’arrêtent en 2020, pas 2022T4.
+2) est-ce que ce serait coûteux d’ajouter les données jusqu’au 2023T4. ça peut être utile pour déceler une rupture, et séparer une chute temporaire d’une baisse permanente -->
 
 Dans les données ici utilisées, le taux de croissance trimestriel du PIB est connu jusqu'au 2022T4 alors que les variables explicatives sont connues jusqu'au 2023T1 :
 ```{r}
@@ -1175,8 +1179,8 @@ Moyenne absolue des erreurs normalisées (MASE) rapportée à celle des modèles
 
 # Conclusion
 
-En conclusion, cette étude montre comment, à partir d'un modèle de régression linéaire, l'hypothèse de constance des coefficients peut être tester et comment relâcher cette hypothèse en implémentant des modèles de régression par morceaux, de régression mobile et espace-état.
-Cette implémentation est facilitée grâce au package `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) qui accompagne cette étude et tous les codes associés sont disponibles sous sous <https://github.com/InseeFrLab/DT-tvcoef>.
+En conclusion, cette étude montre comment, à partir d'un modèle de régression linéaire, l'hypothèse de constance des coefficients peut être testée et comment relâcher cette hypothèse en implémentant des modèles de régression par morceaux, de régression mobile et espace-état.
+Cette implémentation est facilitée grâce au package `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) qui accompagne cette étude et tous les codes associés sont disponibles sous <https://github.com/InseeFrLab/DT-tvcoef>.
 
 Lorsque les tests classiques indiquent une non-constance des coefficients, ces trois méthodes permettent de réduire les erreurs de prévision dans l'échantillon (lorsque les coefficients sont estimés sur l'ensemble des données).
 Toutefois, ces trois méthodes reposent sur des hypothèses qui peuvent conduire à des fortes instabilités, notamment si elles sont utilisées naïvement lors des exercices de prévision en temps réel (hors échantillon).\
