@@ -6,26 +6,23 @@ if (!dir.exists("results"))
   dir.create("results")
 
 data <- window(manufacturing,
-               start = c(1992, 1),
+               start = c(1990, 1),
                end = c(2019, 4))
+
 all_models_formula <-
   list(
     C = list(
       "manuf_prod ~ ind2008Q4 + ind2009Q1  + overhang_ipi0 + diff(insee_tppa_m2, 1)",
-      "manuf_prod ~ ind2008Q4 + ind2009Q1  + overhang_ipi0 + bdf_prodpre_m1 +
-        diff(bdf_sitcar_m1, 1)",
-      "manuf_prod ~ ind1997Q2 + ind2008Q4 + ind2009Q1 + ind2011Q1 + ind2012Q3 + ind2013Q3 +
-      diff(insee_tppre_m2, 1) + insee_tppa_m2 + stats::lag(insee_tppre_m3, -1) + stats::lag(bdf_prodpre_m3, -1)"
+      "manuf_prod ~ overhang_ipi1 + insee_bc_m2  + diff(insee_bc_m2, 1)",
+      "manuf_prod ~ overhang_ipi1 + bdf_prodpre_m1  + diff(bdf_tuc_m1, 1)",
+      "manuf_prod ~ overhang_ipi1 +insee_tppre_m2 + diff(insee_oscd_m2, 1)",
+      "manuf_prod ~ overhang_ipi1 +insee_tppa_m1 + diff(bdf_prodpre_m1, 1)"
     ),
     C1 = list(
       "prod_c1 ~ insee_bc_c1_m1 + insee_tppa_c1_m1 + diff(insee_oscd_c1_m1, 1)",
-      "prod_c1 ~ overhang_ipi1_c1 + bdf_prodpre_c1_m2 + diff(insee_tppre_c1_m3, 1) +
-        diff(bdf_sitcar_c1_m2, 1)",
       "prod_c1 ~ overhang_ipi1_c1 + bdf_prodpas_c1_m2",
       "prod_c1 ~ insee_bc_c1_m1 + insee_tppa_c1_m1 + diff(insee_oscd_c1_m1, 1)",
-      "prod_c1 ~ overhang_ipi1_c1 + bdf_prodpre_c1_m2 + diff(insee_tppre_c1_m3, 1) +
-        diff(insee_bc_c1_m3, 1)",
-      "prod_c1 ~ overhang_ipi1_c1 + diff(insee_bc_c1_m3, 1)",
+      "prod_c1 ~ overhang_ipi1_c1 + diff(insee_bc_c1_m2, 1)",
       "prod_c1 ~ overhang_ipi1_c1"
     ),
     C3 = list(
@@ -85,37 +82,38 @@ all_bp <- lapply(all_models, function(sect) {
   # On restreint à au plus deux ruptures
   lapply(lapply(sect, breakpoints, breaks = 2), breakdates)
 })
-nb_rupture_bp <- lapply(all_bp, function(sect) {
-  sapply(sect, function(bp) {
-    sum(!is.na(bp))
+if (!file.exists("results/ruptures.RDS")) {
+  nb_rupture_bp <- lapply(all_bp, function(sect) {
+    sapply(sect, function(bp) {
+      sum(!is.na(bp))
+    })
   })
-})
-
-
-all_hansen <- lapply(all_models, function(sect) {
-  sapply(sect, function(model) {
-    test <- hansen_test(model,
-                        # On enlève les indicatrices
-                        var = grep("ind", names(coef(model)), invert = TRUE))
-    test$L_c > hansen_table[length(test$selected_var), "5%"]
+  
+  all_hansen <- lapply(all_models, function(sect) {
+    sapply(sect, function(model) {
+      test <- hansen_test(model,
+                          # On enlève les indicatrices
+                          var = grep("ind", names(coef(model)), invert = TRUE))
+      test$L_c > hansen_table[length(test$selected_var), "5%"]
+    })
   })
-})
-mod_by_sect <- lapply(all_models_formula, length)
-Sector <- unlist(lapply(names(mod_by_sect), function(sect){
-  rep(sect, mod_by_sect[[sect]])
-}))
-Model <- unlist(lapply(mod_by_sect, function(nb){
-  seq_len(nb)
-}))
-ruptures <- data.frame(
-  Sector = Sector,
-  Model = Model,                
-  `Bai et Perron` = unlist(nb_rupture_bp) > 0,
-  Hansen = unlist(all_hansen),
-  check.names = FALSE
+  mod_by_sect <- lapply(all_models_formula, length)
+  Sector <- unlist(lapply(names(mod_by_sect), function(sect){
+    rep(sect, mod_by_sect[[sect]])
+  }))
+  Model <- unlist(lapply(mod_by_sect, function(nb){
+    seq_len(nb)
+  }))
+  ruptures <- data.frame(
+    Sector = Sector,
+    Model = Model,                
+    `Bai et Perron` = unlist(nb_rupture_bp) > 0,
+    Hansen = unlist(all_hansen),
+    check.names = FALSE
   )
-rownames(ruptures) <- NULL
-saveRDS(ruptures, "results/ruptures.RDS")
+  rownames(ruptures) <- NULL
+  saveRDS(ruptures, "results/ruptures.RDS")
+}
 
 ########################################################
 ################ Estimation des modèles ################
@@ -204,15 +202,13 @@ if (!file.exists("results/ssm.RDS")) {
     })
   })
   saveRDS(ssm, "results/ssm.RDS")
-} else {
-  ssm <- readRDS("results/ssm.RDS")
 }
 
 ##########################################################
 ################ Estimation en temps réel ################
 ##########################################################
 
-# Dernière rupture en 2011Q4 :
+# Dernière rupture en 2011T3 :
 max(unlist(all_bp), na.rm = TRUE)
 first_period_oos <- 60
 
@@ -229,7 +225,7 @@ if (!file.exists("results/reg_morc_oos.RDS")) {
     lapply(sect, oos_prev, date = first_period_oos)
   })
   saveRDS(reg_morc_oos, "results/reg_morc_oos.RDS")
-  rm(reg_morc_oos)
+  rm(reg_morc, reg_morc_oos)
 } 
 
 if (!all(file.exists(c("results/reg_loc_oos.RDS", "results/reg_loc_fixed_bw_oos.RDS")))) {
@@ -243,7 +239,7 @@ if (!all(file.exists(c("results/reg_loc_oos.RDS", "results/reg_loc_fixed_bw_oos.
           "results/reg_loc_oos.RDS")
   saveRDS(reg_loc_oos_fixed_bw,
           "results/reg_loc_fixed_bw_oos.RDS")
-  rm(reg_loc_oos_all, reg_loc_oos_fixed_bw)
+  rm(reg_loc, reg_loc_oos_all, reg_loc_oos_fixed_bw)
 } 
 
 if (!all(file.exists("results/reg_morc_loc_oos.RDS", "results/reg_morc_loc_fixed_bw_oos.RDS"))) {
@@ -257,7 +253,7 @@ if (!all(file.exists("results/reg_morc_loc_oos.RDS", "results/reg_morc_loc_fixed
           "results/reg_morc_loc_oos.RDS")
   saveRDS(reg_morc_loc_oos_fixed_bw,
           "results/reg_morc_loc_fixed_bw_oos.RDS")
-  rm(reg_morc_loc_oos_all, reg_morc_loc_oos_fixed_bw)
+  rm(reg_morc_loc, reg_morc_loc_oos_all, reg_morc_loc_oos_fixed_bw)
 } 
 
 if (!file.exists("results/ssm_oos.RDS")) {

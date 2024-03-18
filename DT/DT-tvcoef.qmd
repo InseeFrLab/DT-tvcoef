@@ -438,8 +438,8 @@ Deux méthodes d'estimations sont possibles :
 
 1. Une régression en une étape est faite en dédoublant les régresseurs en fonction de la date de rupture (fonction `tvCoef::piece_reg()`) :
 \begin{align*}
-\% PIB_t &= \alpha_0\1_{t\leq 2000T2} + \alpha_1 climat\_fr_t\1_{t\leq 2000T2} + \alpha_2 \Delta climat\_fr_t\1_{t\leq 2000T2} + \\
-&\phantom{=} \alpha_0'\1_{t > 2000T2} + \alpha_1' climat\_fr_t\1_{t > 2000T2} + \alpha_2' \Delta climat\_fr_t\1_{t > 2000T2} + \varepsilon_t
+\% PIB_t &= \alpha_0\1_{t\leq 2000T3} + \alpha_1 climat\_fr_t\1_{t\leq 2000T3} + \alpha_2 \Delta climat\_fr_t\1_{t\leq 2000T3} + \\
+&\phantom{=} \alpha_0'\1_{t > 2000T3} + \alpha_1' climat\_fr_t\1_{t > 2000T3} + \alpha_2' \Delta climat\_fr_t\1_{t > 2000T3} + \varepsilon_t
 \end{align*}
 <!-- ```{r} -->
 <!-- #| echo: false -->
@@ -459,8 +459,8 @@ Deux méthodes d'estimations sont possibles :
 2. En effectuant deux régressions linéaires distinctes (fonction `tvCoef::bp_lm()`) :
 $$
 \begin{cases}
-\forall t \leq 2000T2 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2 \Delta climat\_fr_t + \varepsilon_t \\
-\forall t > 2000T2 :\quad \% PIB_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t'
+\forall t \leq 2000T3 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2 \Delta climat\_fr_t + \varepsilon_t \\
+\forall t > 2000T3 :\quad \% PIB_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t'
 \end{cases}.
 $$
 <!-- ```{r} -->
@@ -496,13 +496,7 @@ Toutefois, nous conseillons de toujours considérer que la constante varie dans 
 ```{r}
 car::linearHypothesis(
   reg_morc$model,
-  c("`(Intercept)_2000.25` = `(Intercept)_2019.75`",
-    "bc_fr_m1_2000.25 = bc_fr_m1_2019.75"),
-  test = "F")
-reg_morc2 <- piece_reg(reg_lin, fixed_var = 2)
-car::linearHypothesis(
-  reg_morc2$model,
-  c("diff_bc_fr_m1_2000.25 = diff_bc_fr_m1_2019.75"),
+  c("diff_bc_fr_m1_2000.5 = diff_bc_fr_m1_2019.75"),
   test = "F")
 coef(reg_morc2$model)
 ```
@@ -526,40 +520,35 @@ res_oos <- window(res_oos, start = 2003)
 apply(res_oos, 2, rmse)
 ```
 
-La @fig-prev-piecereg montre les prévisions hors échantillon des deux modèles étudiés.
-Autour de la date de rupture, la régression linéaire par morceaux produit des prévisions peu réalistes : cela s'explique par le fait que très peu d'observations sont utilisées pour estimer les coefficients associés aux régresseurs après la rupture, les estimateurs sont donc peu précis (grande variance).
+La @fig-prev-piecereg montre les erreurs de prévision hors échantillon des deux modèles étudiés.
+Autour de la date de rupture, la régression linéaire par morceaux produit des prévisions peu réalistes (ce qui conduit à des erreurs élevées) : cela s'explique par le fait que très peu d'observations sont utilisées pour estimer les coefficients associés aux régresseurs après la rupture, les estimateurs sont donc peu précis (grande variance).
 Pour les analyses hors échantillon, il faut donc faire attention aux valeurs prédites autour de la rupture !
 
 <!-- ajouter un graphique avec les écarts de prévision? c’est plus directement ce que tu veux montrer -->
 
 ```{r}
 #| echo: false
-#| fig-cap: Prévision de la croissance du PIB à partir d'un modèle de régression linéaire et d'un modèle de régression linéaire par morceaux.
+#| fig-cap: Erreurs de prévision de la croissance du PIB à partir d'un modèle de régression linéaire et d'un modèle de régression linéaire par morceaux.
 #| label: fig-prev-piecereg
-prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_reg_morc$forecast)
-colnames(prev) <- c("% PIB", "Rég. lin.",
+# prev <- ts.intersect(gdp[,"growth_gdp"], oos_lm$forecast, oos_reg_morc$forecast)
+res_oos <- ts.union(oos_lm$residuals, oos_reg_morc$residuals)
+range_res <- range(window(res_oos, start = 2000))
+data <- data.frame(as.numeric(time(res_oos)),
+                   res_oos)
+colnames(data) <- c("time", "Rég. lin.",
                     "Rég. par morceaux")
-suppressMessages(forecast::autoplot(prev[,1],
-                   series = colnames(prev) [1]) +
-  forecast::autolayer(prev[,2], linetype = 1,
-                      series = colnames(prev)[2], size = 1.05) +
-  forecast::autolayer(prev[,3], linetype = 3,
-                      series = colnames(prev)[3], size = 1.05) +
-  theme_bw() + 
-  labs(x = NULL, y = "%") +
-  theme(
-    legend.background = element_rect(fill = alpha('gray99', 0.4),
-                                     colour = "gray80", linetype = "solid"),
-    legend.justification = c(0,0),
-    legend.position = "inside",
-    legend.position.inside = c(0,0),
-    legend.key = element_blank(),
-    legend.title = element_blank()
-  ) +
-  scale_color_manual(breaks = colnames(prev),
-                     values = colors_graph) +
-  scale_x_continuous(breaks = seq.int(1990, 2020, 10))
-)
+p1 <- ggplot(data = data, aes(x = time, y = `Rég. lin.`)) +
+  geom_bar(stat = "identity",
+           fill = colors_graph[1]) +
+  labs(x = NULL, y = NULL, title = colnames(data)[2])
+p2 <- ggplot(data = data, aes(x = time, y = `Rég. par morceaux`)) +
+  geom_bar(stat = "identity",
+           fill = colors_graph[2]) +
+  labs(x = NULL, y = NULL, title = colnames(data)[3])
+(p1 / p2) &
+  scale_x_continuous(breaks = seq.int(2000, 2020, 2)) & 
+  coord_cartesian(ylim = range_res, xlim = c(2000, 2020)) &
+  theme_bw()
 ```
 
 Comme indiqué dans la @sec-test-baiperron, l'inconvénient de cette méthode provient du choix de la date de rupture lorsque celle-ci n'est pas imposée par l'utilisateur.
@@ -611,7 +600,7 @@ coef_roll_lm <- ts(roll_lm$coefficients, start = 1980, frequency = 4)
 
 La @fig-coef-rollreg montre les coefficients estimés par cette régression mobile.
 Seuls ceux estimés sur le climat des affaires en différence montrent une rupture nette.
-Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T2).
+Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T3).
 
 ::: {#fig-coef-rollreg}
 ```{r}
@@ -966,7 +955,7 @@ coef(reg_lin_covid)
 Pour la construction des autres modèles, nous gardons certains paramètres estimés en utilisant les données avant la période du COVID-19, cette dernière pouvant biaiser les résultats.
 Ainsi\ :
 
-- Pour la régression par morceaux, la date de rupture retenue est toujours 2000T2 (contre 2016T1 en utilisant les données après 2020).
+- Pour la régression par morceaux, la date de rupture retenue est toujours 2000T3 (contre 2016T1 en utilisant les données après 2020).
 ```{r}
 bp_covid <- breakpoints(reg_lin_covid)
 c(breakdates(bp), breakdates(bp_covid))
@@ -995,7 +984,7 @@ sqrt(ssm_covid$parameters$parameters * ssm_covid$parameters$scaling)
 
 Les modèles sont donc estimés avec le code suivant :
 ```{r}
-reg_morc_covid <- piece_reg(reg_lin_covid, break_dates = 2000.25,
+reg_morc_covid <- piece_reg(reg_lin_covid, break_dates = 2000.5,
                             # Les indicatrices ne sont pas découpées
                             fixed_var = 4:7)
 reg_loc_covid <- tvReg::tvLM(
@@ -1040,14 +1029,14 @@ L'analyse est similaire à celle de la @fig-coef-ssm.
 # apply(res_is, 2, rmse)
 coef2plot(
   list(
-    "Rég. linéaire" = coef_lin,
-    "Rég. par morceaux" = coef_morc,
-    "Rég. locale" = coef_reg_loc,
-    "Mod. espace-état" = coef_ssm
+    "Rég. linéaire" = coef_lin_covid,
+    "Rég. par morceaux" = coef_morc_covid,
+    "Rég. locale" = coef_reg_loc_covid,
+    "Mod. espace-état" = coef_ssm_covid
   )
 )
 ```
-<!-- 1) dans le graphique, on dirait que les données s’arrêtent en 2020, pas 2022T4.
+<!-- 1) dans le graphique, on dirait que les données s’arrêtent en 2020, pas 2022T4. Rep AQLT : c'était une erreur, je reprenais les anciens coefficients
 2) est-ce que ce serait coûteux d’ajouter les données jusqu’au 2023T4. ça peut être utile pour déceler une rupture, et séparer une chute temporaire d’une baisse permanente -->
 
 Dans les données ici utilisées, le taux de croissance trimestriel du PIB est connu jusqu'au 2022T4 alors que les variables explicatives sont connues jusqu'au 2023T1 :

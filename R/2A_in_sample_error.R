@@ -5,7 +5,7 @@ all_y <- lapply(
     lapply(sect, function(mod) get_data(mod)[,1])
   })
 # Pour prendre en compte les lags
-first_date <- 1997
+first_date <- 2000
 is <- list(
   lm = lapply(
     readRDS("results/all_models.RDS"),
