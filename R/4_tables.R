@@ -56,7 +56,11 @@ format_tbl_error <- function(
     ) |> 
     filter(Method %in% selected_methods) |> 
     mutate(Method = factor(Method, levels = selected_methods, ordered = TRUE),
-           Method = recode_factor(Method, reg_morc = "Rég. par morceaux", reg_loc = "Rég. locale", ssm = "Mod. espace-état"), ordered = TRUE) |> 
+           Method = recode_factor(
+             Method, 
+             reg_morc = "Rég. par morceaux", 
+             reg_loc = "Rég. locale",
+             ssm = "Coef. stochastiques (espace-état)"), ordered = TRUE) |> 
     group_by(Method, fixed) |> 
     summarise(Moyenne = mean(MASE),
               `Moyenne baisse`= mean(MASE[MASE < 1]),
@@ -106,4 +110,4 @@ read.csv2("DT/img/error_table.csv", check.names = FALSE)|>
     align = c("left"),
     columns = "rowname"
   )
-  
+
