@@ -56,19 +56,23 @@ format_tbl_error <- function(
     ) |> 
     filter(Method %in% selected_methods) |> 
     mutate(Method = factor(Method, levels = selected_methods, ordered = TRUE),
-           Method = recode_factor(Method, reg_morc = "Rég. par morceaux", reg_loc = "Rég. locale", ssm = "Mod. espace-état"), ordered = TRUE) |> 
+           Method = recode_factor(
+             Method, 
+             reg_morc = "Rég. par morceaux", 
+             reg_loc = "Rég. locale",
+             ssm = "Coef. stochastiques (espace-état)"), ordered = TRUE) |> 
     group_by(Method, fixed) |> 
-    summarise(Moyenne = mean(MASE),
-              `Moyenne baisse`= mean(MASE[MASE < 1]),
-              `Moyenne hausse`= mean(MASE[MASE > 1]),
-              Min = min(MASE),
-              D1 = quantile(MASE, 0.25),
-              Médiane = median(MASE),
-              D3 = quantile(MASE, 0.75),
-              Max = max(MASE),
-              `< 1` = sum(round(MASE, 2) < 1),
-              `= 1`  = sum(round(MASE, 2) == 1),
-              `> 1` = sum(round(MASE, 2) > 1),
+    summarise(Moyenne = mean(RMSE),
+              `Moyenne baisse`= mean(RMSE[RMSE < 1]),
+              `Moyenne hausse`= mean(RMSE[RMSE > 1]),
+              Min = min(RMSE),
+              D1 = quantile(RMSE, 0.25),
+              Médiane = median(RMSE),
+              D3 = quantile(RMSE, 0.75),
+              Max = max(RMSE),
+              `< 1` = sum(round(RMSE, 2) < 1),
+              `= 1`  = sum(round(RMSE, 2) == 1),
+              `> 1` = sum(round(RMSE, 2) > 1),
               .groups = 'drop') |> 
     arrange(desc(fixed), Method) 
 }
@@ -98,7 +102,7 @@ read.csv2("DT/img/error_table.csv", check.names = FALSE)|>
     columns = starts_with(c("<", "=", ">"))
   ) |> 
   tab_spanner(columns = starts_with(c("<", "=", ">")),
-              "Séries dont MASE") |> 
+              "Séries dont RMSE") |> 
   cols_align(
     align = c("center")
   )  |> 
@@ -106,4 +110,4 @@ read.csv2("DT/img/error_table.csv", check.names = FALSE)|>
     align = c("left"),
     columns = "rowname"
   )
-  
+
