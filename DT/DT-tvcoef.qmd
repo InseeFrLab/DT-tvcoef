@@ -31,7 +31,7 @@ crossref:
   tbl-prefix: table
   fig-prefix: figure
   sec-prefix: section
-  eq-prefix: equation
+  eq-prefix: équation
 tbl-cap-location: top
 fig-cap-location: top
 author:
@@ -325,15 +325,15 @@ $$
 \forall t > t_1 :\quad y_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
-Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\alpha_0$ et $\alpha_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle\ :
-<!-- pas sûr que ce soit une solution si simple. si on suit Frisch-Waugh, il faudrait plutôt, pour ne pas avoir de alpha_0 et alpha_1 biaisés par le biais de variable omise (lié à la variable Delta Climat), régresser variables de gauche, la constante et climat sur Delta(climat) et ensuite régresser les résidus de y sur résidu de constante et résidu de climat. là ça donne alpha_0 et alpha_1. puis tu fais ce que tu proposes. non?  -->
-<!-- Rep AQLT : à rediscuter mais est-ce que le biais de variable omise affecte tous les coefficients ? Même si le coefficient est biaisé je ne pense pas que cela biaise l'estimation de la date de rupture. Une fois la date de rupture détectée, ce que je fais c'est estimer une nouvelle régression avec toutes les variables + celles coupées par morceaux. -->
-$$
-\begin{cases}
-\forall t \leq t_1 :\quad (y - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad (y - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
-\end{cases}.
-$$
+<!-- Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\alpha_0$ et $\alpha_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle\ : -->
+<!-- <!-- pas sûr que ce soit une solution si simple. si on suit Frisch-Waugh, il faudrait plutôt, pour ne pas avoir de alpha_0 et alpha_1 biaisés par le biais de variable omise (lié à la variable Delta Climat), régresser variables de gauche, la constante et climat sur Delta(climat) et ensuite régresser les résidus de y sur résidu de constante et résidu de climat. là ça donne alpha_0 et alpha_1. puis tu fais ce que tu proposes. non?  --> -->
+<!-- <!-- Rep AQLT : à rediscuter mais est-ce que le biais de variable omise affecte tous les coefficients ? Même si le coefficient est biaisé je ne pense pas que cela biaise l'estimation de la date de rupture. Une fois la date de rupture détectée, ce que je fais c'est estimer une nouvelle régression avec toutes les variables + celles coupées par morceaux. --> -->
+<!-- $$ -->
+<!-- \begin{cases} -->
+<!-- \forall t \leq t_1 :\quad (y - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\ -->
+<!-- \forall t > t_1 :\quad (y - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2'' \Delta climat\_fr_t + \varepsilon_t'' -->
+<!-- \end{cases}. -->
+<!-- $$ -->
 
 - Il y a une instabilité sur le choix de la date et il suppose que la rupture est brutale à une certaine date.
 Si la rupture est brutale, le statisticien doit pouvoir expliquer son origine (changement de nomenclature, de champ dans les données, crise...) et a déjà un *a priori* sur la date de rupture.
@@ -400,10 +400,13 @@ L_c = \frac{1}{n}
 \text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}.
 $$
 Il s'adapte facilement à un test joint de constance d'un sous-ensemble de paramètres en utilisant des sous-vecteurs de $\bf f_t$ et $\bf S_t.$
-Toutefois, si le modèle contient des indicatrices alors le test joint ne pourra pas être calculé (la matrice $\bf V$ n'est alors pas inversible car une).
+Toutefois, si le modèle contient des indicatrices alors le test joint ne pourra généralement pas être calculé^[
+Dans ce cas, la matrice $\bf V$ n'est pas inversible car la colonne associée à l'indicatrice sera proche de 0.
+Si la $i$^e^ variable est une indicatrice à la date $t_0$, $f_{i,t}=x_{i,t}\hat\varepsilon_t$ sera égal à 0 pour $t$ différent de $t_0$ (car $x_{i,t}=0$) et $f_{i,t_{0}}=x_{i,t_{0}}\hat\varepsilon_t=\hat\varepsilon_t\simeq 0$ car l'ajout d'une indicatrice conduit généralement les résidus à être nuls sur la date associée.
+].
 <!-- dessous tu le calcules alors qu’il y a une constante. on ne peut pas avoir 2 indicatrices c’est ça alors? -->
 <!-- Rep AQLT : la matrice peut être inversible dans le cas d'une constante, lorsqu'il y a une indicatrice -->
-Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une *tied-down random walk*, c'est-à-dire une marche aléatoire où la première observation est égale à la dernière observation) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
+Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une *tied-down random walk*, c'est-à-dire une marche aléatoire où l'on a contraint première observation est égale à la dernière observation) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
 <!-- c’est quoi une marche aléatoire contrainte? -->
 <!-- Rep AQLT : en anglais c'est tied-down random walk, j'ai trouvé une définition ici https://www.researchgate.net/figure/A-tied-down-random-walk-or-Bernoulli-bridge-is-a-simple-random-walk-starting-and-ending_fig1_309729937. C'est une marche aléatoire où l'on a contraint le début et la fin à être égaux. Cela ne me parait pas courant comme notion mais comme c'était mentionné dans l'article je trouvais que ça pouvait être intéressant. Je peux soit supprimer la parenthèse si c'est trop complexe soit expliciter davantage (j'ai fait une proposition dans les parenthèses) -->
 Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
@@ -467,7 +470,7 @@ Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le te
 
 Si un des tests précédents conclut à la non constance des coefficients du modèle estimé c'est qu'il est mal spécifié et donc qu'il faut utiliser une modélisation alternative qui pourrait notamment provenir d'un problème de variables omises.
 Dans cette étude, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
-Dans certains cas, par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g., des indicatrices).
+Dans certains cas, par exemple pour prendre en compte la crise du COVID-19, il peut être utile d'ajouter des variables supplémentaires (e.g., des indicatrices).
 <!-- utile ou nécessaire? -->
 <!-- Rep AQLT : je dirais plutôt utile car d'autres méthodes peuvent être utilisées (utilisation d'une variable externe par exemple) et il peut y avoir certaines séries non affectées par le COVID (du fait de la méthode de mesure par exemple) -->
 
@@ -695,22 +698,22 @@ ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
 
 La régression mobile est une des méthodes empiriques les plus simples pour savoir si les coefficients évoluent dans le temps.
 Celle-ci consiste à estimer des régressions sur des fenêtres glissantes et à observer la courbe des coefficients estimés.
-En reprenant notre exemple où les données commencent en 1980, avec une fenêtre fixe de 15 ans (par exemple), cela consiste à estimer une première régression entre 1980T1 et 1994T4, une deuxième entre 1980T2 et 1995T1... et une dernière entre 2005T1 et 2019T4.
+En reprenant notre exemple où les données commencent en 1980, avec une fenêtre fixe de 10 ans (par exemple), cela consiste à estimer une première régression entre 1980T1 et 1989T4, une deuxième entre 1980T2 et 1990T1... et une dernière entre 2010T1 et 2019T4.
 Sous R cela peut par exemple s'estimer en utilisant la fonction `roll::roll_lm()` [@roll] :
 ```{r}
 roll_lm <- roll::roll_lm(
   x = data_gdp[, c("bc_fr_m1", "diff_bc_fr_m1")],
   y = data_gdp[, "growth_gdp"],
-  width = 4 * 15
+  width = 4 * 10
 )
 coef_roll_lm <- ts(roll_lm$coefficients, start = 1980, frequency = 4)
 ```
 
 La @fig-coef-rollreg montre les coefficients estimés par cette régression mobile.
 Seuls ceux estimés sur le climat des affaires en différence montrent une rupture nette.
-Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T3).
+Elle s'observe à partir de 2005, lorsque plus de la moitié des points de la fenêtre (5 ans) sont estimés après la date de rupture détectée (2000T3).
 <!-- et ce qui doit jouer aussi, c’est les points 2009 qui doivent être très extrêmes et tirer les coefficients... -->
-<!-- Rep AQLT : Tu veux dire par là que ce serait juste une rupture en 2009 et pas une rupture avant -->
+<!-- Rep AQLT : Effectivement, rupture à partir de 2009 mais on a l'impression de voir -->
 
 ::: {#fig-coef-rollreg}
 ```{r}
@@ -734,8 +737,8 @@ coef2plot(
 )
 ```
 
-Lecture : la régression mobile est estimée sur une fenêtre de 15 ans.
-Les coefficients estimés en 1994T4 correspondent aux coefficients estimés entre 1980T1 et 1994T4.
+Lecture : la régression mobile est estimée sur une fenêtre de 10 ans.
+Les coefficients estimés en 2000T1 correspondent aux coefficients estimés entre 1980T2 et 2000T1.
 
 Coefficients estimés par régression linéaire, régression par morceaux et régression mobile.
 :::
@@ -747,7 +750,7 @@ La régression mobile a l'avantage d'être très simple mais repose sur plusieur
 - La date à laquelle les coefficients sont associés.
 Dans la fonction `roll::roll_lm()` ils sont associés à la dernière date de la fenêtre : les coefficients de la date $t$ correspondent à ceux obtenus en utilisant les données jusqu'à la date $t.$
 Ils auraient également pu être associés à la première date de la fenêtre ou encore à son milieu (coefficients de la date $t$ estimés en utilisant autant d'observations avant et après $t$).
-Dans tous les cas une stratégie doit être adoptée afin de gérer les observations manquantes (dans notre exemple il s'agit donc d'estimer les coefficients avant 1994).
+Dans tous les cas une stratégie doit être adoptée afin de gérer les observations manquantes (dans notre exemple il s'agit donc d'estimer les coefficients avant 1989).
 
 La régression locale permet, grâce à une modélisation plus poussée, de donner des solutions à ce problème.
 Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvReg::tvLM()` développée par @tvReg^[
@@ -878,9 +881,9 @@ C'est donc également une source de révision au fur et à mesure que des nouvea
 Même si des méthodes optimales existent pour minimiser les erreurs d'estimation des coefficients en temps réel [voir par exemple @FengSchafer2021], cela devrait ici avoir peu d'impact car un modèle très simple est ici utilisé pour estimer les coefficients (approximation de la fonction $\alpha$ par une constante).
 
 Un autre inconvénient de ces méthodes est que tous les coefficients varient dans la temps alors que dans certains cas on peut supposer la relation constante.
-Pour fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire pour estimer les coefficients fixes, suivie d'une régression mobile.
+<!-- Pour fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire pour estimer les coefficients fixes, suivie d'une régression mobile. -->
 <!-- vérifier si la formulation est ok avec les changements qui ont été apportés suite à mon commentaire -->
-<!-- Rep AQLT : TODO -->
+<!-- Rep AQLT : Supprimé comme vu avec toi -->
 
 ## Régression avec coefficients stochastiques (modélisation espace-état) {#sec-ssm}
 
@@ -1063,39 +1066,49 @@ Erreurs quadratiques moyennes des erreurs de prévision entre les différentes m
 Dans les sections précédentes, les modèles ont été estimés jusqu'en 2019T4 dans le but de simplifier la présentation des modèles.
 Toutefois, si l'on veut effectuer de la prévision sur les périodes récentes, il est indispensable de prendre en compte la période du COVID-19.
 Cela se fait généralement en ajoutant, dans le modèle de prévision, des variables explicatives modélisant les chocs de cette période.
-La méthode la plus simple consiste à ajouter des indicatrices sur les trimestres concernés (ici l'année 2020) :
+La méthode la plus simple consiste à ajouter des indicatrices sur les trimestres concernés (ici l'année 2020 et le trimestre 2021T3)^[
+D'autres spécifications pourraient être utilisées, comme par exemple l'ajout d'indicatrices sur l'ensemble des années 2020 et 2021 ou uniquement sur l'année 2020.
+Ajouter ou retirer d'autres indicatrices peut sensiblement changer les résultats des coefficients estimés sur la fin de la période, notamment du fait du faible recul temporel que l'on a après le COVID-19 : le choix dépend aussi des hypothèses économiques que l'on fait sur le modèle utilisé (quels sont les trimestres qui sont atypiques et ceux dont les évolutions relèvent de la conjoncture ?).
+Ici nous avons choisi de n'utiliser des indicatrices que pour l'année 2020 et le trimestre 2021T3 car les indicatrices des autres trimestres ne sont pas significatifs, que l'année 2020 est fortement heurtée par la crise du COVID-19 et que la forte croissance de 2021T3 peut s'expliquer par un contre-coup des mesures de confinement de 2021T2.
+] :
 
 ```{r}
-ind <- cbind(time(gdp) == 2020, time(gdp) == 2020.25, 
-             time(gdp) == 2020.5, time(gdp) == 2020.75)
+ind <- cbind(
+  time(gdp) == 2020, time(gdp) == 2020.25, 
+  time(gdp) == 2020.5, time(gdp) == 2020.75,
+  time(gdp) == 2021.5
+)
 ind <- ts(apply(ind,2, as.numeric), start = start(gdp), frequency = 4)
-colnames(ind) <- sprintf("ind2020T%i", 1:4)
+colnames(ind) <- c(sprintf("ind2020T%i", 1:4), "ind2021T3")
 data_covid <- ts.union(gdp, ind)
 colnames(data_covid) <- c(colnames(gdp), colnames(ind))
 
 reg_lin_covid <- dynlm(
   formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1 +
-    ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4,
+    ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4 + 
+    ind2021T3,
   data = window(data_covid, start = 1980)
 )
-coef(reg_lin_covid)
+summary(reg_lin_covid)
 ```
 Pour la construction des autres modèles, nous gardons certains paramètres estimés en utilisant les données avant la période du COVID-19, cette dernière pouvant biaiser les résultats.
 Ainsi\ :
 
-- Pour la régression par morceaux, la date de rupture retenue est toujours 2000T3 (contre 2000T3 et 2017T2 en utilisant les données après 2020).
+- Pour la régression par morceaux, la date de rupture retenue est toujours 2000T3 (contre 2017T2 en utilisant les données après 2020).
 ```{r}
 bp_covid <- breakpoints(reg_lin_covid)
 c(breakdates(bp), breakdates(bp_covid))
 ```
 
-- Pour la régression locale, la fenêtre utilisée est `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")` (contre 0,04 en utilisant les données après 2020).
+- Pour la régression locale, la fenêtre utilisée est `{r} formatC(reg_loc$bw, digits = 2, decimal.mark = ",")` (proche de la fenêtre de 0,77 en utilisant les données après 2020).
 ```{r}
 bw_covid <- bw(window(
-  data_covid[, c("bc_fr_m1", "diff_bc_fr_m1", "ind2020T1", "ind2020T2", 
-                "ind2020T3", "ind2020T4")], start = 1980, end = c(2023, 4)), 
+  data_covid[, c("bc_fr_m1", "diff_bc_fr_m1",
+                 "ind2020T1", "ind2020T2", 
+                 "ind2020T3", "ind2020T4", 
+                 "ind2021T3")], start = 1980, end = c(2023, 4)), 
   window(data_covid[, "growth_gdp"], start = 1980, end = c(2023, 4))
-  )
+)
 c(reg_loc$bw, bw_covid)
 ```
 
@@ -1117,10 +1130,10 @@ Les modèles sont donc estimés avec le code suivant :
 reg_morc_covid <- piece_reg(
   reg_lin_covid, break_dates = 2000.5,
   # Les indicatrices ne sont pas découpées
-  fixed_var = 4:7)
+  fixed_var = 4:8)
 reg_loc_covid <- tvReg::tvLM(
   formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1 +
-    ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4,
+    ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4 + ind2021T3,
   data = window(data_covid, start = 1980),
   # On reprend l'ancienne fenêtre
   bw = reg_loc$bw 
@@ -1131,9 +1144,9 @@ ssm_covid <- ssm_lm(
   # On fixe les coefficients des indicatrices
   # et le coefficient du climat des affaires en niveau 
   # (sinon il varie dans le temps)
-  fixed_var_variables = c(c(TRUE, FALSE), rep(TRUE, 4)),
+  fixed_var_variables = c(c(TRUE, FALSE), rep(TRUE, 5)),
   var_intercept = 0.01,
-  var_variables = c(0, 0.01, rep(0, 4))
+  var_variables = c(0, 0.01, rep(0, 5))
 )
 
 coef_morc_covid <- coef(reg_morc_covid)
@@ -1382,9 +1395,9 @@ Il reste maintenant à installer les packages :
 
 ```{r, eval = FALSE}
 # Nécessaire pour installer rjd3sts
-remotes::install_github("rjdemetra/rjd3toolkit")
+remotes::install_github("rjdverse/rjd3toolkit")
 # Pour installer rjd3sts (modèles espace-état)
-remotes::install_github("rjdemetra/rjd3sts")
+remotes::install_github("rjdverse/rjd3sts")
 remotes::install_github("InseeFrLab/tvCoef")
 ```
 
