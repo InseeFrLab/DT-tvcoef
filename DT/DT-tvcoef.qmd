@@ -31,6 +31,7 @@ crossref:
   tbl-prefix: table
   fig-prefix: figure
   sec-prefix: section
+  eq-prefix: equation
 tbl-cap-location: top
 fig-cap-location: top
 author:
@@ -86,6 +87,8 @@ library(ggplot2)
 library(patchwork)
 library(forecast)
 library(gt)
+library(ggforce)
+
 # # colors = pal_viridis()(4),
 # # colors = rev(pal_brewer("qual")(4)),
 # colors = pal_hue()(4)
@@ -161,8 +164,9 @@ JEL Classification: C22, C53.
 # Introduction
 
 Dans la statistique publique, de nombreux modèles de prévision s'appuient sur des régressions linéaires. 
-Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes. 
+Par exemple, les producteurs de séries désaisonnalisées appliquent des modèles RegARIMA pour la correction des effets de calendrier et les comptes nationaux trimestriels utilisent des modèles d'étalonnage-calage pour caler les séries sur les comptes nationaux annuels. 
 <!-- nationaux ? pour un lecteur lambda, lire "comptes" ne va pas lui dire grand-chose -->
+<!-- Rep AQLT : Il manque la fin de la phrase, est-ce que tu crois que je rajoute des références pour chaque exemple comme pour la phrase d'après ? -->
 Pour la prévision des grands agrégats macroéconomiques, l'Insee [e.g., @ndc2015prev] et la Banque de France [e.g., @OPTIM] utilisent notamment des modèles de régression linéaire pour prévoir la croissance et le modèle macroéconomique Mésange [@mesange] s'appuie sur des modèles à correction d'erreur pour modéliser les comportements macroéconomiques. 
 Ces méthodes fournissent généralement de bons résultats et ont l'avantage d'être facilement interprétables. 
 Cependant, elles supposent que les relations entre les variables (i.e, les coefficients estimés) sont fixes dans le temps : cette hypothèse peut avoir du sens sur courte période mais n'est généralement plus vérifiée lorsque les modèles sont estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
@@ -180,8 +184,9 @@ La première suppose l'existence d'une rupture brutale sur les coefficients à u
 Pour simplifier l'implémentation de ces méthodes, ainsi que leur comparaison, le package R `tvCoef` (<https://github.com/InseeFrLab/tvCoef>) a également été développé lors de cette étude. 
 Cette étude est entièrement reproductible et tous les codes utilisés sont disponibles sous <https://github.com/InseeFrLab/DT-tvcoef>.
 
-Après une description de deux tests permettant de vérifier si les coefficients sont fixes dans le temps (@sec-tests), nous décrivons trois méthodes pour estimer des coefficients variant dans le temps et montrons comment les implémenter à partir d'un modèle de prévision de la croissance du PIB français (@sec-desc-meth).
+Après une description de deux tests permettant de tester si les coefficients sont fixes dans le temps (@sec-tests), nous décrivons trois méthodes pour estimer des coefficients variant dans le temps et montrons comment les implémenter à partir d'un modèle de prévision de la croissance du PIB français (@sec-desc-meth).
 <!-- permettant de vérifier si les coefficients sont fixes dans le temps: formulation peut-etre un peu trop forte. à la fin, on n’a que le résultat du test, pas la vérification définitive que les coefficients sont fixes ou non. les résultats des tests peuvent être flous -->
+<!-- Rep AQLT : c'était pour éviter la formulation "tests permettant de tester" mais c'est finalement la plus simple -->
 Nous comparons ensuite les qualités prédictives des différentes méthodes sur une trentaine de modèles de prévision trimestrielle (@sec-comp-generales).
 Nous montrons que, lorsque l'hypothèse de constance des coefficients n'est pas vérifiée, l'utilisation de ces modèles (notamment la régression avec coefficients stochastiques) permet de réduire les erreurs de prévision. 
 Par ailleurs, même lorsque les tests classiques concluent à la constance des coefficients, la régression avec coefficients stochastiques peut permettre de réduire les erreurs de prévision.
@@ -191,18 +196,20 @@ Par ailleurs, même lorsque les tests classiques concluent à la constance des c
 # Modélisation générale et tests {#sec-tests}
 
 Dans cette étude, nous nous plaçons dans le cadre de la régression linéaire avec des variables à une dimension.
-À chaque date $t$, la variable $y_t$ (e.g., taux de croissance du PIB) est expliquée par une combinaison linéaire de $p$ variables explicatives, $x_{1,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.)  :
+À chaque date $t$, la variable $y_t$ (e.g., taux de croissance du PIB) est expliquée par une combinaison linéaire d'une constante et de $p$ variables explicatives, $x_{1,t},\dots,x_{p,t}$ (soldes d'opinion, indices de production industrielle, indicatrices, etc.) :
 <!-- si tu commences à x_0, ça fait p+1 variables. -->
+<!-- Rep AQLT : c'était en fait pour différencier la constante des autres variables, j'ai reformulé. Mais si tu penses que ce n'est pas clair je dis p+1 variables en commençant à x_{0,t} et en indiquant que x_{0,t} = 1 -->
 $$
 y_t=\alpha_{0}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t 
 $$
-où $\varepsilon_t$ représente l'erreur d'approximation.
+où $\varepsilon_t$ représente le terme d'erreur.
 <!-- erreur d’approximation? je ne connais pas ce terme. ce n’est pas juste le terme d’erreur? -->
+<!-- Rep AQLT : effectivement juste terme d'erreur c'est mieux -->
 En notant ${\bf X}_t=\begin{pmatrix}1 & x_{1,t} &\cdots & x_{p,t} \end{pmatrix}$ et 
 ${\bf \alpha}=\transp{\begin{pmatrix}\alpha_0 & \alpha_1 &\cdots & \alpha_p \end{pmatrix}}$, cela s'écrit matriciellement\ :
 $$
 y_t={\bf X_t} \bf\alpha +\varepsilon_t.
-$$
+$$ {#eq-mod-fixe}
 
 Dans le cadre de la régression linéaire, les coefficients $\bf\alpha$ sont supposés constants dans le temps et estimés en utilisant l'ensemble des données.
 Cela suppose donc que la relation économique entre les différentes variables est stable dans le temps.
@@ -213,10 +220,12 @@ $$
 y_t={\bf X_t} \bf\alpha_t  +\varepsilon_t.
 $$
 Pour faciliter l'utilisation des modèles ici présentés, le package {{< fa brands r-project >}} `tvCoef` [@tvcoef] a été développé.
-Leur implémentation est illustrée à travers l'exemple de la prévision du taux de croissance trimestriel du PIB à partir du climat des affaires France publié par l'Insee^[
+Leur implémentation est illustrée à travers l'exemple de la prévision du taux de croissance trimestriel du PIB, noté $y_t$, à partir du climat des affaires France publié par l'Insee^[
 Cette série est disponible à l'URL <https://www.insee.fr/fr/statistiques/serie/001565530>.
 ].
-Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de donnée `tvCoef::gdp` :
+Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de donnée `tvCoef::gdp`^[
+Les données sont disponibles dans le package `tvCoef` ont été téléchargées le 15 mars 2024 et peuvent donc différer de celles actuellement disponibles.
+] :
 
 - `growth_gdp` correspond au taux de croissance trimestriel du PIB ;
 
@@ -224,11 +233,14 @@ Ces séries sont disponibles sous {{< fa brands r-project >}} dans la base de do
 
 - `diff_bc_fr_m1` correspond à la différenciation trimestrielle de la variable précédente (la valeur de 2000T1 correspond à la différence du climat des affaires entre janvier 2000 et octobre 1999).
 
+Les graphiques de ces variables sont disponibles dans l'annexe [-@sec-an-graph].
+
 Le modèle s'écrit donc :
 $$
-\% PIB_t=\alpha_0 + \alpha_1\times climat\_fr_t^{m_1} + \alpha_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
+y_t=\alpha_0 + \alpha_1\times climat\_fr_t^{m_1} + \alpha_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
 $$
 <!-- la notation %PIB est un peu suprenante. tu tiens à la conserver? tu peux utiliser y_t plus simplement ? si c’est delta(log(PIB)), alors \Delta(y), et y = log(PIB). -->
+<!-- Rep AQLT : c'est bien l'évolution et pas le delta log, je mets donc plutôt y_t partout mais je trouve ça moins direct que l'on prend le taux de croissance du PIB -->
 Il est estimé en utilisant les données entre les années 1980 et 2019.
 Sous {{< fa brands r-project >}}, ce modèle peut être estimé en utilisant la fonction `stats::lm()`.
 Toutefois, nous recommandons d'utiliser le package `dynlm` [@dynlm] qui offre une plus grande flexibilité dans la définition des modèles et permet de conserver le format série temporelle dans les fonctions de `tvCoef`.
@@ -249,14 +261,15 @@ reg_lin <- dynlm(
 #   # Date de début changée car on perd une donnée avec la différenciation
 #   data = window(gdp, start = c(1979, 4), end = c(2019, 4))
 # )
-coefficients(reg_lin)
+summary(reg_lin)
 ```
 <!-- tu peux donner les écarts types? (plus généralement, la table usuelle de régression? On sera contents d’avoir les différents R2 à comparer. et puis de se rendre compte si les écarts types peuvent aider à se rendre compte qu’il y a peut-être un souci -- ou pas justement !) -->
+<!-- Rep AQLT : J'ai changé le coefficients() en summary, l'output est donc plus gros. concernant le R2 je ne préfère pas insister dessus car ce n'est généralement pas recommandé pour comparer les modèles de prévision -->
 Le modèle estimé est donc :
 ```{r}
 #| echo: false
 #| output: asis
-cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+{\\hat\\varepsilon}_t.$$",
+cat(sprintf("$$y_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \\Delta climat\\_fr_t^{m_1}+{\\hat\\varepsilon}_t.$$",
             coef(reg_lin)[1],
             coef(reg_lin)[2],
             coef(reg_lin)[3]))
@@ -269,14 +282,16 @@ cat(sprintf("$$\\%% PIB_t=%.2f + %.2f\\times climat\\_fr_t^{m_1} + %.2f\\times \
 L'idée la plus simple pour tester s'il y a une rupture dans l'estimation des coefficients à une date $t_1$, est d'estimer deux sous-modèles avant et après cette date :
 $$
 \begin{cases}
-\forall t \leq t_1 :\quad \% PIB_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad \% PIB_t = \alpha_0'' + \alpha_1'' climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
+\forall t \leq t_1 :\quad y_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad y_t = \alpha_0'' + \alpha_1'' climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
 Il ne reste ensuite qu'à tester si les coefficients estimés entre les deux sous-périodes sont égaux\ : $\alpha_0' = \alpha_0''$, $\alpha_1' = \alpha_1''$ et $\alpha_2' = \alpha_2''.$
-L'hypothèse alternative eSt qu'au moins un des coefficients est différent entre les deux sous-périodes.
+L'hypothèse alternative est qu'au moins un des coefficients est différent entre les deux sous-périodes.
 C'est le principe du test de @chowtest.
 <!-- j’ai besoin d’un rappel: le test de chow teste vraiment l’égalité des coefs entre 2 régressions différentes? ou alors on fait une seule régression avec l’ensemble des points, et 2 coefficients différents selon la sous-période? c’est pas loin d’être la même chose, mais pas tout à fait (les erreurs). et comparer les coefs de 2 régressions différentes fait peut-être intervenir des hypothèses supplémentaires? -->
+<!-- Rep AQLT : dans le test de chow tu fais trois régressions : les deux sous-périodes + estimation sur l'ensemble et ensuite un test de Fisher est fait. -->
+<!--   Je pense que derrière il y a l'hypothèse que les variances sont égales (puisque c'est une hypothèse pour l'estimation du modèle sur l'ensemble de la période) mais cela n'est pas contraint dans l'estimation des deux sous-modèles. -->
 
 L'inconvénient est que cela suppose d'avoir un *a priori* sur la date de la rupture à tester.
 Pour palier à ce problème, @bai2003computation ont proposé un algorithme efficace afin de chercher la présence de ruptures multiples dans des modèles de régression linéaire.
@@ -285,18 +300,20 @@ La fonction `strucchange::breakpoints()` permet de chercher les ruptures et la f
 Le package `tvCoef` implémente une méthode `breakpoints.lm()` afin de pouvoir directement appliquer cette fonction aux régressions linéaires estimées :
 
 <!-- pas très clair pour moi si breakpoints, breakdates et confint que tu utilises dans les chunk sont des fonctions de strucchange ou de tvCoef. peut-etre que tu veux expliciter ça pour le lecteur qui veut ensuite utiliser ces fonctions -->
+<!-- Rep AQLT : dans le texte, lorsque je mentionne les fonctions j'essaye de mettre le package avant, exemple strucchange::breakdates() dans le paragraphe précédent (mais je vois que je ne l'avais pas fait pour confint qui est dans stats). -->
+<!--   Je n'ai pas fait ça dans le code car ça peut l'alourdir (et que dans ce cas le chargement du package est inutile) mais si tu penses que ça serait plus clair je le rajoute également dans le code -->
 ```{r}
 library(strucchange)
 bp <- breakpoints(reg_lin)
 breakdates(bp)
 ```
 Une seule rupture est détectée au `{r} format(zoo::as.yearqtr(strucchange::breakdates(bp)), "%YT%q")`.
-Un intervalle de confiance autour de la date détectée peut être calculée en utilisant la fonction `confint()` :
+Un intervalle de confiance autour de la date détectée peut être calculée en utilisant la fonction `stats::confint()` :
 ```{r}
 breakdates(confint(bp))
 ```
 L'incertitude autour de la date détectée est grande ! 
-Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yearqtr(strucchange::breakdates(confint(bp))[1]), "%YT%q")` et `{r} format(zoo::as.yearqtr(strucchange::breakdates(confint(bp))[3]), "%YT%q")`.
+Il y a 95 % de chance que la rupture soit comprise entre `{r} format(zoo::as.yearqtr(strucchange::breakdates(stats::confint(bp))[1]), "%YT%q")` et `{r} format(zoo::as.yearqtr(strucchange::breakdates(confint(bp))[3]), "%YT%q")`.
 
 Cet algorithme est très simple à utiliser mais possède plusieurs inconvénients :
 
@@ -304,16 +321,17 @@ Cet algorithme est très simple à utiliser mais possède plusieurs inconvénien
 Par exemple, on ne peut pas tester $\alpha_2' = \alpha_2''$ dans le modèle :
 $$
 \begin{cases}
-\forall t \leq t_1 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
+\forall t \leq t_1 :\quad y_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad y_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
 Une solution simple est d'effectuer une première régression sur l'ensemble des données afin d'estimer $\alpha_0$ et $\alpha_1$ et d'ensuite appliquer la procédure de Bai et Perron sur le modèle\ :
 <!-- pas sûr que ce soit une solution si simple. si on suit Frisch-Waugh, il faudrait plutôt, pour ne pas avoir de alpha_0 et alpha_1 biaisés par le biais de variable omise (lié à la variable Delta Climat), régresser variables de gauche, la constante et climat sur Delta(climat) et ensuite régresser les résidus de y sur résidu de constante et résidu de climat. là ça donne alpha_0 et alpha_1. puis tu fais ce que tu proposes. non?  -->
+<!-- Rep AQLT : à rediscuter mais est-ce que le biais de variable omise affecte tous les coefficients ? Même si le coefficient est biaisé je ne pense pas que cela biaise l'estimation de la date de rupture. Une fois la date de rupture détectée, ce que je fais c'est estimer une nouvelle régression avec toutes les variables + celles coupées par morceaux. -->
 $$
 \begin{cases}
-\forall t \leq t_1 :\quad (\% PIB - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
-\forall t > t_1 :\quad (\% PIB - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
+\forall t \leq t_1 :\quad (y - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad (y - \hat\alpha_0-\hat \alpha_1 climat\_fr)_t = \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
 \end{cases}.
 $$
 
@@ -336,11 +354,19 @@ y_t&=\alpha_{0}x_{0,t}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_
 \end{align*}
 On suppose également que toutes les variables sont faiblement dépendantes (cas général de la régression linéaire).
 <!-- faiblement dépendantes? tu veux dire faiblement stationnaires? sinon je ne comprends pas ce que ça veut dire -->
+<!-- Rep AQLT : Lorsque les variables sont faiblement dépendantes on suppose juste que la corrélation tend vers 0, c'est complémentaire à la stationnarité faible (https://economics.stackexchange.com/questions/42848/stationarity-vs-weak-dependence). 
+Par exemple, un AR(1) est faiblement dépendant si le coefficient est strictement inférieur à 1.
+Si les variables sont faiblement dépendantes (et pas forcément iid) on peut appliquer le TCL.
+C'est moins courant de voir cette notion mais c'est l'hypothèse indiquée dans le papier. -->
+
 Les variables ne doivent donc pas contenir de tendance déterministe ou stochastique (comme des racines unitaires).
 
 Le test consiste à vérifier si l'ensemble des paramètres $(\bf \alpha,\sigma^2)$ sont constants.
 L'hypothèse alternative est qu'au moins un paramètre suit une martingale.
 <!-- c’est vraiment ça l’hypothèse alternative? que l’espérance d’un coef_s | l’info à t soit égale à ce coef_t ? -->
+<!-- Rep AQLT : c'est en tout cas ce qui est mentionné dans leur article :-->
+<!-- The test is approximately the Lagrange multiplier test (or locally most powerful test) of the null of constant parameters against the alternative that the parameters follow a martingale.  -->
+<!-- This alternative incorporates simple structural breaks of unknown timing as well as random walk parameters. -->
 
 Notons ${\hat \varepsilon}_t =y_t- {\bf X_t} \hat{\bf\alpha}$ et
 $$
@@ -374,15 +400,18 @@ L_c = \frac{1}{n}
 \text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}.
 $$
 Il s'adapte facilement à un test joint de constance d'un sous-ensemble de paramètres en utilisant des sous-vecteurs de $\bf f_t$ et $\bf S_t.$
-Toutefois, si le modèle contient des indicatrices alors le test joint ne pourra pas être calculé (la matrice $\bf V$ n'est alors pas inversible).
+Toutefois, si le modèle contient des indicatrices alors le test joint ne pourra pas être calculé (la matrice $\bf V$ n'est alors pas inversible car une).
 <!-- dessous tu le calcules alors qu’il y a une constante. on ne peut pas avoir 2 indicatrices c’est ça alors? -->
-Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une marche aléatoire contrainte) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
+<!-- Rep AQLT : la matrice peut être inversible dans le cas d'une constante, lorsqu'il y a une indicatrice -->
+Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une *tied-down random walk*, c'est-à-dire une marche aléatoire où la première observation est égale à la dernière observation) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
 <!-- c’est quoi une marche aléatoire contrainte? -->
+<!-- Rep AQLT : en anglais c'est tied-down random walk, j'ai trouvé une définition ici https://www.researchgate.net/figure/A-tied-down-random-walk-or-Bernoulli-bridge-is-a-simple-random-walk-starting-and-ending_fig1_309729937. C'est une marche aléatoire où l'on a contraint le début et la fin à être égaux. Cela ne me parait pas courant comme notion mais comme c'était mentionné dans l'article je trouvais que ça pouvait être intéressant. Je peux soit supprimer la parenthèse si c'est trop complexe soit expliciter davantage (j'ai fait une proposition dans les parenthèses) -->
 Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
 L'hypothèse nulle de stabilité des coefficients est donc rejetée lorsque la statistique de test est grande.
 Sous l'hypothèse nulle, la loi de distribution asymptotique est non standard, les valeurs critiques sont présentées dans la @tbl-hansen-table.
 
 <!-- ça tombe de manière anormalement fréquente sur des 0 en 3e décimale (mais c’est peut-etre normal …) -->
+<!-- Rep AQLT : en fait dans la table donné dans l'article c'est 3 chiffres après la virgule pour les valeurs <1 et 2 pour les autres, j'ai donc changé les valeurs en sortie pour éviter la confusion -->
 ::: {#tbl-hansen-table}
 ```{r}
 #| echo: false
@@ -390,7 +419,16 @@ table <- tvCoef::hansen_table
 colnames(table) <- gsub("%"," %", colnames(table))
 colnames(table) <- gsub(".",",", colnames(table), fixed = TRUE)
 colnames(table)[1] <- "Degrés de liberté"
-knitr::kable(table, format.args = list(decimal.mark = ","))
+table[,-1] <- apply(table[,-1], 2, function(col){
+sapply(col, function(x) {
+if (x < 1) {
+formatC(x, digits = 3, decimal.mark = ",", format = "f")
+} else {
+formatC(x, digits = 2, decimal.mark = ",", format = "f")
+}
+})
+})
+knitr::kable(table)
 ```
 
 Source : @hansen1990lagrange.
@@ -421,9 +459,9 @@ Dans ce cas, une loi asymptotique différente doit être utilisée^[
 Voir par exemple @hansen1992I1.
 Une implémentation sous {{< fa brands r-project >}} de ce cas est disponible sous <https://users.ssc.wisc.edu/~bhansen/progs/jbes_92.html>.
 ].
-Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le test peut en revanche s'appliquer sur la seconde estimation (estimation des paramètres de court-terme).
+Si le modèle est estimé en deux étapes par la méthode de @engle1987co, le test peut en revanche s'appliquer sur la seconde estimation (estimation des paramètres de court-terme et de la force de rappel).
 <!-- et force de rappel? -->
-
+<!-- Rep AQLT : oui car c'est dans la seconde estimation, je précise dans les parenthèses -->
 
 # Description des méthodes {#sec-desc-meth} 
 
@@ -431,6 +469,7 @@ Si un des tests précédents conclut à la non constance des coefficients du mod
 Dans cette étude, nous supposons que le problème de spécification provient des observations récentes et qu'il n'est pas nécessaire de faire un ajout de nouvelles variables explicatives pour le régler.
 Dans certains cas, par exemple pour prendre en compte la crise du COVID-19, il peut être utile nécessaires d'ajouter des variables supplémentaires (e.g., des indicatrices).
 <!-- utile ou nécessaire? -->
+<!-- Rep AQLT : je dirais plutôt utile car d'autres méthodes peuvent être utilisées (utilisation d'une variable externe par exemple) et il peut y avoir certaines séries non affectées par le COVID (du fait de la méthode de mesure par exemple) -->
 
 Trois méthodes sont étudiées dans cette étude :
 
@@ -451,7 +490,7 @@ Deux méthodes d'estimations sont possibles :
 
 1. Une régression en une étape est faite en dédoublant les régresseurs en fonction de la date de rupture (fonction `tvCoef::piece_reg()`) :
 \begin{align*}
-\% PIB_t &= \alpha_0\1_{t\leq 2000T3} + \alpha_1 climat\_fr_t\1_{t\leq 2000T3} + \alpha_2 \Delta climat\_fr_t\1_{t\leq 2000T3} + \\
+y_t &= \alpha_0\1_{t\leq 2000T3} + \alpha_1 climat\_fr_t\1_{t\leq 2000T3} + \alpha_2 \Delta climat\_fr_t\1_{t\leq 2000T3} + \\
 &\phantom{=} \alpha_0'\1_{t > 2000T3} + \alpha_1' climat\_fr_t\1_{t > 2000T3} + \alpha_2' \Delta climat\_fr_t\1_{t > 2000T3} + \varepsilon_t
 \end{align*}
 <!-- ```{r} -->
@@ -461,7 +500,7 @@ Deux méthodes d'estimations sont possibles :
 <!-- cat( -->
 <!--   sprintf(" -->
 <!-- \\begin{align*} -->
-<!-- \\%% PIB_t &= \\alpha_0\\1_{t\\leq %s} + \\alpha_1 climat\\_fr_t\\1_{t\\leq %s} + \\alpha_2 \\Delta climat\\_fr_t\\1_{t\\leq %s} + \\\\ -->
+<!-- y_t &= \\alpha_0\\1_{t\\leq %s} + \\alpha_1 climat\\_fr_t\\1_{t\\leq %s} + \\alpha_2 \\Delta climat\\_fr_t\\1_{t\\leq %s} + \\\\ -->
 <!-- &\\phantom{=} \\alpha_0'\\1_{t > %s} + \\alpha_1' climat\\_fr_t\\1_{t > %s} + \\alpha_2' \\Delta climat\\_fr_t\\1_{t > %s} + \\varepsilon_t -->
 <!-- \\end{align*} -->
 <!--           ",date_rupture,date_rupture,date_rupture,date_rupture,date_rupture,date_rupture -->
@@ -472,8 +511,8 @@ Deux méthodes d'estimations sont possibles :
 2. En effectuant deux régressions linéaires distinctes (fonction `tvCoef::bp_lm()`) :
 $$
 \begin{cases}
-\forall t \leq 2000T3 :\quad \% PIB_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2 \Delta climat\_fr_t + \varepsilon_t \\
-\forall t > 2000T3 :\quad \% PIB_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t'
+\forall t \leq 2000T3 :\quad y_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2 \Delta climat\_fr_t + \varepsilon_t \\
+\forall t > 2000T3 :\quad y_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t'
 \end{cases}.
 $$
 <!-- ```{r} -->
@@ -482,8 +521,8 @@ $$
 <!-- cat( -->
 <!--   sprintf("$$ -->
 <!-- \\begin{cases} -->
-<!-- \\forall t \\leq %s :\\quad \\%% PIB_t = \\alpha_0 + \\alpha_1 climat\\_fr_t + \\alpha_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\ -->
-<!-- \\forall t > %s :\\quad \\%% PIB_t = \\alpha_0' + \\alpha_1' climat\\_fr_t + \\alpha_2' \\Delta climat\\_fr_t + \\varepsilon_t' -->
+<!-- \\forall t \\leq %s :\\quad y_t = \\alpha_0 + \\alpha_1 climat\\_fr_t + \\alpha_2 \\Delta climat\\_fr_t + \\varepsilon_t \\\\ -->
+<!-- \\forall t > %s :\\quad y_t = \\alpha_0' + \\alpha_1' climat\\_fr_t + \\alpha_2' \\Delta climat\\_fr_t + \\varepsilon_t' -->
 <!-- \\end{cases}. -->
 <!-- $$          ",date_rupture,date_rupture -->
 <!--   ) -->
@@ -492,7 +531,10 @@ $$
 
 Dans les deux cas les coefficients estimés sont les mêmes mais les écarts-types seront en général différents.
 En effet, dans la première modélisation on suppose que la variance du résidu est constante sur l’ensemble de la période alors que dans la seconde la variance est supposée constante sur les deux sous-périodes.
+Par défaut les fonctions `tvCoef::piece_reg()` et `tvCoef::bp_lm()` calcule les dates de ruptures en appliquant la fonction `strucchange::breakdates()` sur le modèle de régression linéaire en paramètre.
+Elle peut toutefois être manuellement spécifiée en utilisant le paramètre `break_date`.
 <!-- précise comment piece_reg() connaît la date de rupture: je n’ai pas vu quelle partie du code l’identifie: est-ce qu’elle doit être dans reg_lin, ou alors piece_reg la calcule lui-même? idem pour bp_lm() -->
+<!-- Rep AQLT : j'ai ajouté deux phrases pour le préciser : c'est calculé automatiquement par défaut -->
 ```{r}
 reg_morc <- piece_reg(reg_lin)
 bp_lm <- bp_lm(reg_lin)
@@ -506,8 +548,9 @@ Dans notre exemple, le test d'Hansen concluait à la constance du coefficient du
 Cette égalité peut être testée en utilisant un test de Fisher, par exemple avec la fonction `car::linearHypothesis()` [@car].
 Ici on rejette l'hypothèse nulle d'égalité de tous les coefficients avant et après la rupture : la prise en compte de la rupture est donc justifiée.
 On ne rejette pas l'hypothèse nulle d'égalité du coefficient du climat des affaires en niveau seulement, le modèle pourrait donc être simplifié.
-Même lorsque le modèle peut être simplifié, nous conseillons de toujours considérer que la constante varie dans le temps, même lorsque la différence des coefficients associés à la constante n'est pas statistiquement significative\ : cela permet de s'assurer que le modèle ne sera pas biaisé par des résidus qui ne seraient pas de moyenne nulle.
+<!-- Même lorsque le modèle peut être simplifié, nous conseillons de toujours considérer que la constante varie dans le temps, même lorsque la différence des coefficients associés à la constante n'est pas statistiquement significative\ : cela permet de s'assurer que le modèle ne sera pas biaisé par des résidus qui ne seraient pas de moyenne nulle. -->
 <!-- je ne suis pas sûr de comprendre pourquoi: avec une constante dans la régression, les résidus sont nuls en moyenne par construction, non? -->
+<!-- Rep AQLT : Effectivement, du coup je ne vois pas de raison de scinder la constante et on peut enlever cette phrase ? -->
 
 ```{r}
 # On rejette l'hypothèse nulle de constance de tous les coefficients
@@ -576,13 +619,15 @@ res_oos <- window(res_oos, start = 2003)
 apply(res_oos, 2, rmse)
 ```
 <!-- totalement optionnel: ajouter une barre verticale dans le graphique par morceaux pour la date à laquelle la 2e période commence. -->
+<!-- Rep AQLT : C'est fait -->
+
 La @fig-prev-piecereg montre les erreurs de prévision hors échantillon des deux modèles étudiés.
 Autour de la date de rupture, la régression linéaire par morceaux produit des prévisions peu réalistes (ce qui conduit à des erreurs élevées) : cela s'explique par le fait que très peu d'observations sont utilisées pour estimer les coefficients associés aux régresseurs après la rupture, les estimateurs sont donc peu précis (grande variance).
-Pour les analyses hors échantillon, il faut donc faire attention aux valeurs prédites autour de la rupture !
+Par ailleurs, lors d'un vrai exercice en temps réel, la date de rupture sera généralement connue et prise en compte que plusieurs trimestres après celle-ci : l'erreur est alors réduite.
+Pour les analyses automatiques hors échantillon, il faut donc faire attention aux valeurs prédites autour de la rupture !
 <!-- ça rejoint aussi un autre aspect de la question, c’est qu’il faut un certain temps avant d’être sûr qu’il y a eu une rupture, parce que s’il y a des erreurs importantes quelques trimestres, ça peut être des erreurs temporaires, ou alors un changement structurel, mais dur à dire en temps réel! -->
+<!-- Rep AQLT : Oui effectivement, j'ai rajouté une phrase pour donner cet argument supplémentaire -->
 
-<!-- ajouter un graphique avec les écarts de prévision? c’est plus directement ce que tu veux montrer --> 
-<!-- Rép AQLT : c'est moins flagrant en mettant à jour les données -->
 
 ```{r}
 #| echo: false
@@ -600,6 +645,13 @@ p1 <- ggplot(data = data, aes(x = time, y = `Rég. lin.`)) +
            fill = colors_graph[1]) +
   labs(x = NULL, y = NULL, title = colnames(data)[2])
 p2 <- ggplot(data = data, aes(x = time, y = `Rég. par morceaux`)) +
+  geom_vline(xintercept = strucchange::breakdates(bp),linetype = "dotted") + 
+  annotate("text", 
+           label = format(zoo::as.yearqtr(strucchange::breakdates(bp)), "%YT%q"),
+           x = strucchange::breakdates(bp), y = -1,
+           hjust = 1, vjust = 1, 
+           size = 2.5, 
+           color = "black") +
   geom_bar(stat = "identity",
            fill = colors_graph[2]) +
   labs(x = NULL, y = NULL, title = colnames(data)[3])
@@ -639,8 +691,6 @@ ggplot(data = na.omit(data.frame(x = as.numeric(time(bp_ts)),
 
 
 
-
-
 ## De la régression mobile à la régression locale {#sec-reg-locale}
 
 La régression mobile est une des méthodes empiriques les plus simples pour savoir si les coefficients évoluent dans le temps.
@@ -660,6 +710,7 @@ La @fig-coef-rollreg montre les coefficients estimés par cette régression mobi
 Seuls ceux estimés sur le climat des affaires en différence montrent une rupture nette.
 Elle s'observe à partir de 2009, lorsque plus de la moitié des points de la fenêtre (7,5 ans) sont estimés après la date de rupture détectée (2000T3).
 <!-- et ce qui doit jouer aussi, c’est les points 2009 qui doivent être très extrêmes et tirer les coefficients... -->
+<!-- Rep AQLT : Tu veux dire par là que ce serait juste une rupture en 2009 et pas une rupture avant -->
 
 ::: {#fig-coef-rollreg}
 ```{r}
@@ -703,8 +754,9 @@ Dans ce papier nous détaillons la modélisation utilisée dans la fonction `tvR
 D'autres packages sont disponibles pour effectuer une régression locale, dont par exemple `locfit` de @locfit.
 Toutefois, nous avons ici privilégié le package `tvReg` du fait de sa simplicité d'utilisation et parce qu'il implémente également une fonction `tvReg::tvAR()` qui permet de prendre en compte de manière optimale les retards de la variable endogène (cas non étudié dans cette étude).
 ].
-On suppose ici que les coefficients $\bf\alpha_t$ dépendent d'une variable aléatoire $z_t$ : $\bf\alpha_t=\alpha(z_t).$
+On suppose ici que les coefficients $\bf\alpha_t$ de l'@eq-mod-fixe dépendent d'une variable aléatoire $z_t$ : $\bf\alpha_t=\alpha(z_t).$
 <!-- peut-etre faire référence à la formule avec alpha_t qui est au début de la partie 2. c’est le seul endroit (sauf erreur) où tu as cette notation avec alpha_t, et le lecteur peut l’avoir oublié ou ne pas avoir lu cette partie, il faut qu’il soit au clair sur ce dont tu veux parler. -->
+<!-- Rep AQLT : une référence est ajoutée -->
 Par défaut $z_t=t/T$ avec $T$ le nombre d'observations : les coefficients dépendent donc d'une mesure normalisée du temps.
 On suppose que la fonction $\alpha$ est localement constante ($\alpha(z_t)\simeq \alpha(z)$, option par défaut) ou localement linéaire  ($\alpha(z_t)\simeq \alpha(z)+\alpha'(z)(z_t-z)$), c'est-à-dire que pour toute date $t$ on a pour toute date $i$ proche de $t$ : $\alpha(z_i)\simeq\alpha(z_t)$ ou $\alpha(z_i)\simeq\alpha(z_t)+\alpha'(z_t)(z_i-z_t).$ 
 Cette approximation locale est justifiée par le théorème de Taylor.
@@ -793,6 +845,9 @@ coef2plot(
 )
 ```
 <!-- ref à Loader utilise son prénom (modifier le .bib?) -->
+<!-- Rep AQLT : En fait c'est quelque chose d'automatique pour différencier la référence à clive loader (livre sur la régression locale) et catherine loader (package R, notamment mentionné dans le premier livre). -->
+<!-- Je n'avais jamais remarqué la différence car généralement on ne voit que l'initiale du prénom. -->
+<!-- Je me demande si ce n'est pas une erreur dans le package parce que l'auteur initial du package est Clive Loader et lorsque le mainteneur a changé le prénom a été changé en Catherine Loader : j'ai envoyer un mail au mainteneur pour poser la question. -->
 Un des inconvénients de la méthode de sélection automatique de la fenêtre est que le critère utilisé (statistique de validation croisée) est peu discriminant [voir notamment @Loader1999] : ce critère peut prendre des valeurs très proches pour différentes valeurs de la fenêtre alors que celle-ci a un impact fort sur l'interprétation du modèle !
 Cela a également pour effet que la méthode est peu stable dans le temps (@fig-oos-bw), ce qui augmente les sources de révisions des simulations hors échantillon, calculables en utilisant la fonction `oos_prev()` :
 
@@ -825,10 +880,9 @@ Même si des méthodes optimales existent pour minimiser les erreurs d'estimatio
 Un autre inconvénient de ces méthodes est que tous les coefficients varient dans la temps alors que dans certains cas on peut supposer la relation constante.
 Pour fixer certains coefficients, on peut procéder comme dans la @sec-test-baiperron en faisant une régression linéaire pour estimer les coefficients fixes, suivie d'une régression mobile.
 <!-- vérifier si la formulation est ok avec les changements qui ont été apportés suite à mon commentaire -->
+<!-- Rep AQLT : TODO -->
 
 ## Régression avec coefficients stochastiques (modélisation espace-état) {#sec-ssm}
-<!-- je vois cette modélisation effectivement comme très générale. je pense par ex qu’on peut écrire les 2 sections précédentes sous forme espace état (avec des processus particuliers pour l’évolution des coefficients et les variances). ce n’est pas tellement la modélisation espace-état en tant que telle que tu veux singulariser ici, mais les hypothèses que tu utilises avec cette méthode, non ? (sur epsilon, eta, X etc.) -->
-<!-- Rep AQLT : changement de nom -->
 
 La modélisation espace-état est une méthodologie générale permettant de traiter un grand nombre de problèmes de séries temporelles.
 Dans cette approche, on suppose que tout modèle est déterminé par une série de vecteurs non observés $\bf \alpha_1,\dots,\bf\alpha_T$ associés aux observations $y_1,\dots,y_T$, la relation entre $\alpha_t$ et $y_t$ étant spécifiée par le modèle espace-état.
@@ -850,9 +904,11 @@ Chaque coefficient suivant une marche aléatoire, nous appelons cette méthode *
 On retrouve le cas de la régression linéaire lorsque $\bf\Sigma=\bf 0$ puisque dans ce cas tous les $\alpha_t$ sont égaux.
 
 Ces modèles sont implémentés dans la fonction `tvCoef::ssm_lm()` qui prend en entrée un modèle de régression linéaire.
-Elle s'appuie sur le package `rjd3sts` [@rjd3sts] qui permet d'implémenter très facilement les modèles espaces-état sans devoir écrire explicitement le modèle.
+Elle s'appuie sur le package `rjd3sts` [@rjd3sts] qui permet d'implémenter très facilement les modèles espace-état sans devoir écrire explicitement le modèle.
 Par défaut les variances du vecteur d'états ($\bf \Sigma$) ne sont pas estimées et sont fixées à 0 : on retrouve donc les coefficients estimés par régression linéaire.
 <!-- quel pluriel à espace-état? on ne le garderait pas au singulier? -->
+<!-- Rep AQLT : J'ai l'impresison que ça se garde au singulier en effet même si on peut écrire espace-états (car un espace pour plusieurs états). -->
+
 ```{r}
 ssm <- ssm_lm(reg_lin)
 summary(ssm)
@@ -948,6 +1004,8 @@ Le test de Diebold-Mariano (voir notamment @DMtest), implémenté dans la foncti
 Dans et hors échantillon, la régression avec coefficients stochastiques a des erreurs de prévision significativement plus petites que la régression linéaire (p-valeurs de 0,00 et 0,05).
 Dans l'échantillon elles sont également significativement plus petites que celles de la régression par morceaux (p-valeur de 0,00) mais la différence n'est pas significative hors échantillon (p-valeur de 0,08). Sur les périodes récentes, du fait du coefficient sur le climat des affaires en différence, l'interprétation économique et les prévisions sont différentes.
 <!-- tu ne décris pas les prévisions finalement, ni en quoi elles diffèrent, laquelle on aurait envie de croire (celle qui a les erreurs les plus faibles depuis 2012 par ex) -->
+<!-- Rep AQLT : En fait ici je suis dans un exercice proche de la sélection de modèles : je cherche donc juste à savoir quel est le meilleur modèle (en termes d'erreurs de prévision) et je ne fais pas d'analyse économique des coefficients estimés. -->
+<!-- C'est pour ça que dans la conclusion je suis un peu plus nuancé en disant que le choix du modèle doit être raisonné. -->
 
 ```{r}
 oos_ssm <- ssm_lm_oos(reg_lin, fixed_var_intercept = FALSE, 
@@ -1035,8 +1093,8 @@ c(breakdates(bp), breakdates(bp_covid))
 ```{r}
 bw_covid <- bw(window(
   data_covid[, c("bc_fr_m1", "diff_bc_fr_m1", "ind2020T1", "ind2020T2", 
-                "ind2020T3", "ind2020T4")], start = 1980, end = c(2022, 4)), 
-  window(data_covid[, "growth_gdp"], start = 1980, end = c(2022, 4))
+                "ind2020T3", "ind2020T4")], start = 1980, end = c(2023, 4)), 
+  window(data_covid[, "growth_gdp"], start = 1980, end = c(2023, 4))
   )
 c(reg_loc$bw, bw_covid)
 ```
@@ -1056,9 +1114,10 @@ sqrt(ssm_covid$parameters$parameters * ssm_covid$parameters$scaling)
 
 Les modèles sont donc estimés avec le code suivant :
 ```{r}
-reg_morc_covid <- piece_reg(reg_lin_covid, break_dates = 2000.5,
-                            # Les indicatrices ne sont pas découpées
-                            fixed_var = 4:7)
+reg_morc_covid <- piece_reg(
+  reg_lin_covid, break_dates = 2000.5,
+  # Les indicatrices ne sont pas découpées
+  fixed_var = 4:7)
 reg_loc_covid <- tvReg::tvLM(
   formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1 +
     ind2020T1 + ind2020T2 + ind2020T3 + ind2020T4,
@@ -1087,15 +1146,17 @@ coef_reg_loc_covid <- ts(coef(reg_loc_covid), start = 1980, frequency = 4)
 coef_ssm_covid <- coef(ssm_covid)
 ```
 
-La @fig-coef-covid montre les coefficients estimés en prenant en compte les données jusqu'au 2022T4.
+La @fig-coef-covid montre les coefficients estimés en prenant en compte les données jusqu'au 2023T4.
 L'analyse est similaire à celle de la @fig-coef-ssm sauf pour la régression avec coefficients stochastiques sur les dernières années : les variations du climat des affaires ayant un impact sur la prévision du PIB plus marqué après 2020, le coefficient associé est plus élevé après cette date mais aussi lors des années précédentes afin de lisser le passage à ce nouvel état de l'économie.
 <!-- tu écris 2022T4 jusque-là, et ça passe à 2023T4 après. -->
+<!-- Rep AQLT : j'ai mal mis à jour les dates lorsque j'ai actualisé les données, c'est bien 2023T4 -->
 <!-- est-ce que ces résultats, en particulier la remontée très forte du coef sur diff(climat), est robuste à l’inclusion d’indicatrices sur les trimestres de 2021 aussi? 2021 est encore très chahutée. à voir si la référence que tu gardes c’est juste des indicatrices en 2020, ou alors aussi en 2021.-->
+<!-- Rep AQLT : si on ajoute des indicatrices ça influence les résultats mais je ne suis pas sûr que cela signifie qu'il faille le faire. Pour le PIB, c'est surtout 2020 qui est impacté (sur la régression linéaire les indicatrices ne sont pas significatives en 2021 sauf au T3) et c'est aussi ce que fait la conj. -->
 
 ```{r}
 #| echo: false
 #| label: fig-coef-covid
-#| fig-cap: "Coefficients estimés (hors indicatrices) par régression linéaire, régression par morceaux, régression locale (avec $b=0,75$) et régression avec coefficients stochastiques (modélisation espace-état) en utilisant les données jusqu'en 2022T4."
+#| fig-cap: "Coefficients estimés (hors indicatrices) par régression linéaire, régression par morceaux, régression locale (avec $b=0,75$) et régression avec coefficients stochastiques (modélisation espace-état) en utilisant les données jusqu'en 2023T4."
 
 # res_is <- ts.union(ts(residuals(reg_lin_covid), start = c(1980, 1), frequency = 4),
 #                    residuals(reg_morc_covid),
@@ -1112,8 +1173,6 @@ coef2plot(
   )
 )
 ```
-<!-- 1) dans le graphique, on dirait que les données s’arrêtent en 2020, pas 2022T4. Rep AQLT : c'était une erreur, je reprenais les anciens coefficients
-2) est-ce que ce serait coûteux d’ajouter les données jusqu’au 2023T4. ça peut être utile pour déceler une rupture, et séparer une chute temporaire d’une baisse permanente -->
 
 Dans les données ici utilisées, le taux de croissance trimestriel du PIB est connu jusqu'au 2023T4 alors que les variables explicatives sont connues jusqu'au 2024T1 :
 ```{r}
@@ -1149,8 +1208,9 @@ Les prévisions entre les différentes méthodes sont proches car sur ce dernier
 # Comparaison générale {#sec-comp-generales}
 
 Dans cette section nous effectuons une comparaison plus détaillée des différentes méthodes utilisées.
-Pour cela, nous utilisons 28 modèles de prévisions des taux de croissance trimestriels de l'industrie manufacturière et de ses principales sous-branches.
+Pour cela, nous utilisons 28 modèles de prévisions des taux de croissance trimestriels de l'industrie manufacturière et de ses principales sous-branches (voir annexe [-@sec-an-graph] pour les graphiques de ces variables).
 Les modèles sont estimés entre 1990 et 2019 en utilisant des données issues des enquêtes de conjoncture de l'Insee et de la Banque de France, ainsi que l'Indice de Production Industrielle des branches étudiées.
+Toutes les séries utilisées sont disponibles sous {{< fa brands r-project >}} dans la base de donnée `tvCoef::manufacturing`.
 Parmi ces 28 modèles, la procédure de Bai et Perron détecte au moins une rupture sur 14 modèles et le test de Hansen, utilisé avec un seuil de 5 %, conclut à la présence de coefficients mobiles dans 5 modèles (@tbl-nb-models).
 Cela permet donc également de comparer les résultats de la régression locale et de la régression avec coefficients stochastiques (modélisation espace-état) lorsque les coefficients ne sont pas considérés comme fixes par les tests étudiés.
 Dans la suite, nous considérerons qu'un modèle n'a pas de rupture lorsque le test de Bai et Perron n'en détecte aucune : dans ce cas, la régression par morceaux donne le même résultat que la régression linéaire.
@@ -1189,24 +1249,30 @@ Les prévisions hors échantillon sont calculées après 2013 afin d'éviter les
 Pour la régression locale et la régression avec coefficients stochastiques (modélisation espace-état), les modèles sont estimés avec les paramètres par défaut. 
 Leur qualité prédictive pourrait même être améliorée avec une optimisation du modèle (par exemple en ne fixant pas les coefficients des indicatrices), au contraire de la régression linéaire ou par morceaux.
 <!-- comme tu l’as formulé, on a envie de te demander de faire cette optimisation (on n’a pas le droit d’être fainéant dans un article, 28 modèles, ça se fait). Donc je propose une reformulation pour t’éviter ça. -->
+<!-- Rep AQLT : en fait au début c'était fait, avec Claire on testait des modèles où l'on regardait quelles variables étaient fixées (selon le test de Hansen) et on les fixait. -->
+<!-- Après réflexion, je me suis dit que faire quelque chose d'automatique n'était pas forcément la bonne démarche car il vaut mieux réfléchir à ce que l'on fait et aux hypothèses qu'il y a derrière.  -->
+<!-- Avec cette façon de faire on regarde quelles sont les performances lorsque l'on applique ces méthodes sans réfléchir et sans "biaiser" les résultats par des choix qui peuvent être arbitraires. -->
+<!-- Si tu penses qu'il peut être utile de rajouter une justification je peux le faire. -->
 
 Pour comparer les prévisions, nous utilisons la racine carrée de l'erreur quadratique moyenne --- *Root-mean-square error* (RMSE).
 Afin de comparer les résultats entre les différentes branches, nous normalisons les RMSE par celles calculées par la régression linéaire, c'est ce qui est montré dans la @tbl-error-table.
 Dans l'ensemble ce sont les régressions avec coefficients stochastiques (modélisation espace-état) qui donnent les meilleurs résultats.
 C’est d’abord le cas pour les modèles où une rupture a été détectée.
 En effet dans l'échantillon, les performances sont proches entre les différentes méthodes (amélioration de la qualité prédictive moyenne d'environ 10 % par rapport à la régression linéaire).
-Et hors échantillon, les résultats sont également améliorés avec la régression avec coefficients stochastiques pour la majorité des modèles (en moyenne de 7\ % et au maximum de 13\ %) mais sont dégradés pour 3 des 14 modèles (d'au plus 7\ %).
+Et hors échantillon, les résultats sont également améliorés avec la régression avec coefficients stochastiques pour la majorité des modèles (en moyenne de 5\ % et au maximum de 13\ %) mais sont dégradés pour 3 des 14 modèles (d'au plus 7\ %).
 <!-- le premier 7% est un 5% non? -->
+<!-- REP AQLT : j'ai du me mélanger entre des fichiers à jour ou non -->
 <!-- je pense que tu as voulu donner trop de chiffres dans ce paragraphe (il y en a encore trop je pense, à la fin on n’en retient pas beaucoup du tout, alors que si tu en donnes juste quelques-uns, on les retiendra un peu mieux), et les arguments n’étaient pas vraiment mis dans un ordre logique, ce qui ne facilite pas la compréhension ni la mémorisation des résultats, j’ai modifié un peu, mais ça peut encore être amélioré. -->
-Alors que pour la régression locale, les résultats sont identiques ou dégradés dans la majorité des cas (9 modèles sur 14); et pour la régression par morceaux, même si pour 7 séries les résultats sont améliorés, cette amélioration semble moins forte qu'avec la régression avec coefficients stochastiques (au plus 9\ %).
+<!-- Rep AQLT : le but n'était pas de retenir les chiffres mais plutôt d'appuyer/expliquer les propos mais je comprends ce que tu veux dire, j'ai supprimé certains chiffres -->
+Alors que pour la régression locale, les résultats sont identiques ou dégradés dans la majorité des cas (9 modèles sur 14) ; et pour la régression par morceaux, même si pour 7 séries les résultats sont améliorés, cette amélioration semble moins forte qu'avec la régression avec coefficients stochastiques (au plus 9\ %).
 
 <!-- vérifie les chiffres queje change -->
 C’est ensuite, étonnamment, aussi le cas lorsqu'aucune rupture n'est détectée, puisque les régression avec coefficients stochastiques permettent également d'améliorer les résultats : dans l'échantillon les erreurs de prévision sont réduites d'en moyenne 9\ % et d'au plus 46\ % (contre 2 % en moyenne et d'au plus 15\ % pour la régression locale).
-En temps réel elles sont améliorées pour huit modèles (d'au plus 15\ %) et ne sont que légèrement dégradées pour trois autres modèles (au plus 2\ %).
+En temps réel elles sont améliorées pour huit modèles (d'au plus 15\ %) et ne sont que légèrement dégradées pour trois autres modèles.
 Pour la régression locale, la performance hors échantillon est toujours dégradée.
 Une partie de l'instabilité en temps réel provient du fait qu'aucune optimisation n'est faite dans la spécification des modèles.
 Toutefois ces résultats suggèrent que les tests ici présentés pour tester la constance des coefficients ne sont pas toujours pertinents.
-Ainsi, @abs2006 proposent une procédure de tests basée sur la modélisation espace état (en testant la significativité de la variance des coefficients estimés).
+Ainsi, @abs2006 proposent une procédure de tests basée sur la modélisation espace-état (en testant la significativité de la variance des coefficients estimés).
 
 ::: {#tbl-error-table}
 ```{r}
@@ -1326,6 +1392,129 @@ Si vous utilisez un ordinateur professionnel, si c'est nécessaire, pensez à co
 Pour cela vous pouvez utiliser `curl::ie_get_proxy_for_url()` pour récupérer l'adresse du proxy et ajouter deux variable `http_proxy` et `https_proxy` dans les variables d'environnement (comme précédemment).
 
 <!-- {{< pagebreak >}} -->
+
+\newpage
+
+# Annexe graphiques {#sec-an-graph .appendix}
+
+```{r}
+#| echo: false
+graph_zoom <- function(x, start = 1980,
+                       start_xlim= 1.75,
+                       end_xlim = 1.7) {
+  y <- window(x, start = start)
+suppressMessages(autoplot(y) + theme_bw() +
+  scale_x_continuous(breaks = seq.int(start, 2020, 5)) +
+  facet_zoom(xlim = c(start + start_xlim, 2019.75 - end_xlim), shrink = F,
+             ylim = range(window(y, end = 2019.75)),
+             show.area = F,
+             horizontal = F) +
+  labs(y = NULL, x = NULL))
+}
+```
+
+
+:::{#fig-graph-pib}
+```{r}
+#| echo: false
+#| label: graph-pib
+graph_zoom(gdp[,"growth_gdp"])
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+
+Taux de croissance trimestriel du PIB français (variable `tvCoef::gdp[, "growth_gdp"]`).
+:::
+
+:::{#fig-graph-climatfrm1}
+```{r}
+#| echo: false
+#| label: graph-climatfr-m1
+graph_zoom(gdp[,"bc_fr_m1"])
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+
+Climat des affaires France en niveau au premier mois de chaque trimestre (variable `tvCoef::gdp[, "bc_fr_m1"]`).
+:::
+
+:::{#fig-graph-diff-climatfrm1}
+```{r}
+#| echo: false
+#| label: graph-diff-climatfr-m1
+graph_zoom(gdp[,"diff_bc_fr_m1"])
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+
+Différenciation trimestrielle du climat des affaires France au premier mois de chaque trimestre (variable `tvCoef::gdp[, "diff_bc_fr_m1"]`).
+:::
+
+:::{#fig-graph-manuf}
+```{r}
+#| echo: false
+#| label: graph-manuf
+graph_zoom(manufacturing[,"manuf_prod"], start = 1990, 1.4, 1.3)
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+
+Taux de croissance trimestriel de la production manufacturière (variable `tvCoef::manufacturing[, "manuf_prod"]`).
+:::
+
+:::{#fig-graph-prodc1}
+```{r}
+#| echo: false
+#| label: graph-prod-c1
+graph_zoom(manufacturing[,"prod_c1"], start = 1990, 1.4, 1.3)
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+Taux de croissance trimestriel de la production dans la branche agro–alimentaire (C1) (variable `tvCoef::manufacturing[, "prod_c1"]`).
+:::
+
+:::{#fig-graph-prodc3}
+```{r}
+#| echo: false
+#| label: graph-prod-c3
+graph_zoom(manufacturing[,"prod_c3"], start = 1990, 1.4, 1.3)
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+Taux de croissance trimestriel de la production dans la branche biens d'équipement (C3) (variable `tvCoef::manufacturing[, "prod_c3"]`).
+:::
+
+:::{#fig-graph-prodc4}
+```{r}
+#| echo: false
+#| label: graph-prod-c4
+graph_zoom(manufacturing[,"prod_c4"], start = 1990, 1.4, 1.3)
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+Taux de croissance trimestriel de la production dans la branche matériels de transport (C4) (variable `tvCoef::manufacturing[, "prod_c4"]`).
+:::
+
+:::{#fig-graph-prodc5}
+```{r}
+#| echo: false
+#| label: graph-prod-c5
+graph_zoom(manufacturing[,"prod_c5"], start = 1990, 1.4, 1.3)
+```
+
+Lecture : le premier graphique représente la série observée jusqu'au 2023T4 et le second graphique correspond à un zoom sur la période pre-covid (avant 2020).
+
+Taux de croissance trimestriel de la production dans la branche autres industries (C5) (variable `tvCoef::manufacturing[, "prod_c5"]`).
+:::
+
+\newpage
 
 # Bibliographie {-}
 

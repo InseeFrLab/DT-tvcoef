@@ -676,6 +676,35 @@
       ],
       "Hash": "15e9634c0fcd294799e9b2e929ed1b86"
     },
+    "ggforce": {
+      "Package": "ggforce",
+      "Version": "0.4.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "R",
+        "Rcpp",
+        "RcppEigen",
+        "cli",
+        "ggplot2",
+        "grDevices",
+        "grid",
+        "gtable",
+        "lifecycle",
+        "polyclip",
+        "rlang",
+        "scales",
+        "stats",
+        "systemfonts",
+        "tidyselect",
+        "tweenr",
+        "utils",
+        "vctrs",
+        "withr"
+      ],
+      "Hash": "384b388bd9155468d2c851846ee69f9f"
+    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "3.5.1",
@@ -1219,6 +1248,16 @@
       ],
       "Hash": "fedfb9cc018931edf15d0107f9e1addb"
     },
+    "polyclip": {
+      "Package": "polyclip",
+      "Version": "1.10-6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "436542aadb70675e361cf359285af7c7"
+    },
     "praise": {
       "Package": "praise",
       "Version": "1.0.0",
@@ -1391,8 +1430,8 @@
       "Package": "rjd3sts",
       "Version": "2.1.1",
       "Source": "GitHub",
-      "Remotes": "github::rjdemetra/rjd3toolkit",
       "RemoteType": "github",
+      "Remotes": "github::rjdemetra/rjd3toolkit",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "rjd3sts",
       "RemoteUsername": "rjdemetra",
@@ -1607,6 +1646,17 @@
       ],
       "Hash": "95918d90189662a1bb4c0d64555859e3"
     },
+    "systemfonts": {
+      "Package": "systemfonts",
+      "Version": "1.0.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cpp11"
+      ],
+      "Hash": "6d538cff441f0f1f36db2209ac7495ac"
+    },
     "testthat": {
       "Package": "testthat",
       "Version": "3.2.1.1",
@@ -1739,8 +1789,8 @@
       "Package": "tvCoef",
       "Version": "0.2.0",
       "Source": "GitHub",
-      "Remotes": "github::rjdemetra/rjd3toolkit, github::rjdemetra/rjd3sts",
       "RemoteType": "github",
+      "Remotes": "github::rjdemetra/rjd3toolkit, github::rjdemetra/rjd3sts",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "tvCoef",
       "RemoteUsername": "AQLT",
@@ -1774,6 +1824,21 @@
         "vars"
       ],
       "Hash": "9969e771b437c06f48bbe183781dc119"
+    },
+    "tweenr": {
+      "Package": "tweenr",
+      "Version": "2.0.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cpp11",
+        "farver",
+        "magrittr",
+        "rlang",
+        "vctrs"
+      ],
+      "Hash": "82fac2b73e6a1f3874fc000aaf96d8bc"
     },
     "urca": {
       "Package": "urca",
