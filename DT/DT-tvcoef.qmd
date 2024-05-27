@@ -353,6 +353,7 @@ y_t&=\alpha_{0}x_{0,t}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_
 \E{\varepsilon_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
 \end{align*}
 On suppose également que toutes les variables sont faiblement dépendantes (cas général de la régression linéaire).
+<!-- tu as oublié de définir faiblement dépendentes -->
 <!-- faiblement dépendantes? tu veux dire faiblement stationnaires? sinon je ne comprends pas ce que ça veut dire -->
 <!-- Rep AQLT : Lorsque les variables sont faiblement dépendantes on suppose juste que la corrélation tend vers 0, c'est complémentaire à la stationnarité faible (https://economics.stackexchange.com/questions/42848/stationarity-vs-weak-dependence). 
 Par exemple, un AR(1) est faiblement dépendant si le coefficient est strictement inférieur à 1.
@@ -404,9 +405,12 @@ Toutefois, si le modèle contient des indicatrices alors le test joint ne pourra
 Dans ce cas, la matrice $\bf V$ n'est pas inversible car la colonne associée à l'indicatrice sera proche de 0.
 Si la $i$^e^ variable est une indicatrice à la date $t_0$, $f_{i,t}=x_{i,t}\hat\varepsilon_t$ sera égal à 0 pour $t$ différent de $t_0$ (car $x_{i,t}=0$) et $f_{i,t_{0}}=x_{i,t_{0}}\hat\varepsilon_t=\hat\varepsilon_t\simeq 0$ car l'ajout d'une indicatrice conduit généralement les résidus à être nuls sur la date associée.
 ].
+<!-- 1)	pourquoi « généralement à être nuls » : c’est pas automatique que \hat{epsilon}_{t_0} est rigoureusement nul ? -->
+<!-- 2)	dans la formule, tu peux mettre t_0 au lieu de t pour les 2 epsilon, non ? -->
+
 <!-- dessous tu le calcules alors qu’il y a une constante. on ne peut pas avoir 2 indicatrices c’est ça alors? -->
 <!-- Rep AQLT : la matrice peut être inversible dans le cas d'une constante, lorsqu'il y a une indicatrice -->
-Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une *tied-down random walk*, c'est-à-dire une marche aléatoire où l'on a contraint première observation est égale à la dernière observation) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
+Sous l'hypothèse nulle de constance des paramètres, les $S_{i,t}$ devraient tendre vers 0 (à la manière d'une *tied-down random walk*, c'est-à-dire une marche aléatoire où l'on a contraint la première observation à être égale à la dernière observation) : les statistiques de test $L_i$ et $L_c$ devraient donc être petites.
 <!-- c’est quoi une marche aléatoire contrainte? -->
 <!-- Rep AQLT : en anglais c'est tied-down random walk, j'ai trouvé une définition ici https://www.researchgate.net/figure/A-tied-down-random-walk-or-Bernoulli-bridge-is-a-simple-random-walk-starting-and-ending_fig1_309729937. C'est une marche aléatoire où l'on a contraint le début et la fin à être égaux. Cela ne me parait pas courant comme notion mais comme c'était mentionné dans l'article je trouvais que ça pouvait être intéressant. Je peux soit supprimer la parenthèse si c'est trop complexe soit expliciter davantage (j'ai fait une proposition dans les parenthèses) -->
 Sous l'hypothèse alternative d'instabilité des paramètres, la somme cumulée des $S_{i,t}$ devrait ne pas être de moyenne nulle dans un sous-ensemble de l'échantillon et la statistique de test devrait être élevée.
@@ -534,8 +538,8 @@ $$
 
 Dans les deux cas les coefficients estimés sont les mêmes mais les écarts-types seront en général différents.
 En effet, dans la première modélisation on suppose que la variance du résidu est constante sur l’ensemble de la période alors que dans la seconde la variance est supposée constante sur les deux sous-périodes.
-Par défaut les fonctions `tvCoef::piece_reg()` et `tvCoef::bp_lm()` calcule les dates de ruptures en appliquant la fonction `strucchange::breakdates()` sur le modèle de régression linéaire en paramètre.
-Elle peut toutefois être manuellement spécifiée en utilisant le paramètre `break_date`.
+Par défaut les fonctions `tvCoef::piece_reg()` et `tvCoef::bp_lm()` calculent les dates de ruptures en appliquant la fonction `strucchange::breakdates()` sur le modèle de régression linéaire en paramètre.
+Cette date de rupture peut toutefois être manuellement spécifiée en utilisant le paramètre `break_date`.
 <!-- précise comment piece_reg() connaît la date de rupture: je n’ai pas vu quelle partie du code l’identifie: est-ce qu’elle doit être dans reg_lin, ou alors piece_reg la calcule lui-même? idem pour bp_lm() -->
 <!-- Rep AQLT : j'ai ajouté deux phrases pour le préciser : c'est calculé automatiquement par défaut -->
 ```{r}
@@ -626,7 +630,7 @@ apply(res_oos, 2, rmse)
 
 La @fig-prev-piecereg montre les erreurs de prévision hors échantillon des deux modèles étudiés.
 Autour de la date de rupture, la régression linéaire par morceaux produit des prévisions peu réalistes (ce qui conduit à des erreurs élevées) : cela s'explique par le fait que très peu d'observations sont utilisées pour estimer les coefficients associés aux régresseurs après la rupture, les estimateurs sont donc peu précis (grande variance).
-Par ailleurs, lors d'un vrai exercice en temps réel, la date de rupture sera généralement connue et prise en compte que plusieurs trimestres après celle-ci : l'erreur est alors réduite.
+Par ailleurs, lors d'un vrai exercice en temps réel, la date de rupture ne sera généralement connue et prise en compte que plusieurs trimestres après celle-ci : l'erreur est alors réduite.
 Pour les analyses automatiques hors échantillon, il faut donc faire attention aux valeurs prédites autour de la rupture !
 <!-- ça rejoint aussi un autre aspect de la question, c’est qu’il faut un certain temps avant d’être sûr qu’il y a eu une rupture, parce que s’il y a des erreurs importantes quelques trimestres, ça peut être des erreurs temporaires, ou alors un changement structurel, mais dur à dire en temps réel! -->
 <!-- Rep AQLT : Oui effectivement, j'ai rajouté une phrase pour donner cet argument supplémentaire -->
@@ -1069,7 +1073,7 @@ Cela se fait généralement en ajoutant, dans le modèle de prévision, des vari
 La méthode la plus simple consiste à ajouter des indicatrices sur les trimestres concernés (ici l'année 2020 et le trimestre 2021T3)^[
 D'autres spécifications pourraient être utilisées, comme par exemple l'ajout d'indicatrices sur l'ensemble des années 2020 et 2021 ou uniquement sur l'année 2020.
 Ajouter ou retirer d'autres indicatrices peut sensiblement changer les résultats des coefficients estimés sur la fin de la période, notamment du fait du faible recul temporel que l'on a après le COVID-19 : le choix dépend aussi des hypothèses économiques que l'on fait sur le modèle utilisé (quels sont les trimestres qui sont atypiques et ceux dont les évolutions relèvent de la conjoncture ?).
-Ici nous avons choisi de n'utiliser des indicatrices que pour l'année 2020 et le trimestre 2021T3 car les indicatrices des autres trimestres ne sont pas significatifs, que l'année 2020 est fortement heurtée par la crise du COVID-19 et que la forte croissance de 2021T3 peut s'expliquer par un contre-coup des mesures de confinement de 2021T2.
+Ici nous avons choisi de n'utiliser des indicatrices que pour l'année 2020 et le trimestre 2021T3 car les indicatrices des autres trimestres de 2021 ne sont pas significatives, que l'année 2020 est fortement heurtée par la crise du COVID-19 et que la forte croissance de 2021T3 peut s'expliquer par un contre-coup des mesures de confinement de 2021T2.
 ] :
 
 ```{r}
@@ -1112,7 +1116,7 @@ bw_covid <- bw(window(
 c(reg_loc$bw, bw_covid)
 ```
 
-- Pour la régression avec coefficients stochastiques (modélisation espace-état), les coefficients associés aux indicatrices sont fixés (variance nulle, sinon ils sont considéré comme évoluant dans le temps) et le coefficient du climat des affaires en niveau est toujours considéré comme fixe.
+- Pour la régression avec coefficients stochastiques (modélisation espace-état), les coefficients associés aux indicatrices sont fixés (variance nulle, sinon ils sont considérés comme évoluant dans le temps) et le coefficient du climat des affaires en niveau est toujours considéré comme fixe.
 Toutefois les variances des autres coefficients sont de nouveau estimées.
 ```{r}
 ssm_covid <- ssm_lm(
@@ -1285,7 +1289,7 @@ En temps réel elles sont améliorées pour huit modèles (d'au plus 15\ %) et n
 Pour la régression locale, la performance hors échantillon est toujours dégradée.
 Une partie de l'instabilité en temps réel provient du fait qu'aucune optimisation n'est faite dans la spécification des modèles.
 Toutefois ces résultats suggèrent que les tests ici présentés pour tester la constance des coefficients ne sont pas toujours pertinents.
-Ainsi, @abs2006 proposent une procédure de tests basée sur la modélisation espace-état (en testant la significativité de la variance des coefficients estimés).
+Ainsi, @abs2006 proposent une procédure de tests fondée sur la modélisation espace-état (en testant la significativité de la variance des coefficients estimés).
 
 ::: {#tbl-error-table}
 ```{r}
