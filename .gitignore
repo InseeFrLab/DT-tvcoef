@@ -1,0 +1,10 @@
+*_cache
+DT-tvcoef.Rproj
+DT-tvcoef.qmd
+.Rproj.user
+.Rhistory
+img/
+template/
+_extensions/
+*.bib
+renv/

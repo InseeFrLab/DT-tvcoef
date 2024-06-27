@@ -1,0 +1,2658 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  a4paper,
+  DIV=11,
+  numbers=noendperiod,
+  french]{scrartcl}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{5}
+% Make \paragraph and \subparagraph free-standing
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+\DeclareMathOperator{\argmin}{argmin}
+\DeclareMathOperator{\argmax}{argmax}
+
+
+\newcommand\1{{\mathds 1}}
+\newcommand\ud{\,\mathrm{d}}
+\newcommand{\transp}[1]{{}^t\!#1}
+\newcommand{\bf}[1]{{\boldsymbol #1}}
+\newcommand{\E}[1]{\mathbb{E}\left[#1\right]}
+
+\usepackage{mathrsfs, dsfont}
+\usepackage[style=authoryear,uniquename=false, uniquelist=false]{biblatex}
+\DefineBibliographyStrings{french}{andothers={et\addabbrvspace alii}}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{longtable}
+\usepackage{colortbl}
+\usepackage{array}
+\KOMAoption{captions}{tableheading,figureheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table des matières}
+\else
+  \newcommand\contentsname{Table des matières}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{Liste des Figures}
+\else
+  \newcommand\listfigurename{Liste des Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{Liste des Tables}
+\else
+  \newcommand\listtablename{Liste des Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{Liste des Listings}}
+\usepackage{amsthm}
+\theoremstyle{remark}
+\AtBeginDocument{\renewcommand*{\proofname}{Preuve}}
+\newtheorem*{remark}{Remarque}
+\newtheorem*{solution}{Solution}
+\newtheorem{refremark}{Remarque}[section]
+\newtheorem{refsolution}{Solution}[section]
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{fontawesome5}{}{\usepackage{fontawesome5}}
+\makeatother
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+\babelprovide[main,import]{french}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage[style=authoryear,]{biblatex}
+\addbibresource{biblio.bib}
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Utilisation de modèles de régression à coefficients variant dans le temps pour la prévision conjoncturelle},
+  pdfauthor={Alain Quartier-la-Tente},
+  pdflang={fr},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Utilisation de modèles de régression à coefficients variant dans
+le temps pour la prévision conjoncturelle}
+\author{Alain Quartier-la-Tente}
+\date{}
+
+\begin{document}
+\maketitle
+
+\renewcommand{\thepage}{\roman{page}}
+
+\subsubsection*{Résumé}\label{ruxe9sumuxe9}
+\addcontentsline{toc}{subsubsection}{Résumé}
+
+Cette étude décrit trois méthodes d'estimation de modèles de régression
+linéaire avec des coefficients variant dans le temps : régression par
+morceaux, régression locale et régression avec coefficients
+stochastiques (modélisation espace-état). Elle détaille également leur
+implémentation sous R grâce au package \texttt{tvCoef}. À travers une
+analyse comparative sur une trentaine de modèles de prévision
+trimestrielle, nous montrons que l'utilisation de ces méthodes,
+notamment par la modélisation espace-état, réduit les erreurs de
+prévision lorsque des ruptures sont présentes dans les coefficients. Par
+ailleurs, même lorsque les tests classiques concluent à la constance des
+coefficients, la régression avec coefficients stochastiques peut
+permettre de réduire les erreurs de prévision. Cependant, les
+incertitudes liées à l'estimation de certains hyperparamètres peuvent
+augmenter les erreurs de prévision en temps réel, en particulier pour la
+régression locale. Ainsi, une analyse économique des paramètres estimés
+demeure essentielle.
+
+Cette étude est entièrement reproductible et tous les codes utilisés
+sont disponibles sous \url{https://github.com/InseeFrLab/DT-tvcoef}.
+
+Mots clés : séries temporelles, prévisions, séries longues.
+
+\subsubsection*{Abstract}\label{abstract}
+\addcontentsline{toc}{subsubsection}{Abstract}
+
+This study describes three methods for estimating linear regression
+models with time-varying coefficients: piecewise regression, local
+regression, and regression with stochastic coefficients (state-space
+modeling). It also details their implementation in R using the
+\texttt{tvCoef} package. Through a comparative analysis of around thirty
+quarterly forecasting models, we show that the use of these methods,
+especially thanks to the state-space modeling, reduces forecast errors
+when breakpoints are present in the coefficients. Moreover, even when
+traditional tests conclude that the coefficients are stable, regression
+with stochastic coefficients can still help reduce forecast errors.
+However, uncertainties related to estimating certain hyperparameters can
+increase real-time forecast errors, especially for local regression.
+Thus, an economic analysis of estimated parameters remains essential.
+
+This study is fully reproducible and all the codes used are available
+under \url{https://github.com/InseeFrLab/DT-tvcoef}.
+
+Keywords: time series, forecast, long time series.
+
+JEL Classification: C22, C53.
+
+\newpage
+\renewcommand*\contentsname{Table des matières}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\pagenumbering{arabic}
+\newpage
+
+\section{Introduction}\label{introduction}
+
+De nombreux modèles de prévision s'appuient sur l'hypothèse que les
+relations entre les variables sont fixes dans le temps. C'est par
+exemple le cas des modèles de régressions linéaires utilisés couramment
+dans la statistique publique. Ainsi, les producteurs de séries
+désaisonnalisées appliquent des modèles RegARIMA pour la correction des
+effets de calendrier et les comptes nationaux trimestriels utilisent des
+modèles d'étalonnage-calage pour caler les séries sur les comptes
+nationaux annuels. Pour la prévision des grands agrégats
+macroéconomiques, l'Insee \autocite[e.g.,][]{ndc2015prev} et la Banque
+de France \autocite[e.g.,][]{OPTIM} utilisent notamment des modèles de
+régression linéaire pour prévoir la croissance et le modèle
+macroéconomique Mésange \autocite{mesange} s'appuie sur des modèles à
+correction d'erreur pour modéliser les comportements macroéconomiques.
+Ces méthodes fournissent généralement de bons résultats et ont
+l'avantage d'être facilement interprétables. Cependant, même si
+l'hypothèse de stabilité des coefficients peut avoir du sens sur courte
+période, elle n'est généralement plus vérifiée lorsque les modèles sont
+estimés sur longue période, ce qui conduit à des modèles sous-optimaux.
+
+Pour palier ce problème, une solution simple consiste à utiliser moins
+de données pour estimer les modèles. Par exemple, le guide des bonnes
+pratiques sur l'ajustement saisonnier \autocite{eurostat2015guidelines}
+recommande de ne pas désaisonnaliser des séries de plus de 20 ans.
+Toutefois, cela conduit à perdre l'historique des données et
+l'information que l'on peut en tirer et ne résout pas le problème
+lorsque la rupture est récente. Par ailleurs, comme montré par
+\textcite{JMS2018} pour la désaisonnalisation des séries d'indice de
+production industrielle, lorsqu'il faut analyser les modèles sur
+l'ensemble de la période (par exemple dans le cadre de la correction des
+jours ouvrables), il est nécessaire de mettre en place des méthodes de
+chaînage afin de prendre en compte la rupture introduite par
+l'utilisation de plusieurs modèles. Ainsi, dans certains cas il peut
+être préférable d'utiliser des modèles qui prennent directement en
+compte les ruptures.
+
+Cette étude s'intéresse à différentes méthodes d'estimation de
+coefficients variant dans le temps dans le cadre de la prévision
+conjoncturelle. Ces méthodes se regroupent en trois catégories : les
+modèles de régression par morceaux, les régressions locales et les
+régressions avec coefficients stochastiques (estimés par une
+modélisation espace-état). La première suppose l'existence d'une rupture
+brutale sur les coefficients à une certaine date ; les deux autres
+supposent que les coefficients évoluent progressivement dans le temps
+sans existence de rupture brutale. Pour simplifier l'implémentation de
+ces méthodes, ainsi que leur comparaison, le package R \texttt{tvCoef}
+(\url{https://github.com/InseeFrLab/tvCoef}) a également été développé
+lors de cette étude. Cette étude est entièrement reproductible et tous
+les codes utilisés sont disponibles sous
+\url{https://github.com/InseeFrLab/DT-tvcoef}.
+
+Après une description de deux tests permettant de tester si les
+coefficients sont fixes dans le temps (section~\ref{sec-tests}), nous
+décrivons trois méthodes pour estimer des coefficients variant dans le
+temps et montrons comment les implémenter à partir d'un modèle de
+prévision de la croissance du PIB français
+(section~\ref{sec-desc-meth}). Nous comparons ensuite les qualités
+prédictives des différentes méthodes sur une trentaine de modèles de
+prévision trimestrielle (section~\ref{sec-comp-generales}). Nous
+montrons que, lorsque l'hypothèse de constance des coefficients n'est
+pas vérifiée, l'utilisation de ces modèles (notamment la régression avec
+coefficients stochastiques) permet de réduire les erreurs de prévision.
+Par ailleurs, même lorsque les tests classiques concluent à la constance
+des coefficients, la régression avec coefficients stochastiques peut
+permettre de réduire les erreurs de prévision.
+
+\section{Modélisation générale et tests}\label{sec-tests}
+
+Dans cette étude, nous nous plaçons dans le cadre de la régression
+linéaire avec des variables à une dimension. À chaque date \(t\), la
+variable \(y_t\) (e.g., taux de croissance du PIB) est expliquée par une
+combinaison linéaire d'une constante et de \(p\) variables explicatives,
+\(x_{1,t},\dots,x_{p,t}\) (soldes d'opinion, indices de production
+industrielle, indicatrices, etc.) : \[
+y_t=\alpha_{0}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t 
+\] où \(\varepsilon_t\) représente le terme d'erreur. En notant
+\({\bf X}_t=\begin{pmatrix}1 & x_{1,t} &\cdots & x_{p,t} \end{pmatrix}\)
+et
+\({\bf \alpha}=\transp{\begin{pmatrix}\alpha_0 & \alpha_1 &\cdots & \alpha_p \end{pmatrix}}\),
+cela s'écrit matriciellement~:
+\begin{equation}\phantomsection\label{eq-mod-fixe}{
+y_t={\bf X_t} \bf\alpha +\varepsilon_t.
+}\end{equation}
+
+Dans le cadre de la régression linéaire, les coefficients \(\bf\alpha\)
+sont supposés constants dans le temps et estimés en utilisant l'ensemble
+des données. Cela suppose donc que la relation économique entre les
+différentes variables est stable dans le temps. Même si cette hypothèse
+est généralement vraie sur le court-terme, elle peut être invalidée sur
+le long-terme du fait de changements structurels (mesures économiques,
+crises, changement de nomenclature, etc.). L'objectif de cette étude est
+d'étudier différents modèles permettant de relâcher cette hypothèse de
+constance des coefficients. Le modèle général s'écrit donc : \[
+y_t={\bf X_t} \bf\alpha_t  +\varepsilon_t.
+\] Pour faciliter l'utilisation des modèles ici présentés, le package
+\faIcon{r-project} \texttt{tvCoef} \autocite{tvcoef} a été développé.
+Leur implémentation est illustrée à travers l'exemple de la prévision du
+taux de croissance trimestriel du PIB, noté \(y_t\), à partir du climat
+des affaires France publié par l'Insee\footnote{ Cette série est
+  disponible à l'URL
+  \url{https://www.insee.fr/fr/statistiques/serie/001565530}.}. Ces
+séries sont disponibles sous \faIcon{r-project} dans la base de donnée
+\texttt{tvCoef::gdp}\footnote{ Les données sont disponibles dans le
+  package \texttt{tvCoef} ont été téléchargées le 15 mars 2024 et
+  peuvent donc différer de celles actuellement disponibles.} :
+
+\begin{itemize}
+\item
+  \texttt{growth\_gdp} correspond au taux de croissance trimestriel du
+  PIB ;
+\item
+  \texttt{bc\_fr\_m1} correspond au climat des affaires au premier mois
+  de chaque trimestre (la valeur de 2000T1 correspond à la valeur de
+  janvier 2000, celle de 2000T2 à celle d'avril 2000, etc.) ;
+\item
+  \texttt{diff\_bc\_fr\_m1} correspond à la différenciation
+  trimestrielle de la variable précédente (la valeur de 2000T1
+  correspond à la différence du climat des affaires entre janvier 2000
+  et octobre 1999).
+\end{itemize}
+
+Les graphiques de ces variables sont disponibles dans l'annexe
+\ref{sec-an-graph}.
+
+Le modèle s'écrit donc : \[
+y_t=\alpha_0 + \alpha_1\times climat\_fr_t^{m_1} + \alpha_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
+\] Il est estimé en utilisant les données entre les années 1980 et 2019.
+Le climat des affaires France publié par l'Insee est un indicateur
+mensuel normalisé de moyenne 100 et d'écart-type 10 sur l'ensemble de la
+période de publication (de janvier 1977 à février 2024 dans notre cas).
+Lorsqu'il est à sa moyenne, la croissance du PIB est de
+\(100\times\alpha_1\). Afin de faciliter l'interprétation de la
+constante, le climat des affaires est renormalisée à 0 et le modèle est
+donc : \[
+y_t=\alpha_0 + \alpha_1\times (climat\_fr_t^{m_1}-100) + \alpha_2\times \Delta climat\_fr_t^{m_1}+\varepsilon_t.
+\] Sous \faIcon{r-project}, ce modèle peut être estimé en utilisant la
+fonction \texttt{stats::lm()}. Toutefois, nous recommandons d'utiliser
+le package \texttt{dynlm} \autocite{dynlm} qui offre une plus grande
+flexibilité dans la définition des modèles et permet de conserver le
+format série temporelle dans les fonctions de \texttt{tvCoef}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tvCoef)}
+\FunctionTok{library}\NormalTok{(dynlm)}
+\NormalTok{data\_gdp }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(gdp, }\AttributeTok{start =} \DecValTok{1980}\NormalTok{, }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2019}\NormalTok{, }\DecValTok{4}\NormalTok{))}
+\CommentTok{\# Renormalisaiton à 0 du climat des affaires :}
+\NormalTok{bc\_variables }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"bc\_fr\_m1"}\NormalTok{, }\StringTok{"bc\_fr\_m2"}\NormalTok{, }\StringTok{"bc\_fr\_m3"}\NormalTok{)}
+\NormalTok{data\_gdp[, bc\_variables] }\OtherTok{\textless{}{-}}\NormalTok{ data\_gdp[, bc\_variables] }\SpecialCharTok{{-}} \DecValTok{100}
+\NormalTok{reg\_lin }\OtherTok{\textless{}{-}} \FunctionTok{dynlm}\NormalTok{(}
+  \AttributeTok{formula =}\NormalTok{ growth\_gdp }\SpecialCharTok{\textasciitilde{}}\NormalTok{ bc\_fr\_m1 }\SpecialCharTok{+}\NormalTok{ diff\_bc\_fr\_m1,}
+  \AttributeTok{data =}\NormalTok{ data\_gdp}
+\NormalTok{)}
+\CommentTok{\# \# Equivalent à :}
+\CommentTok{\# reg\_lin \textless{}{-} dynlm(}
+\CommentTok{\#   formula = growth\_gdp \textasciitilde{} bc\_fr\_m1 + diff(bc\_fr\_m1, 1),}
+\CommentTok{\#   \# Date de début changée car on perd une donnée avec la différenciation}
+\CommentTok{\#   data = window(gdp, start = c(1979, 4), end = c(2019, 4))}
+\CommentTok{\# )}
+\FunctionTok{summary}\NormalTok{(reg\_lin)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Time series regression with "ts" data:
+Start = 1980(1), End = 2019(4)
+
+Call:
+dynlm(formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1, data = data_gdp)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.30140 -0.23883  0.02808  0.24487  0.94292 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   0.447207   0.030742  14.547  < 2e-16 ***
+bc_fr_m1      0.020473   0.003171   6.456 1.28e-09 ***
+diff_bc_fr_m1 0.044228   0.007412   5.967 1.55e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.3888 on 157 degrees of freedom
+Multiple R-squared:  0.3823,    Adjusted R-squared:  0.3744 
+F-statistic: 48.58 on 2 and 157 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+Le modèle estimé est donc :
+
+\[y_t=0,45 + 0,02\times (climat\_fr_t^{m_1} -100)+ 0,04\times \Delta climat\_fr_t^{m_1}+{\hat\varepsilon}_t,\]
+
+\subsection{Test de rupture brutale}\label{sec-test-baiperron}
+
+L'idée la plus simple pour tester s'il y a une rupture dans l'estimation
+des coefficients à une date \(t_1\), est d'estimer deux sous-modèles
+avant et après cette date : \[
+\begin{cases}
+\forall t \leq t_1 :\quad y_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+\forall t > t_1 :\quad y_t = \alpha_0'' + \alpha_1'' climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
+\end{cases}.
+\] Il ne reste ensuite qu'à tester si les coefficients estimés entre les
+deux sous-périodes sont égaux~: \(\alpha_0' = \alpha_0''\),
+\(\alpha_1' = \alpha_1''\) et \(\alpha_2' = \alpha_2''.\) L'hypothèse
+alternative est qu'au moins un des coefficients est différent entre les
+deux sous-périodes. C'est le principe du test de \textcite{chowtest}.
+
+L'inconvénient est que cela suppose d'avoir un \emph{a priori} sur la
+date de la rupture à tester. Pour palier à ce problème,
+\textcite{bai2003computation} ont proposé un algorithme efficace afin de
+chercher la présence de ruptures multiples dans des modèles de
+régression linéaire. Cet algorithme a été implémenté sous
+\faIcon{r-project} dans le package \texttt{strucchange}
+\autocite{strucchangeBP}. La fonction
+\texttt{strucchange::breakpoints()} permet de chercher les ruptures et
+la fonction \texttt{strucchange::breakdates()} permet d'extraire
+facilement les dates associées. Le package \texttt{tvCoef} implémente
+une méthode \texttt{breakpoints.lm()} afin de pouvoir directement
+appliquer cette fonction aux régressions linéaires estimées :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(strucchange)}
+\NormalTok{bp }\OtherTok{\textless{}{-}} \FunctionTok{breakpoints}\NormalTok{(reg\_lin)}
+\FunctionTok{breakdates}\NormalTok{(bp)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 2000.5
+\end{verbatim}
+
+Une seule rupture est détectée au 2000T3. Un intervalle de confiance
+autour de la date détectée peut être calculé en utilisant la fonction
+\texttt{stats::confint()} :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{breakdates}\NormalTok{(}\FunctionTok{confint}\NormalTok{(bp))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+    2.5 % breakpoints 97.5 %
+1 1995.75      2000.5   2005
+\end{verbatim}
+
+L'incertitude autour de la date détectée est grande ! Il y a 95 \% de
+chance que la rupture soit comprise entre 1995T4 et 2005T1.
+
+Cet algorithme est très simple à utiliser mais possède plusieurs
+inconvénients :
+
+\begin{itemize}
+\item
+  L'implémentation sous \faIcon{r-project} de l'algorithme de Bai et
+  Perron ne permet pas de chercher des ruptures sur un sous-ensemble de
+  variables : on ne cherche des ruptures que sur l'ensemble du modèle.
+  Par exemple, on ne peut pas tester \(\alpha_2' = \alpha_2''\) dans le
+  modèle : \[
+  \begin{cases}
+  \forall t \leq t_1 :\quad y_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t' \\
+  \forall t > t_1 :\quad y_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2'' \Delta climat\_fr_t + \varepsilon_t''
+  \end{cases}.
+  \]
+\item
+  Il y a une instabilité sur le choix de la date et il suppose que la
+  rupture est brutale à une certaine date. Si la rupture est brutale, le
+  statisticien doit pouvoir expliquer son origine (changement de
+  nomenclature, de champ dans les données, crise\ldots) et a déjà un
+  \emph{a priori} sur la date de rupture. Si l'on n'a aucune information
+  sur la présence d'une rupture, on peut raisonnablement penser que
+  celle-ci n'est pas brutale mais que la relation entre les variables a
+  évolué de manière progressive dans le temps.
+\end{itemize}
+
+\subsection{Test de constance des coefficients}\label{sec-hansen-test}
+
+Alors que l'algorithme de Bai et Perron cherche une date spécifique où
+il y aurait une rupture dans les modèles, \textcite{hansen1992testing}
+propose une procédure permettant de tester uniquement si les
+coefficients sont constants ou non sans hypothèse sur la forme de la
+rupture (brutale ou non) et sur la date de la rupture.
+
+La modélisation générale de la régression linéaire s'écrit :
+\begin{align*}
+y_t&=\alpha_{0}x_{0,t}+\alpha_{1} x_{1,t}+\dots+\alpha_{p} x_{p,t} +\varepsilon_t  \\
+&= {\bf X_t} \bf\alpha  +\varepsilon_t\\
+\E{\varepsilon_t|x_t}&=0 \text{ (exogénéité stricte)} \\
+\E{\varepsilon_t^2}&=\sigma_t^2\text{ et } \underset{n\to\infty}{\lim}\frac{1}{n}\sum_{t=1}^n\sigma_t^2=\sigma.
+\end{align*} On suppose également que toutes les variables sont
+faiblement dépendantes\footnote{ Des variables sont faiblement
+  dépendantes lorsque leur corrélation tend vers 0. Dans ce cas, le
+  théorème central limite s'applique et les estimateurs sont
+  asymptotiquement normaux (sans avoir besoin de supposer que les
+  variables sont iid).} (cas général de la régression linéaire).
+
+Les variables ne doivent donc pas contenir de tendance déterministe ou
+stochastique (comme des racines unitaires).
+
+Le test consiste à vérifier si l'ensemble des paramètres
+\((\bf \alpha,\sigma^2)\) sont constants. L'hypothèse alternative est
+qu'au moins un paramètre suit une martingale.
+
+Notons \({\hat \varepsilon}_t =y_t- {\bf X_t} \hat{\bf\alpha}\) et \[
+f_{i,t} = \begin{cases}
+x_{i,t}\hat \varepsilon_t &\text{ si }i\leq p\\
+\hat \varepsilon_t^2 - \hat \sigma^2&\text{ si }i=p+1
+\end{cases}
+\text{ et }S_{i,t} = \sum_{j=1}^tf_{i,j}.
+\] D'après les conditions de premier ordre \(S_{i,n}=0.\)
+
+Le test individuel de constance du coefficient du paramètre \(i\) est :
+\[
+L_i=\frac{1}{nV_i}\sum_{t=1}^nS_{i,t}^2\qquad
+\text{avec }V_i=\sum_{t=1}^nf_{i,t}^2.
+\]
+
+Notons : \[
+\bf f_t= \begin{pmatrix}
+f_{1,t} \\ \vdots \\ f_{p+1,t}
+\end{pmatrix} \text{ et }
+\bf S_t= \begin{pmatrix}
+S_{1,t} \\ \vdots \\ S_{p+1,t}
+\end{pmatrix}.
+\] Le test joint de constance de l'ensemble des paramètres est : \[
+L_c = \frac{1}{n}
+\sum_{t=1}^n\transp{\bf S_t}\bf V^{-1}\bf S_t
+\text{ avec }\bf V=\sum_{t=1}^n\bf f_{t}\transp{\bf f_{t}}.
+\] Il s'adapte facilement à un test joint de constance d'un
+sous-ensemble de paramètres en utilisant des sous-vecteurs de
+\(\bf f_t\) et \(\bf S_t.\) Toutefois, si le modèle contient des
+indicatrices alors le test joint ne pourra pas être calculé\footnote{
+  Dans ce cas, la matrice \(\bf V\) n'est pas inversible car la colonne
+  associée à l'indicatrice sera proche de 0. Si la
+  \(i\)\textsuperscript{e} variable est une indicatrice à la date
+  \(t_0\), \(f_{i,t}=x_{i,t}\hat\varepsilon_t\) sera égal à 0 pour \(t\)
+  différent de \(t_0\) (car \(x_{i,t}=0\)) et
+  \(f_{i,t_{0}}=x_{i,t_{0}}\hat\varepsilon_{t_0}=\hat\varepsilon_{t_0}= 0\)
+  car l'ajout d'une indicatrice conduit généralement les résidus à être
+  nuls sur la date associée.}.
+
+Sous l'hypothèse nulle de constance des paramètres, les \(S_{i,t}\)
+devraient tendre vers 0 (à la manière d'une \emph{tied-down random
+walk}, c'est-à-dire une marche aléatoire où l'on a contraint la première
+observation à être égale à la dernière observation) : les statistiques
+de test \(L_i\) et \(L_c\) devraient donc être petites. Sous l'hypothèse
+alternative d'instabilité des paramètres, la somme cumulée des
+\(S_{i,t}\) devrait ne pas être de moyenne nulle dans un sous-ensemble
+de l'échantillon et la statistique de test devrait être élevée.
+L'hypothèse nulle de stabilité des coefficients est donc rejetée lorsque
+la statistique de test est grande. Sous l'hypothèse nulle, la loi de
+distribution asymptotique est non standard, les valeurs critiques sont
+présentées dans la table~\ref{tbl-hansen-table}.
+
+\begin{longtable}[]{@{}rllllll@{}}
+
+\caption{\label{tbl-hansen-table}Valeurs critiques asymptotiques pour
+\(L_c\) en fonction du nombre de paramètres testés (1 degré de liberté
+pour \(L_i\)).}
+
+\tabularnewline
+
+\toprule\noalign{}
+Degrés de liberté & 1 \% & 2,5 \% & 5 \% & 7,5 \% & 10 \% & 20 \% \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & 0,748 & 0,593 & 0,470 & 0,398 & 0,353 & 0,243 \\
+2 & 1,07 & 0,898 & 0,749 & 0,670 & 0,610 & 0,469 \\
+3 & 1,35 & 1,16 & 1,01 & 0,913 & 0,846 & 0,679 \\
+4 & 1,60 & 1,39 & 1,24 & 1,14 & 1,07 & 0,883 \\
+5 & 1,88 & 1,63 & 1,47 & 1,36 & 1,28 & 1,08 \\
+6 & 2,12 & 1,89 & 1,68 & 1,58 & 1,49 & 1,28 \\
+7 & 2,35 & 2,10 & 1,90 & 1,78 & 1,69 & 1,46 \\
+8 & 2,59 & 2,33 & 2,11 & 1,99 & 1,89 & 1,66 \\
+9 & 2,82 & 2,55 & 2,32 & 2,19 & 2,10 & 1,85 \\
+10 & 3,05 & 2,76 & 2,54 & 2,40 & 2,29 & 2,03 \\
+11 & 3,27 & 2,99 & 2,75 & 2,60 & 2,49 & 2,22 \\
+12 & 3,51 & 3,18 & 2,96 & 2,81 & 2,69 & 2,41 \\
+13 & 3,69 & 3,39 & 3,15 & 3,00 & 2,89 & 2,59 \\
+14 & 3,90 & 3,60 & 3,34 & 3,19 & 3,08 & 2,77 \\
+15 & 4,07 & 3,81 & 3,54 & 3,38 & 3,26 & 2,95 \\
+16 & 4,30 & 4,01 & 3,75 & 3,58 & 3,46 & 3,14 \\
+17 & 4,51 & 4,21 & 3,95 & 3,77 & 3,64 & 3,32 \\
+18 & 4,73 & 4,40 & 4,14 & 3,96 & 3,83 & 3,50 \\
+19 & 4,92 & 4,60 & 4,33 & 4,16 & 4,03 & 3,69 \\
+20 & 5,13 & 4,79 & 4,52 & 4,36 & 4,22 & 3,86 \\
+
+\end{longtable}
+
+{\footnotesize\raggedright 
+
+\textbf{Source} : \textcite{hansen1990lagrange}. Table également
+disponible avec la commande \texttt{tvCoef::hansen\_table}.
+
+}
+
+Ce test est implémenté dans la fonction \texttt{tvCoef::hansen\_test()}.
+Par défaut, le test joint ne comprend pas le test de constance de la
+variance (\texttt{sigma\ =\ FALSE}).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hansen\_test}\NormalTok{(reg\_lin)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                   L Stat Reject at 5%
+(Intercept)   1.7744 0.47         TRUE
+bc_fr_m1      0.1529 0.47        FALSE
+diff_bc_fr_m1 0.2052 0.47        FALSE
+Variance      0.1240 0.47        FALSE
+Joint Lc      2.0347 1.47         TRUE
+\end{verbatim}
+
+Sur notre modèle de prévision de la croissance, le test joint conclut à
+la non constance des coefficients. Le test individuel sur le coefficient
+associé au climat des affaires en différence conclut à sa constance (au
+seuil de 5 \%). En revanche, le test de Hansen individuel conclut à la
+non-constance des coefficients associés à la constante et au climat des
+affaires en niveau au seuil de 5 \%. La non constance de ces deux
+paramètres peut être vérifiée en utilisant un test joint sur ces deux
+variables :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hansen\_test}\NormalTok{(reg\_lin, }\AttributeTok{var =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                   L Stat Reject at 5%
+(Intercept)   1.7744 0.47         TRUE
+bc_fr_m1      0.1529 0.47        FALSE
+diff_bc_fr_m1 0.2052 0.47        FALSE
+Variance      0.1240 0.47        FALSE
+Joint Lc      1.9322 1.24         TRUE
+\end{verbatim}
+
+Le test de Hansen peut être vu comme une extension des tests de
+stabilité CUSUM (\emph{cumulative sum control chart}) et CUSUM sur les
+carrés (pour le test sur la variance). Il est robuste à
+l'hétéroscédasticité. En appliquant les mêmes formules au modèle «
+transformé », ce test est également robuste à la prise en compte de
+l'autocorrélation via les moindres carrés généralisés. En revanche, il
+suppose que toutes les variables sont stationnaires : il ne peut donc
+directement s'appliquer sur des modèles du type modèle à correction
+d'erreur. Dans ce cas, une loi asymptotique différente doit être
+utilisée\footnote{ Voir par exemple \textcite{hansen1992I1}. Une
+  implémentation sous \faIcon{r-project} de ce cas est disponible sous
+  \url{https://users.ssc.wisc.edu/~bhansen/progs/jbes_92.html}.}. Si le
+modèle est estimé en deux étapes par la méthode de
+\textcite{engle1987co}, le test peut en revanche s'appliquer sur la
+seconde estimation (estimation des paramètres de court-terme et de la
+force de rappel).
+
+\section{Description des méthodes}\label{sec-desc-meth}
+
+Si un des tests précédents conclut à la non constance des coefficients
+du modèle estimé c'est qu'il est mal spécifié et donc qu'il faut
+utiliser une modélisation alternative qui pourrait notamment provenir
+d'un problème de variables omises. Dans cette étude, nous supposons que
+le problème de spécification provient des observations récentes et qu'il
+n'est pas nécessaire de faire un ajout de nouvelles variables
+explicatives pour le régler. Dans certains cas, par exemple pour prendre
+en compte la crise du COVID-19, il peut être utile d'ajouter des
+variables supplémentaires (e.g., des indicatrices).
+
+Trois méthodes sont étudiées dans cette étude :
+
+\begin{itemize}
+\item
+  la régression linéaire par morceaux (section~\ref{sec-reg-morceaux}) ;
+\item
+  la régression locale (section~\ref{sec-reg-locale}) ;
+\item
+  la régression avec coefficients stochastiques (estimés par une
+  modélisation espace-état~; section~\ref{sec-ssm}).
+\end{itemize}
+
+\subsection{Régression par morceaux}\label{sec-reg-morceaux}
+
+La régression par morceaux est la modélisation la plus simple : elle
+consiste à estimer le modèle sur un sous-ensemble des données. La
+modélisation est similaire à celle de la procédure de Bai et Perron
+puisque cette dernière donne directement les « morceaux » : entre les
+dates de ruptures.
+
+Par exemple, pour le modèle de prévision de la croissance, deux
+régressions seraient estimées en utilisant les données avant et après
+2000T3.
+
+Deux méthodes d'estimations sont possibles :
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Une régression en une étape est faite en dédoublant les régresseurs en
+  fonction de la date de rupture (fonction
+  \texttt{tvCoef::piece\_reg()}) : \begin{align*}
+  y_t &= \alpha_0\1_{t\leq 2000T3} + \alpha_1 climat\_fr_t\1_{t\leq 2000T3} + \alpha_2 \Delta climat\_fr_t\1_{t\leq 2000T3} + \\
+  &\phantom{=} \alpha_0'\1_{t > 2000T3} + \alpha_1' climat\_fr_t\1_{t > 2000T3} + \alpha_2' \Delta climat\_fr_t\1_{t > 2000T3} + \varepsilon_t
+  \end{align*}
+\item
+  En effectuant deux régressions linéaires distinctes (fonction
+  \texttt{tvCoef::bp\_lm()}) : \[
+  \begin{cases}
+  \forall t \leq 2000T3 :\quad y_t = \alpha_0 + \alpha_1 climat\_fr_t + \alpha_2 \Delta climat\_fr_t + \varepsilon_t \\
+  \forall t > 2000T3 :\quad y_t = \alpha_0' + \alpha_1' climat\_fr_t + \alpha_2' \Delta climat\_fr_t + \varepsilon_t'
+  \end{cases}.
+  \]
+\end{enumerate}
+
+Dans les deux cas les coefficients estimés sont les mêmes mais les
+écarts-types seront en général différents. En effet, dans la première
+modélisation on suppose que la variance du résidu est constante sur
+l'ensemble de la période alors que dans la seconde la variance est
+supposée constante sur les deux sous-périodes. Par défaut les fonctions
+\texttt{tvCoef::piece\_reg()} et \texttt{tvCoef::bp\_lm()} calculent les
+dates de ruptures en appliquant la fonction
+\texttt{strucchange::breakdates()} sur le modèle de régression linéaire
+en paramètre. Cette date de rupture peut toutefois être manuellement
+spécifiée en utilisant le paramètre \texttt{break\_date}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{reg\_morc }\OtherTok{\textless{}{-}} \FunctionTok{piece\_reg}\NormalTok{(reg\_lin)}
+\NormalTok{bp\_lm }\OtherTok{\textless{}{-}} \FunctionTok{bp\_lm}\NormalTok{(reg\_lin)}
+\FunctionTok{coef}\NormalTok{(reg\_morc}\SpecialCharTok{$}\NormalTok{model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ `(Intercept)_2000.5`       bc_fr_m1_2000.5  diff_bc_fr_m1_2000.5 
+           0.57683470            0.02233539            0.03290511 
+`(Intercept)_2019.75`      bc_fr_m1_2019.75 diff_bc_fr_m1_2019.75 
+           0.31104591            0.02013180            0.05475011 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{c}\NormalTok{(}\FunctionTok{coef}\NormalTok{(bp\_lm}\SpecialCharTok{$}\NormalTok{model[[}\DecValTok{1}\NormalTok{]]), }\FunctionTok{coef}\NormalTok{(bp\_lm}\SpecialCharTok{$}\NormalTok{model[[}\DecValTok{2}\NormalTok{]]))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  (Intercept)      bc_fr_m1 diff_bc_fr_m1   (Intercept)      bc_fr_m1 
+   0.57683470    0.02233539    0.03290511    0.31104591    0.02013180 
+diff_bc_fr_m1 
+   0.05475011 
+\end{verbatim}
+
+Dans la majorité des cas, la variance des erreurs n'a pas de raison
+d'être différente selon la période considérée, et nous suggérons de
+privilégier la première modélisation car elle offre plus de flexibilité,
+notamment pour fixer les coefficients de certaines variables.
+
+Dans notre exemple, le test d'Hansen concluait à la constance du
+coefficient du climat des affaires en différence~: les coefficients
+estimés avant et après la rupture devraient donc être égaux. Cette
+égalité peut être testée en utilisant un test de Fisher, par exemple
+avec la fonction \texttt{car::linearHypothesis()} \autocite{car}. Ici on
+rejette l'hypothèse nulle d'égalité de tous les coefficients avant et
+après la rupture : la prise en compte de la rupture est donc justifiée.
+On ne rejette pas l'hypothèse nulle d'égalité du coefficient du climat
+des affaires en niveau seulement, le modèle pourrait donc être
+simplifié.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# On rejette l\textquotesingle{}hypothèse nulle de constance de tous les coefficients}
+\NormalTok{car}\SpecialCharTok{::}\FunctionTok{linearHypothesis}\NormalTok{(}
+\NormalTok{  reg\_morc}\SpecialCharTok{$}\NormalTok{model,}
+  \FunctionTok{c}\NormalTok{(}
+    \StringTok{"\textasciigrave{}(Intercept)\_2000.5\textasciigrave{} = \textasciigrave{}(Intercept)\_2019.75\textasciigrave{}"}\NormalTok{,}
+    \StringTok{"bc\_fr\_m1\_2000.5 = bc\_fr\_m1\_2019.75"}\NormalTok{,}
+    \StringTok{"diff\_bc\_fr\_m1\_2000.5 = diff\_bc\_fr\_m1\_2019.75"}
+\NormalTok{    )}
+\NormalTok{  ,}
+  \AttributeTok{test =} \StringTok{"F"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Linear hypothesis test
+
+Hypothesis:
+(Intercept)_2000.5` - Intercept)_2019.75` = 0
+bc_fr_m1_2000.5 - bc_fr_m1_2019.75 = 0
+diff_bc_fr_m1_2000.5 - diff_bc_fr_m1_2019.75 = 0
+
+Model 1: restricted model
+Model 2: y ~ 0 + (`(Intercept)_2000.5` + bc_fr_m1_2000.5 + diff_bc_fr_m1_2000.5 + 
+    `(Intercept)_2019.75` + bc_fr_m1_2019.75 + diff_bc_fr_m1_2019.75)
+
+  Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+1    157 23.733                                  
+2    154 20.579  3    3.1549 7.8699 6.411e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# On ne rejette pas (H0) constance du climat des affaires en différence}
+\NormalTok{car}\SpecialCharTok{::}\FunctionTok{linearHypothesis}\NormalTok{(}
+\NormalTok{  reg\_morc}\SpecialCharTok{$}\NormalTok{model,}
+  \FunctionTok{c}\NormalTok{(}
+    \StringTok{"diff\_bc\_fr\_m1\_2000.5 = diff\_bc\_fr\_m1\_2019.75"}
+\NormalTok{    ),}
+  \AttributeTok{test =} \StringTok{"F"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Linear hypothesis test
+
+Hypothesis:
+diff_bc_fr_m1_2000.5 - diff_bc_fr_m1_2019.75 = 0
+
+Model 1: restricted model
+Model 2: y ~ 0 + (`(Intercept)_2000.5` + bc_fr_m1_2000.5 + diff_bc_fr_m1_2000.5 + 
+    `(Intercept)_2019.75` + bc_fr_m1_2019.75 + diff_bc_fr_m1_2019.75)
+
+  Res.Df    RSS Df Sum of Sq      F Pr(>F)
+1    155 20.905                           
+2    154 20.579  1   0.32652 2.4435 0.1201
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Pour les autres variables, faire attention à l\textquotesingle{}interprétation des tests }
+\CommentTok{\# individuels : on ne rejette pas (H0) constance du climat des affaires}
+\CommentTok{\# en niveau}
+\NormalTok{car}\SpecialCharTok{::}\FunctionTok{linearHypothesis}\NormalTok{(}
+\NormalTok{  reg\_morc}\SpecialCharTok{$}\NormalTok{model,}
+  \FunctionTok{c}\NormalTok{(}
+    \StringTok{"bc\_fr\_m1\_2000.5 = bc\_fr\_m1\_2019.75"}
+\NormalTok{    ),}
+  \AttributeTok{test =} \StringTok{"F"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Linear hypothesis test
+
+Hypothesis:
+bc_fr_m1_2000.5 - bc_fr_m1_2019.75 = 0
+
+Model 1: restricted model
+Model 2: y ~ 0 + (`(Intercept)_2000.5` + bc_fr_m1_2000.5 + diff_bc_fr_m1_2000.5 + 
+    `(Intercept)_2019.75` + bc_fr_m1_2019.75 + diff_bc_fr_m1_2019.75)
+
+  Res.Df    RSS Df Sum of Sq      F Pr(>F)
+1    155 20.596                           
+2    154 20.579  1  0.017314 0.1296 0.7194
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# On ne rejette pas (H0) constance de la constante}
+\NormalTok{car}\SpecialCharTok{::}\FunctionTok{linearHypothesis}\NormalTok{(}
+\NormalTok{  reg\_morc}\SpecialCharTok{$}\NormalTok{model,}
+  \FunctionTok{c}\NormalTok{(}
+    \StringTok{"\textasciigrave{}(Intercept)\_2000.5\textasciigrave{} = \textasciigrave{}(Intercept)\_2019.75\textasciigrave{}"}
+\NormalTok{    ),}
+  \AttributeTok{test =} \StringTok{"F"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Linear hypothesis test
+
+Hypothesis:
+(Intercept)_2000.5` - Intercept)_2019.75` = 0
+
+Model 1: restricted model
+Model 2: y ~ 0 + (`(Intercept)_2000.5` + bc_fr_m1_2000.5 + diff_bc_fr_m1_2000.5 + 
+    `(Intercept)_2019.75` + bc_fr_m1_2019.75 + diff_bc_fr_m1_2019.75)
+
+  Res.Df    RSS Df Sum of Sq      F   Pr(>F)    
+1    155 23.387                                 
+2    154 20.579  1    2.8087 21.019 9.35e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# On rejette (H0) constance de la constante + climat des affaires en niveau}
+\NormalTok{car}\SpecialCharTok{::}\FunctionTok{linearHypothesis}\NormalTok{(}
+\NormalTok{  reg\_morc}\SpecialCharTok{$}\NormalTok{model,}
+  \FunctionTok{c}\NormalTok{(}
+    \StringTok{"\textasciigrave{}(Intercept)\_2000.5\textasciigrave{} = \textasciigrave{}(Intercept)\_2019.75\textasciigrave{}"}\NormalTok{,}
+    \StringTok{"bc\_fr\_m1\_2000.5 = bc\_fr\_m1\_2019.75"}
+\NormalTok{  ),}
+  \AttributeTok{test =} \StringTok{"F"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Linear hypothesis test
+
+Hypothesis:
+(Intercept)_2000.5` - Intercept)_2019.75` = 0
+bc_fr_m1_2000.5 - bc_fr_m1_2019.75 = 0
+
+Model 1: restricted model
+Model 2: y ~ 0 + (`(Intercept)_2000.5` + bc_fr_m1_2000.5 + diff_bc_fr_m1_2000.5 + 
+    `(Intercept)_2019.75` + bc_fr_m1_2019.75 + diff_bc_fr_m1_2019.75)
+
+  Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+1    156 23.405                                  
+2    154 20.579  2    2.8268 10.577 4.963e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Pour fixer le coefficient associé au climat des affaires en niveau}
+\NormalTok{reg\_morc2 }\OtherTok{\textless{}{-}} \FunctionTok{piece\_reg}\NormalTok{(reg\_lin, }\AttributeTok{fixed\_var =} \DecValTok{2}\NormalTok{)}
+\FunctionTok{coef}\NormalTok{(reg\_morc2}\SpecialCharTok{$}\NormalTok{model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ `(Intercept)_2000.5` `(Intercept)_2019.75`              bc_fr_m1 
+           0.57620106            0.31037798            0.02147121 
+ diff_bc_fr_m1_2000.5 diff_bc_fr_m1_2019.75 
+           0.03337132            0.05419116 
+\end{verbatim}
+
+La qualité prédictive du nouveau modèle peut s'apprécier de plusieurs
+façons, la plus classique étant la minimisation du critère d'information
+d'Akaike (AIC et fonction \texttt{AIC()}) ou la minimisation des erreurs
+de prévision hors échantillon (également appelées pseudo temps-réel,
+fonction \texttt{tvCoef::oos\_prev()}). Pour le calcul des erreurs de
+prévision hors échantillon, la méthodologie retenue consiste à calculer
+pour chaque date \(t\) la prévision obtenue à la date \(t+1\) en
+estimant le modèle à partir des observations disponibles jusqu'à la date
+\(t\) uniquement. Avec cette méthode, appelée le \emph{leave-one-out
+cross-validation}, on ne s'intéresse donc qu'à la qualité de prévision à
+l'horizon d'un trimestre (ce qui est le cas d'utilisation pour les
+modèles étudiés). Par ailleurs, minimiser l'AIC est asymptotiquement
+équivalent à minimiser ces erreurs de prévision hors échantillon
+\autocite{AIC}.
+
+Sur notre exemple, et par rapport à la régression supposant des
+coefficients constants dans le temps, la régression linéaire par
+morceaux permet de minimiser ces deux critères~:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# AIC minimisé :}
+\FunctionTok{AIC}\NormalTok{(reg\_morc}\SpecialCharTok{$}\NormalTok{model) }\SpecialCharTok{\textless{}} \FunctionTok{AIC}\NormalTok{(reg\_lin)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] TRUE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oos\_reg\_morc }\OtherTok{\textless{}{-}} \FunctionTok{oos\_prev}\NormalTok{(reg\_morc)}
+\NormalTok{oos\_lm }\OtherTok{\textless{}{-}} \FunctionTok{oos\_prev}\NormalTok{(reg\_lin)}
+\NormalTok{res\_oos }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(oos\_lm}\SpecialCharTok{$}\NormalTok{residuals, oos\_reg\_morc}\SpecialCharTok{$}\NormalTok{residuals)}
+\CommentTok{\# Les deux modèles étant équivalents avant la rupture,}
+\CommentTok{\# on n\textquotesingle{}étudie les prévisions qu\textquotesingle{}après celle{-}ci}
+\NormalTok{res\_oos }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(res\_oos, }\AttributeTok{start =} \DecValTok{2003}\NormalTok{)  }
+\CommentTok{\# erreurs de prévision hors échantillon minimisées}
+\FunctionTok{apply}\NormalTok{(res\_oos, }\DecValTok{2}\NormalTok{, rmse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+      oos_lm$residuals oos_reg_morc$residuals 
+             0.4310894              0.4045755 
+\end{verbatim}
+
+La figure~\ref{fig-prev-piecereg} montre les erreurs de prévision hors
+échantillon des deux modèles étudiés. Autour de la date de rupture, la
+régression linéaire par morceaux produit des prévisions peu réalistes
+(ce qui conduit à des erreurs élevées) : cela s'explique par le fait que
+très peu d'observations sont utilisées pour estimer les coefficients
+associés aux régresseurs après la rupture, les estimateurs sont donc peu
+précis (grande variance). Par ailleurs, lors d'un vrai exercice en temps
+réel, la date de rupture ne sera généralement connue et prise en compte
+que plusieurs trimestres après celle-ci : l'erreur est alors réduite.
+Pour les analyses automatiques hors échantillon, il faut donc faire
+attention aux valeurs prédites autour de la rupture !
+
+\begin{figure}
+
+\caption{\label{fig-prev-piecereg}Erreurs de prévision de la croissance
+du PIB à partir d'un modèle de régression linéaire et d'un modèle de
+régression linéaire par morceaux.}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/ffig-prev-piecereg-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2019 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\end{figure}%
+
+Comme indiqué dans la section~\ref{sec-test-baiperron}, l'inconvénient
+de cette méthode provient du choix de la date de rupture lorsque
+celle-ci n'est pas imposée par l'utilisateur. La
+figure~\ref{fig-temps-reel-bp} montre la date de la rupture détectée par
+la procédure de Bai et Perron en fonction de la date de fin d'estimation
+du modèle de régression linéaire : aucune rupture n'est détectée avant
+2009 ou lorsque le modèle est estimé en utilisant des données jusqu'en
+2012T3-2016T1. En fonction de la date de fin d'estimation, la rupture
+détectée automatiquement peut tout aussi bien être en 2000 qu'en 2001,
+2004 ou 2006. Même s'il est possible que cela n'ait que très peu d'effet
+sur les prévisions estimées en fin de période, l'interprétation faite du
+modèle sera vraisemblablement différente~!
+
+\begin{figure}
+
+\caption{\label{fig-temps-reel-bp}Date de rupture détectée par
+l'algorithme de Bai et Perron en fonction de la date de fin d'estimation
+du modèle.}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/ffig-temps-reel-bp-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2019 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\end{figure}%
+
+\subsection{De la régression mobile à la régression
+locale}\label{sec-reg-locale}
+
+La régression mobile est une des méthodes empiriques les plus simples
+pour savoir si les coefficients évoluent dans le temps. Celle-ci
+consiste à estimer des régressions sur des fenêtres glissantes et à
+observer la courbe des coefficients estimés. En reprenant notre exemple
+où les données commencent en 1980, avec une fenêtre fixe de 10 ans (par
+exemple), cela consiste à estimer une première régression entre 1980T1
+et 1989T4, une deuxième entre 1980T2 et 1990T1\ldots{} et une dernière
+entre 2010T1 et 2019T4. Sous R cela peut par exemple s'estimer en
+utilisant la fonction \texttt{roll::roll\_lm()} \autocite{roll} :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{roll\_lm }\OtherTok{\textless{}{-}}\NormalTok{ roll}\SpecialCharTok{::}\FunctionTok{roll\_lm}\NormalTok{(}
+  \AttributeTok{x =}\NormalTok{ data\_gdp[, }\FunctionTok{c}\NormalTok{(}\StringTok{"bc\_fr\_m1"}\NormalTok{, }\StringTok{"diff\_bc\_fr\_m1"}\NormalTok{)],}
+  \AttributeTok{y =}\NormalTok{ data\_gdp[, }\StringTok{"growth\_gdp"}\NormalTok{],}
+  \AttributeTok{width =} \DecValTok{4} \SpecialCharTok{*} \DecValTok{10}
+\NormalTok{)}
+\NormalTok{coef\_roll\_lm }\OtherTok{\textless{}{-}} \FunctionTok{ts}\NormalTok{(roll\_lm}\SpecialCharTok{$}\NormalTok{coefficients, }\AttributeTok{start =} \DecValTok{1980}\NormalTok{, }\AttributeTok{frequency =} \DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+La figure~\ref{fig-coef-rollreg} montre les coefficients estimés par
+cette régression mobile. Seuls ceux estimés sur le climat des affaires
+en différence montrent une rupture nette. Elle s'observe à partir de
+2005, lorsque plus de la moitié des points de la fenêtre (5 ans) sont
+estimés après la date de rupture détectée (2000T3).
+
+\begin{figure}
+
+\caption{\label{fig-coef-rollreg}Coefficients estimés par régression
+linéaire, régression par morceaux et régression mobile.}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/ffig-coef-rollreg-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : la régression mobile est estimée sur une fenêtre de
+10 ans. Les coefficients estimés en 2000T1 correspondent aux
+coefficients estimés entre 1980T2 et 2000T1.\\
+\textbf{Note} : les échelles sont différentes entre les différents
+graphiques.\\
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2019 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\end{figure}%
+
+La régression mobile a l'avantage d'être très simple mais repose sur
+plusieurs paramètres qui ont ici été fixés arbitrairement dont notamment
+:
+
+\begin{itemize}
+\item
+  La longueur de la fenêtre : elle doit être suffisamment large pour
+  avoir des bonnes estimations mais suffisamment courte afin de
+  permettre de prendre en compte les ruptures.
+\item
+  La date à laquelle les coefficients sont associés. Dans la fonction
+  \texttt{roll::roll\_lm()} ils sont associés à la dernière date de la
+  fenêtre : les coefficients de la date \(t\) correspondent à ceux
+  obtenus en utilisant les données jusqu'à la date \(t.\) Ils auraient
+  également pu être associés à la première date de la fenêtre ou encore
+  à son milieu (coefficients de la date \(t\) estimés en utilisant
+  autant d'observations avant et après \(t\)). Dans tous les cas une
+  stratégie doit être adoptée afin de gérer les observations manquantes
+  (dans notre exemple il s'agit donc d'estimer les coefficients avant
+  1989).
+\end{itemize}
+
+La régression locale permet, grâce à une modélisation plus poussée, de
+donner des solutions à ce problème. Dans ce papier nous détaillons la
+modélisation utilisée dans la fonction \texttt{tvReg::tvLM()} développée
+par \textcite{tvReg}\footnote{ D'autres packages sont disponibles pour
+  effectuer une régression locale, dont par exemple \texttt{locfit} de
+  \textcite{locfit}. Toutefois, nous avons ici privilégié le package
+  \texttt{tvReg} du fait de sa simplicité d'utilisation et parce qu'il
+  implémente également une fonction \texttt{tvReg::tvAR()} qui permet de
+  prendre en compte de manière optimale les retards de la variable
+  endogène (cas non étudié dans cette étude).}. On suppose ici que les
+coefficients \(\bf\alpha_t\) de l'équation~\ref{eq-mod-fixe} dépendent
+d'une variable aléatoire \(z_t\) : \(\bf\alpha_t=\alpha(z_t).\) Par
+défaut \(z_t=t/T\) avec \(T\) le nombre d'observations~: les
+coefficients dépendent donc d'une mesure normalisée du temps. On suppose
+que la fonction \(\alpha\) est localement constante
+(\(\alpha(z_t)\simeq \alpha(z)\), option par défaut) ou localement
+linéaire (\(\alpha(z_t)\simeq \alpha(z)+\alpha'(z)(z_t-z)\)),
+c'est-à-dire que pour toute date \(t\) on a pour toute date \(i\) proche
+de \(t\) : \(\alpha(z_i)\simeq\alpha(z_t)\) ou
+\(\alpha(z_i)\simeq\alpha(z_t)+\alpha'(z_t)(z_i-z_t).\) Cette
+approximation locale est justifiée par le théorème de Taylor.
+
+Pour chaque date \(t\), le coefficient \(\alpha_t=\alpha(z_t)\) est
+obtenu par moindres carrés pondérés. Lorsque \(\alpha\) est supposé
+localement constant il s'agit du système : \[
+\hat{\bf\alpha_t}=\hat{\alpha}(z_t)=\underset{\bf\theta_0}\argmin\sum_{i=1}^T\left[y_i-{\bf X_i}\bf\theta_0 \right]^2K_{b_t}(z_i-z_t).
+\] Lorsque \(\alpha\) est supposé localement linéaire il s'agit du
+système : \[
+(\hat{\alpha}(z_t), \hat{\alpha}'(z_t))=\underset{\bf \theta_0,\bf \theta_1}\argmin\sum_{i=1}^T\left[y_i-{\bf X_i}\bf\theta_0 - (z_i-z_t){\bf X_i}\bf\theta_1\right]^2K_{b_t}(z_i-z_t).
+\] Avec
+\(K_{b_t}(z_i-z_t)=\frac{1}{b_t}K\left(\frac{z_i-z_t}{b_t}\right)\) et
+\(K(\cdot)\) une fonction de noyau. La fonction \(K\) permet de pondérer
+les observations : pour l'estimation du coefficient à la date \(t\) on
+accorde généralement plus d'importance (i.e., un poids plus important)
+aux observations qui sont proches de \(t\) qu'à celles qui sont
+éloignées de \(t.\) C'est une fonction positive, paire et intégrable
+telle que \(\int_{-\infty}^{+\infty}K(u) \ud u=1.\) Trois noyaux sont
+disponibles dans la fonction \texttt{tvReg::tvLM()} :
+
+\begin{itemize}
+\item
+  Le cubique (\emph{triweight}, utilisé par défaut) : \[
+  K(u)=\frac{35}{32}\left(
+  1-
+  \left\lvert
+  u
+  \right\lvert^2
+  \right)^3\1_{[-1,1]}(u).
+  \]
+\item
+  Le noyau d'Epanechnikov (ou parabolique) : \[
+  K(u)=\frac{3}{4}\left(
+  1-
+  \left\lvert
+  u
+  \right\lvert^2
+  \right)\1_{[-1,1]}(u).
+  \]
+\item
+  Le noyau Gaussien : \[
+  K(u)=\frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2}u^2\right).
+  \]
+\end{itemize}
+
+Le paramètre \(b_t\) permet de calibrer la largeur de la fenêtre (i.e.,
+le nombre de points utilisés pour chaque estimation). Il est
+généralement supposé constant (\(b_t=b\)).
+
+Dans notre exemple de prévision du PIB, \(T=160\) observations sont
+utilisées. Avec \(z_t=t/T\) et indexant chaque observation entre 1 et
+\(T,\) la régression mobile sur 15 ans où l'on affecte le coefficient de
+la date \(t\) au milieu de la fenêtre d'estimation est donc retrouvée en
+utilisant le noyau uniforme \(K(u)=\1_{[-1,1]}(x)\) avec
+\(b_t=b=\frac{30}{160}.\) En effet, dans ce cas \(K(z_t-z_i)\ne0\) si et
+seulement si \(|t-i|\leq30\) : on utilise donc 30 observations (soit
+\(7,5\) ans) de chaque côté de \(t\) pour estimer le coefficient à la
+date \(t.\)
+
+Dans \texttt{tvReg}, le paramètre \(b\) est par défaut obtenu en
+minimisant une statistique de validation croisée dans l'intervalle
+\(\left[\frac{5}{T},20\right].\) Lorsque la valeur par défaut de \(b\)
+est plus grande que 1, toutes les observations sont utilisées pour
+l'estimation de chaque coefficient \(\bf\alpha_t.\) Plus \(b\) se
+rapproche de 1 plus on se rapproche du cas de la régression linéaire
+puisque dans ce cas les poids donnés par \(K\) tendent à être constants
+pour toutes les observations. En effet, dans ce cas, pour \(T=160,\)
+\(\frac{\max_u K(u)}{\min_u K(u)}\) est compris entre \(1,001\) et
+\(1,008\) pour les noyaux cubiques, paraboliques et gaussiens.
+
+Reprenons notre exemple de prévision du PIB avec une détection
+automatique de la fenêtre.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{reg\_loc }\OtherTok{\textless{}{-}}\NormalTok{ tvReg}\SpecialCharTok{::}\FunctionTok{tvLM}\NormalTok{(}
+  \AttributeTok{formula =}\NormalTok{ growth\_gdp }\SpecialCharTok{\textasciitilde{}}\NormalTok{ bc\_fr\_m1 }\SpecialCharTok{+}\NormalTok{ diff\_bc\_fr\_m1,}
+  \AttributeTok{data =}\NormalTok{ data\_gdp}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Calculating regression bandwidth... bw =  0.7481989 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(reg\_loc)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call: 
+tvReg::tvLM(formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1, 
+    data = data_gdp)
+
+Class:  tvlm 
+
+Summary of time-varying estimated coefficients: 
+================================================ 
+        (Intercept) bc_fr_m1 diff_bc_fr_m1
+Min.         0.3100  0.02022       0.03454
+1st Qu.      0.3711  0.02122       0.04146
+Median       0.4548  0.02202       0.04795
+Mean         0.4494  0.02194       0.04589
+3rd Qu.      0.5306  0.02274       0.05091
+Max.         0.5674  0.02303       0.05146
+
+Bandwidth:  0.7482
+Pseudo R-squared:  0.4499 
+\end{verbatim}
+
+La fenêtre estimée par défaut est de 0,75, c'est-à-dire que pour estimer
+le coefficient à la date \(t\) on utilise au plus 30 ans avant et après
+\(t\) : on utilise tous les points dans la majorité des cas. Cela
+explique le caractère très lisse des coefficients
+(figure~\ref{fig-coef-reg-mobile}). Bien qu'à n'importe quelle date
+entre 1990 et 2010, tous les points sont utilisés pour estimer le
+coefficient correspondant, les poids associés à ces points varient d'une
+date à l'autre, si bien que le coefficient estimé n'est pas constant sur
+cette période. Avec ce paramètre pour la fenêtre, les ruptures brutales
+sont donc difficiles à prendre en compte.
+
+\begin{figure}
+
+\caption{\label{fig-coef-reg-mobile}Coefficients estimés par régression
+linéaire, régression par morceaux et régression locale (avec
+\(b=0,75\)).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/ffig-coef-reg-mobile-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Note} : les échelles sont différentes entre les différents
+graphiques.\\
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2019 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\end{figure}%
+
+Un des inconvénients de la méthode de sélection automatique de la
+fenêtre est que le critère utilisé (statistique de validation croisée)
+est peu discriminant \autocite[voir notamment][]{Loader1999} : ce
+critère peut prendre des valeurs très proches pour différentes valeurs
+de la fenêtre alors que celle-ci a un impact fort sur l'interprétation
+du modèle ! Cela a également pour effet que la méthode est peu stable
+dans le temps (figure~\ref{fig-oos-bw}), ce qui augmente les sources de
+révisions des simulations hors échantillon, calculables en utilisant la
+fonction \texttt{oos\_prev()} :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oos\_reg\_loc }\OtherTok{\textless{}{-}} \FunctionTok{oos\_prev}\NormalTok{(reg\_loc)}
+\NormalTok{oos\_bw }\OtherTok{\textless{}{-}} \FunctionTok{ts}\NormalTok{(}\FunctionTok{sapply}\NormalTok{(oos\_reg\_loc}\SpecialCharTok{$}\NormalTok{model, }\StringTok{\textasciigrave{}}\AttributeTok{[[}\StringTok{\textasciigrave{}}\NormalTok{,}\StringTok{"bw"}\NormalTok{),}
+             \AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2019}\NormalTok{, }\DecValTok{4}\NormalTok{),}
+             \AttributeTok{frequency =} \DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}
+
+\caption{\label{fig-oos-bw}Fenêtre \(b\) détectée automatiquement en
+fonction de la date de fin d'estimation du modèle.}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/ffig-oos-bw-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2019 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\end{figure}%
+
+L'estimation en temps réel revient à utiliser une fonction de noyau
+tronquée : plus de points dans le passé que dans le futur sont utilisés
+pour estimer les derniers coefficients. C'est donc également une source
+de révision au fur et à mesure que des nouveaux points seront connus.
+Même si des méthodes optimales existent pour minimiser les erreurs
+d'estimation des coefficients en temps réel \autocite[voir par
+exemple][]{FengSchafer2021}, cela devrait ici avoir peu d'impact car un
+modèle très simple est ici utilisé pour estimer les coefficients
+(approximation de la fonction \(\alpha\) par une constante).
+
+Un autre inconvénient de ces méthodes est que tous les coefficients
+varient dans le temps alors que dans certains cas on peut supposer la
+relation constante.
+
+\subsection{Régression avec coefficients stochastiques (modélisation
+espace-état)}\label{sec-ssm}
+
+La modélisation espace-état est une méthodologie générale permettant de
+traiter un grand nombre de problèmes de séries temporelles. Dans cette
+approche, on suppose que tout modèle est déterminé par une série de
+vecteurs non observés \(\bf \alpha_1,\dots,\bf\alpha_T\) associés aux
+observations \(y_1,\dots,y_T\), la relation entre \(\alpha_t\) et
+\(y_t\) étant spécifiée par le modèle espace-état. Ces modèles sont
+largement décrits dans la littérature, notamment par
+\textcite{durbinkoopman}. Dans cette étude, nous nous placerons dans un
+cadre simplifié des modèles linéaires gaussiens appliqués aux
+régressions linéaires. Les modèles sont déterminés par un ensemble de
+deux équations : \[
+\begin{cases}
+y_t={\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
+\bf\alpha_{t+1}=\bf\alpha_t+\bf\eta_t,\quad&\bf\eta_t\sim\mathcal N(\bf 0,\bf\Sigma)
+\end{cases},\text{ avec }\eta_t\text{ et }\varepsilon_t\text{ indépendants.}
+\] La première équation est l'équation d'observation (\emph{observation
+equation}), la seconde l'équation d'état (\emph{state equation}) et
+\(\bf\alpha_t\) le vecteur d'états (\emph{state vector}).
+
+Dans cette étude, la matrice de variance-covariance \(\bf\Sigma\) est
+supposée diagonale : la dynamique d'évolution des coefficients d'une
+variable est donc indépendante de la dynamique d'évolution des autres
+variables. Lorsque des contraintes entre les différents coefficients
+existent, des spécifications différentes de la matrice de
+variance-covariance \(\bf\Sigma\) peuvent être faites : c'est par
+exemple ce qui a été fait par \textcite{abs2006} pour estimer des
+coefficients jours ouvrables variant dans le temps. Chaque coefficient
+suivant une marche aléatoire, nous appelons cette méthode \emph{modèle
+de régression avec coefficients stochastiques}.
+
+On retrouve le cas de la régression linéaire lorsque \(\bf\Sigma=\bf 0\)
+puisque dans ce cas tous les \(\alpha_t\) sont égaux.
+
+Ces modèles sont implémentés dans la fonction \texttt{tvCoef::ssm\_lm()}
+qui prend en entrée un modèle de régression linéaire. Elle s'appuie sur
+le package \texttt{rjd3sts} \autocite{rjd3sts} qui permet d'implémenter
+très facilement les modèles espace-état sans devoir écrire explicitement
+le modèle. Par défaut les variances du vecteur d'états (\(\bf \Sigma\))
+ne sont pas estimées et sont fixées à 0 : on retrouve donc les
+coefficients estimés par régression linéaire.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ssm }\OtherTok{\textless{}{-}} \FunctionTok{ssm\_lm}\NormalTok{(reg\_lin)}
+\FunctionTok{summary}\NormalTok{(ssm)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Summary of time-varying estimated coefficients (smoothing): 
+        (Intercept) bc_fr_m1 diff_bc_fr_m1      noise
+Min.         0.4472  0.02047       0.04423 -1.301e+00
+1st Qu.      0.4472  0.02047       0.04423 -2.388e-01
+Median       0.4472  0.02047       0.04423  2.808e-02
+Mean         0.4472  0.02047       0.04423  2.933e-16
+3rd Qu.      0.4472  0.02047       0.04423  2.449e-01
+Max.         0.4472  0.02047       0.04423  9.429e-01
+\end{verbatim}
+
+L'estimation des hyperparamètres (variances des bruits blancs \(\eta_t\)
+et \(\varepsilon_t\)) est faite par maximum de vraisemblance, et
+différentes méthodes existent pour initialiser les modèles (calculer
+\(\bf \alpha_1\)). Pour plus de détails voir par exemple
+\textcite{durbinkoopman}. Le filtre de Kalman permet ensuite de calculer
+tous les coefficients. Parmi les paramètres calculés, les deux
+principaux sont :
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Les états lissés (\emph{smoothed states})
+  \(\E{\alpha_t|y_1,\dots,y_n}\) : il s'agit de l'estimation des états
+  (\(\bf\alpha_t\)) en utilisant toute l'information disponible. Dans le
+  cadre de la régression linéaire, les états lissés sont donc constants
+  sur toutes les dates et correspondent aux coefficients estimés en
+  utilisant l'ensemble des données disponibles :
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{window}\NormalTok{(ssm}\SpecialCharTok{$}\NormalTok{smoothed\_states, }\AttributeTok{start =} \DecValTok{2019}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+        (Intercept)   bc_fr_m1 diff_bc_fr_m1       noise
+2019 Q1   0.4472074 0.02047286    0.04422754  0.24369089
+2019 Q2   0.4472074 0.02047286    0.04422754 -0.04985071
+2019 Q3   0.4472074 0.02047286    0.04422754 -0.42305103
+2019 Q4   0.4472074 0.02047286    0.04422754 -1.00671428
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Les états filtrés (\emph{filtered states})
+  \(\E{\alpha_t|y_1,\dots,y_{t-1}}\) : il s'agit de l'estimation des
+  états (\(\bf\alpha_t\)) en utilisant l'information disponible jusqu'à
+  la date précédente. Dans le cadre de la régression linéaire, cela
+  correspond aux coefficients estimés hors échantillon : la valeur des
+  états filtrés en 2010T2 correspond aux coefficients estimés en
+  utilisant les données jusqu'au 2010T1. Ils permettent donc d'avoir une
+  estimation des prévisions hors échantillon du modèle.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{round}\NormalTok{(}\FunctionTok{window}\NormalTok{(ssm}\SpecialCharTok{$}\NormalTok{filtering\_states, }\AttributeTok{start =} \FunctionTok{c}\NormalTok{(}\DecValTok{2010}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2010}\NormalTok{, }\DecValTok{2}\NormalTok{)), }\DecValTok{6}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+        (Intercept) bc_fr_m1 diff_bc_fr_m1 noise
+2010 Q2    0.493822 0.021962      0.049506     0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{round}\NormalTok{(}\FunctionTok{coef}\NormalTok{(}\FunctionTok{dynlm}\NormalTok{(}
+  \AttributeTok{formula =}\NormalTok{ growth\_gdp }\SpecialCharTok{\textasciitilde{}}\NormalTok{ bc\_fr\_m1 }\SpecialCharTok{+}\NormalTok{ diff\_bc\_fr\_m1,}
+  \AttributeTok{data =} \FunctionTok{window}\NormalTok{(data\_gdp, }\AttributeTok{start =} \DecValTok{1980}\NormalTok{, }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2010}\NormalTok{,}\DecValTok{1}\NormalTok{))}
+\NormalTok{)), }\DecValTok{6}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  (Intercept)      bc_fr_m1 diff_bc_fr_m1 
+     0.493822      0.021962      0.049506 
+\end{verbatim}
+
+Lorsque les variances sont estimées, les états filtrés ne correspondent
+pas exactement à des estimations hors échantillon car les
+hyperparamètres restent fixés (variances \(\bf\Sigma\) et
+initialisation). Les estimations hors échantillon peuvent être calculées
+en utilisant la fonction \texttt{tvCoef::ssm\_lm\_oos()}.
+
+Pour faciliter l'estimation des variances \(\bf\Sigma,\) le modèle est
+souvent reparamétré : \[
+\begin{cases}
+y_t={\bf X_t}\bf\alpha_t+\varepsilon_t,\quad&\varepsilon_t\sim\mathcal N(0,\sigma^2)\\
+\bf\alpha_{t+1}=\bf\alpha_t+\bf\eta_t,\quad&\bf\eta_t\sim\mathcal N(\bf 0,\sigma^2\bf Q)
+\end{cases},\text{ avec }\eta_t\text{ et }\varepsilon_t\text{ indépendants.}
+\] Les variances sont donc définies à un facteur multiplicatif près et
+une estimation en deux étapes est faite : la vraisemblance est dite
+\emph{concentrée}. C'est ce qui est utilisé par défaut dans
+\texttt{tvCoef::ssm\_lm()}. Dans notre exemple, l'erreur standard de la
+régression (\emph{residual standar error}) peut se calculer de la façon
+suivante :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sqrt}\NormalTok{(ssm}\SpecialCharTok{$}\NormalTok{parameters}\SpecialCharTok{$}\NormalTok{parameters }\SpecialCharTok{*}\NormalTok{ ssm}\SpecialCharTok{$}\NormalTok{parameters}\SpecialCharTok{$}\NormalTok{scaling)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+(Intercept).var       noise.var 
+      0.0000000       0.3888042 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(reg\_lin)}\SpecialCharTok{$}\NormalTok{sigma}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.3888042
+\end{verbatim}
+
+Afin d'estimer les variances associées à l'équation d'état, il faut
+utiliser les paramètres \texttt{fixed\_var\_intercept\ =\ FALSE} et
+\texttt{fixed\_var\_trend\ =\ FALSE}. Même si la valeur des variances
+(\texttt{var\_intercept} et \texttt{var\_variables} qui valent 0 par
+défaut) n'aura aucun effet sur les variances finales estimées, il est
+parfois nécessaire de modifier ces valeurs afin d'éviter une erreur dans
+l'optimisation. Sur notre modèle, l'optimisation conduit à garder fixe
+le coefficient associé au climat des affaires en niveau (variance nulle)
+mais considère que les autres variables varient dans le temps~:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ssm }\OtherTok{\textless{}{-}} \FunctionTok{ssm\_lm}\NormalTok{(reg\_lin, }
+              \AttributeTok{fixed\_var\_intercept =} \ConstantTok{FALSE}\NormalTok{, }
+              \AttributeTok{fixed\_var\_variables =} \ConstantTok{FALSE}\NormalTok{,}
+              \AttributeTok{var\_intercept =} \FloatTok{0.01}\NormalTok{,}
+              \AttributeTok{var\_variables =} \FloatTok{0.01}\NormalTok{)}
+\FunctionTok{sqrt}\NormalTok{(ssm}\SpecialCharTok{$}\NormalTok{parameters}\SpecialCharTok{$}\NormalTok{parameters }\SpecialCharTok{*}\NormalTok{ ssm}\SpecialCharTok{$}\NormalTok{parameters}\SpecialCharTok{$}\NormalTok{scaling)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  (Intercept).var      bc_fr_m1.var diff_bc_fr_m1.var         noise.var 
+      0.019311187       0.000000000       0.008051459       0.352041285 
+\end{verbatim}
+
+\begin{remark}
+Dans la version actuelle de \texttt{tvCoef}, les retards de la variable
+endogène (à prévoir) ne sont pas modélisés correctement. En effet, dans
+ce cas il faudrait utiliser une modélisation différente afin de prendre
+en compte la relation entre la variable endogène et les retards.
+\end{remark}
+
+La figure~\ref{fig-coef-ssm} montre les coefficients estimés avec toutes
+les méthodes présentées dans ce papier. Pour toutes les méthodes, le
+coefficient du climat des affaires en niveau est stable dans le temps
+(coefficients estimés compris entre 0,020 et 0,023, même pour la
+régression locale les différences ne sont pas significatives). En
+revanche, les résultats de la régression avec coefficients stochastiques
+sont sensiblement différents pour le coefficient associé à la variation
+du climat des affaires, avec des périodes où le coefficient est plus
+faible que pour les autres méthodes (avant 1983, entre 1995 et 1999 et
+après 2011) et d'autres où il est plus élevé (notamment pendant la crise
+financière).
+
+\begin{figure}
+
+\caption{\label{fig-coef-ssm}Coefficients estimés par régression
+linéaire, régression par morceaux, régression locale (avec \(b=0,75\))
+et régression avec coefficients stochastiques (modélisation
+espace-état).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/ffig-coef-ssm-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Note} : les échelles sont différentes entre les différents
+graphiques.\\
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2019 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\end{figure}%
+
+La table~\ref{tbl-res-model-pib} compare la qualité prédictive des
+différents modèles dans l'échantillon (en utilisant toutes les données
+pour estimer les paramètres des modèles) et hors échantillon
+(reproduction du processus de prévision en estimant de manière récursive
+les modèles jusqu'à la date \(t\) pour calculer les prévisions à la date
+\(t+1\)). C'est la régression avec coefficients stochastiques
+(modélisation espace-état) qui minimise les erreurs de prévision (dans
+et hors échantillon), suivie de la régression par morceaux. La
+régression locale a une erreur hors échantillon plus élevée notamment du
+fait des instabilités sur l'estimation de la fenêtre. Le test de
+Diebold-Mariano (voir notamment \textcite{DMtest}), implémenté dans la
+fonction \texttt{forecast::dm.test()} \autocite{forecastR}, permet de
+tester si cette différence est significative. Dans et hors échantillon,
+la régression avec coefficients stochastiques a des erreurs de prévision
+significativement plus petites que la régression linéaire (p-valeurs de
+0,00 et 0,05). Dans l'échantillon elles sont également significativement
+plus petites que celles de la régression par morceaux (p-valeur de 0,00)
+mais la différence n'est pas significative hors échantillon (p-valeur de
+0,09). Sur les périodes récentes, du fait du coefficient sur le climat
+des affaires en différence, l'interprétation économique et les
+prévisions sont différentes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oos\_ssm }\OtherTok{\textless{}{-}} \FunctionTok{ssm\_lm\_oos}\NormalTok{(reg\_lin, }\AttributeTok{fixed\_var\_intercept =} \ConstantTok{FALSE}\NormalTok{, }
+                      \AttributeTok{fixed\_var\_variables =} \ConstantTok{FALSE}\NormalTok{,}
+                      \AttributeTok{date =} \DecValTok{70}\NormalTok{)}
+
+\NormalTok{res\_is }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(}
+  \FunctionTok{ts}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(reg\_lin), }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2019}\NormalTok{,}\DecValTok{4}\NormalTok{), }\AttributeTok{frequency =} \DecValTok{4}\NormalTok{),}
+  \FunctionTok{residuals}\NormalTok{(reg\_morc),}
+  \FunctionTok{ts}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(reg\_loc), }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2019}\NormalTok{,}\DecValTok{4}\NormalTok{), }\AttributeTok{frequency =} \DecValTok{4}\NormalTok{),}
+  \FunctionTok{residuals}\NormalTok{(ssm)[, }\StringTok{"smoothed"}\NormalTok{]}
+\NormalTok{)}
+\NormalTok{res\_oos }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(}
+\NormalTok{  oos\_lm}\SpecialCharTok{$}\NormalTok{residuals,}
+\NormalTok{  oos\_reg\_morc}\SpecialCharTok{$}\NormalTok{residuals,}
+  \FunctionTok{ts}\NormalTok{(oos\_reg\_loc}\SpecialCharTok{$}\NormalTok{residuals, }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2019}\NormalTok{,}\DecValTok{4}\NormalTok{), }\AttributeTok{frequency =} \DecValTok{4}\NormalTok{),}
+\NormalTok{  oos\_ssm}\SpecialCharTok{$}\NormalTok{oos\_noise}
+\NormalTok{)}
+\NormalTok{res\_oos }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(res\_oos, }\AttributeTok{start =} \DecValTok{2003}\NormalTok{)}
+\CommentTok{\# (H0) : Reg. coef stochastique meilleure que modèle linéaire}
+\NormalTok{forecast}\SpecialCharTok{::}\FunctionTok{dm.test}\NormalTok{(res\_is[, }\DecValTok{1}\NormalTok{], res\_is[, }\DecValTok{4}\NormalTok{], }\StringTok{"greater"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+    Diebold-Mariano Test
+
+data:  res_is[, 1]res_is[, 4]
+DM = 3.2675, Forecast horizon = 1, Loss function power = 2, p-value =
+0.0006646
+alternative hypothesis: greater
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# (H0) : Reg. coef stochastique meilleure que régression par morceaux}
+\NormalTok{forecast}\SpecialCharTok{::}\FunctionTok{dm.test}\NormalTok{(res\_is[, }\DecValTok{2}\NormalTok{], res\_is[, }\DecValTok{4}\NormalTok{], }\StringTok{"greater"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+    Diebold-Mariano Test
+
+data:  res_is[, 2]res_is[, 4]
+DM = 3.0553, Forecast horizon = 1, Loss function power = 2, p-value =
+0.001319
+alternative hypothesis: greater
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# (H0) : Reg. coef stochastique meilleure que modèle linéaire}
+\NormalTok{forecast}\SpecialCharTok{::}\FunctionTok{dm.test}\NormalTok{(res\_oos[, }\DecValTok{1}\NormalTok{], res\_oos[, }\DecValTok{4}\NormalTok{], }\StringTok{"greater"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+    Diebold-Mariano Test
+
+data:  res_oos[, 1]res_oos[, 4]
+DM = 1.6199, Forecast horizon = 1, Loss function power = 2, p-value =
+0.05498
+alternative hypothesis: greater
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# (H0) : Reg. coef stochastique meilleure que régression par morceaux}
+\NormalTok{forecast}\SpecialCharTok{::}\FunctionTok{dm.test}\NormalTok{(res\_oos[, }\DecValTok{2}\NormalTok{], res\_oos[, }\DecValTok{4}\NormalTok{], }\StringTok{"greater"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+    Diebold-Mariano Test
+
+data:  res_oos[, 2]res_oos[, 4]
+DM = 1.3245, Forecast horizon = 1, Loss function power = 2, p-value =
+0.09492
+alternative hypothesis: greater
+\end{verbatim}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6000}}
+  >{\centering\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2105}}
+  >{\centering\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.1895}}@{}}
+
+\caption{\label{tbl-res-model-pib}Erreurs quadratiques moyennes des
+erreurs de prévision entre les différentes méthodes.}
+
+\tabularnewline
+
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Dans l'échantillon
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Hors échantillon
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Régression linéaire & 0,39 & 0,43 \\
+Régression par morceaux & 0,36 & 0,40 \\
+Régression locale & 0,36 & 0,42 \\
+Régression avec coefficients stochastiques (espace-état) & 0,34 &
+0,39 \\
+
+\end{longtable}
+
+{\footnotesize\raggedright
+
+\textbf{Note} : les prévisions dans l'échantillon sont calculées en
+estimant les modèles à partir des données disponibles entre 1980T1 et
+2019T4. Les prévisions hors échantillon sont calculées à partir de
+2003T1 : la première prévision (2003T1) correspond à celle que l'on
+aurait eu en estimant les modèles à partir des données disponibles
+jusqu'en 2002T4 (trimestre précédente).\\
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2019 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\subsection{Prise en compte de la période du COVID-19 et
+prévision}\label{prise-en-compte-de-la-puxe9riode-du-covid-19-et-pruxe9vision}
+
+Dans les sections précédentes, les modèles ont été estimés jusqu'en
+2019T4 dans le but de simplifier la présentation des modèles. Toutefois,
+si l'on veut effectuer de la prévision sur les périodes récentes, il est
+indispensable de prendre en compte la période du COVID-19. Cela se fait
+généralement en ajoutant, dans le modèle de prévision, des variables
+explicatives modélisant les chocs de cette période. La méthode la plus
+simple consiste à ajouter des indicatrices sur les trimestres concernés
+(ici l'année 2020 et le trimestre 2021T3)\footnote{ D'autres
+  spécifications pourraient être utilisées, comme par exemple l'ajout
+  d'indicatrices sur l'ensemble des années 2020 et 2021 ou uniquement
+  sur l'année 2020. Ajouter ou retirer d'autres indicatrices peut
+  sensiblement changer les résultats des coefficients estimés sur la fin
+  de la période, notamment du fait du faible recul temporel que l'on a
+  après le COVID-19 : le choix dépend aussi des hypothèses économiques
+  que l'on fait sur le modèle utilisé (quels sont les trimestres qui
+  sont atypiques et ceux dont les évolutions relèvent de la conjoncture
+  ?). Ici nous avons choisi de n'utiliser des indicatrices que pour
+  l'année 2020 et le trimestre 2021T3 car les indicatrices des autres
+  trimestres de 2021 ne sont pas significatives, que l'année 2020 est
+  fortement heurtée par la crise du COVID-19 et que la forte croissance
+  de 2021T3 peut s'expliquer par un contre-coup des mesures de
+  confinement de 2021T2.}~:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ind }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(}
+  \FunctionTok{time}\NormalTok{(gdp) }\SpecialCharTok{==} \DecValTok{2020}\NormalTok{, }\FunctionTok{time}\NormalTok{(gdp) }\SpecialCharTok{==} \FloatTok{2020.25}\NormalTok{, }
+  \FunctionTok{time}\NormalTok{(gdp) }\SpecialCharTok{==} \FloatTok{2020.5}\NormalTok{, }\FunctionTok{time}\NormalTok{(gdp) }\SpecialCharTok{==} \FloatTok{2020.75}\NormalTok{,}
+  \FunctionTok{time}\NormalTok{(gdp) }\SpecialCharTok{==} \FloatTok{2021.5}
+\NormalTok{)}
+\NormalTok{ind }\OtherTok{\textless{}{-}} \FunctionTok{ts}\NormalTok{(}\FunctionTok{apply}\NormalTok{(ind,}\DecValTok{2}\NormalTok{, as.numeric), }\AttributeTok{start =} \FunctionTok{start}\NormalTok{(gdp), }\AttributeTok{frequency =} \DecValTok{4}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(ind) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{sprintf}\NormalTok{(}\StringTok{"ind2020T\%i"}\NormalTok{, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{), }\StringTok{"ind2021T3"}\NormalTok{)}
+\NormalTok{data\_covid }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(gdp, ind)}
+\FunctionTok{colnames}\NormalTok{(data\_covid) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(gdp), }\FunctionTok{colnames}\NormalTok{(ind))}
+\CommentTok{\# Renormalisation à 0 du climat des affaires}
+\NormalTok{bc\_variables }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"bc\_fr\_m1"}\NormalTok{, }\StringTok{"bc\_fr\_m2"}\NormalTok{, }\StringTok{"bc\_fr\_m3"}\NormalTok{)}
+\NormalTok{data\_covid[, bc\_variables] }\OtherTok{\textless{}{-}}\NormalTok{ data\_covid[, bc\_variables] }\SpecialCharTok{{-}} \DecValTok{100}
+
+\NormalTok{reg\_lin\_covid }\OtherTok{\textless{}{-}} \FunctionTok{dynlm}\NormalTok{(}
+  \AttributeTok{formula =}\NormalTok{ growth\_gdp }\SpecialCharTok{\textasciitilde{}}\NormalTok{ bc\_fr\_m1 }\SpecialCharTok{+}\NormalTok{ diff\_bc\_fr\_m1 }\SpecialCharTok{+}
+\NormalTok{    ind2020T1 }\SpecialCharTok{+}\NormalTok{ ind2020T2 }\SpecialCharTok{+}\NormalTok{ ind2020T3 }\SpecialCharTok{+}\NormalTok{ ind2020T4 }\SpecialCharTok{+} 
+\NormalTok{    ind2021T3,}
+  \AttributeTok{data =} \FunctionTok{window}\NormalTok{(data\_covid, }\AttributeTok{start =} \DecValTok{1980}\NormalTok{)}
+\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(reg\_lin\_covid)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Time series regression with "ts" data:
+Start = 1980(1), End = 2023(4)
+
+Call:
+dynlm(formula = growth_gdp ~ bc_fr_m1 + diff_bc_fr_m1 + ind2020T1 + 
+    ind2020T2 + ind2020T3 + ind2020T4 + ind2021T3, data = window(data_covid, 
+    start = 1980))
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.28405 -0.24352  0.02404  0.24979  0.95442 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    0.434848   0.029527  14.727  < 2e-16 ***
+bc_fr_m1       0.019944   0.003101   6.431 1.26e-09 ***
+diff_bc_fr_m1  0.045651   0.007251   6.296 2.57e-09 ***
+ind2020T1     -5.860936   0.387628 -15.120  < 2e-16 ***
+ind2020T2     -9.849472   0.575971 -17.101  < 2e-16 ***
+ind2020T3     15.297386   0.503486  30.383  < 2e-16 ***
+ind2020T4     -0.839406   0.388384  -2.161 0.032090 *  
+ind2021T3      1.525800   0.405567   3.762 0.000232 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.386 on 168 degrees of freedom
+  (0 observation effacée parce que manquante)
+Multiple R-squared:  0.9551,    Adjusted R-squared:  0.9532 
+F-statistic: 510.1 on 7 and 168 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+Pour la construction des autres modèles, nous gardons certains
+paramètres estimés en utilisant les données avant la période du
+COVID-19, cette dernière pouvant biaiser les résultats. Ainsi~:
+
+\begin{itemize}
+\tightlist
+\item
+  Pour la régression par morceaux, la date de rupture retenue est
+  toujours 2000T3 (contre 2017T2 en utilisant les données après 2020).
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{bp\_covid }\OtherTok{\textless{}{-}} \FunctionTok{breakpoints}\NormalTok{(reg\_lin\_covid)}
+\FunctionTok{c}\NormalTok{(}\FunctionTok{breakdates}\NormalTok{(bp), }\FunctionTok{breakdates}\NormalTok{(bp\_covid))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 2000.50 2017.25
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  Pour la régression locale, la fenêtre utilisée est 0,75 (proche de la
+  fenêtre de 0,71 en utilisant les données après 2020).
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{bw\_covid }\OtherTok{\textless{}{-}} \FunctionTok{bw}\NormalTok{(}\FunctionTok{window}\NormalTok{(}
+\NormalTok{  data\_covid[, }\FunctionTok{c}\NormalTok{(}\StringTok{"bc\_fr\_m1"}\NormalTok{, }\StringTok{"diff\_bc\_fr\_m1"}\NormalTok{,}
+                 \StringTok{"ind2020T1"}\NormalTok{, }\StringTok{"ind2020T2"}\NormalTok{, }
+                 \StringTok{"ind2020T3"}\NormalTok{, }\StringTok{"ind2020T4"}\NormalTok{, }
+                 \StringTok{"ind2021T3"}\NormalTok{)], }\AttributeTok{start =} \DecValTok{1980}\NormalTok{, }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2023}\NormalTok{, }\DecValTok{4}\NormalTok{)), }
+  \FunctionTok{window}\NormalTok{(data\_covid[, }\StringTok{"growth\_gdp"}\NormalTok{], }\AttributeTok{start =} \DecValTok{1980}\NormalTok{, }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2023}\NormalTok{, }\DecValTok{4}\NormalTok{))}
+\NormalTok{)}
+\FunctionTok{c}\NormalTok{(reg\_loc}\SpecialCharTok{$}\NormalTok{bw, bw\_covid)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.7481989 0.7068480
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  Pour la régression avec coefficients stochastiques (modélisation
+  espace-état), les coefficients associés aux indicatrices sont fixés
+  (variance nulle, sinon ils sont considérés comme évoluant dans le
+  temps) et le coefficient du climat des affaires en niveau est toujours
+  considéré comme fixe. Toutefois les variances des autres coefficients
+  sont de nouveau estimées.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ssm\_covid }\OtherTok{\textless{}{-}} \FunctionTok{ssm\_lm}\NormalTok{(}
+\NormalTok{  reg\_lin\_covid, }
+  \AttributeTok{fixed\_var\_intercept =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{fixed\_var\_variables =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{var\_intercept =} \FloatTok{0.01}\NormalTok{,}
+  \AttributeTok{var\_variables =} \FloatTok{0.01}
+\NormalTok{)}
+\FunctionTok{sqrt}\NormalTok{(ssm\_covid}\SpecialCharTok{$}\NormalTok{parameters}\SpecialCharTok{$}\NormalTok{parameters }\SpecialCharTok{*}\NormalTok{ ssm\_covid}\SpecialCharTok{$}\NormalTok{parameters}\SpecialCharTok{$}\NormalTok{scaling)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  (Intercept).var      bc_fr_m1.var diff_bc_fr_m1.var     ind2020T1.var 
+     1.860970e-02      0.000000e+00      6.833696e-03      2.615608e+06 
+    ind2020T2.var     ind2020T3.var     ind2020T4.var     ind2021T3.var 
+     8.891591e-01      0.000000e+00      2.092569e-01      5.071114e-01 
+        noise.var 
+     3.509538e-01 
+\end{verbatim}
+
+Les modèles sont donc estimés avec le code suivant :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{reg\_morc\_covid }\OtherTok{\textless{}{-}} \FunctionTok{piece\_reg}\NormalTok{(}
+\NormalTok{  reg\_lin\_covid, }\AttributeTok{break\_dates =} \FloatTok{2000.5}\NormalTok{,}
+  \CommentTok{\# Les indicatrices ne sont pas découpées}
+  \AttributeTok{fixed\_var =} \DecValTok{4}\SpecialCharTok{:}\DecValTok{8}\NormalTok{)}
+\NormalTok{reg\_loc\_covid }\OtherTok{\textless{}{-}}\NormalTok{ tvReg}\SpecialCharTok{::}\FunctionTok{tvLM}\NormalTok{(}
+  \AttributeTok{formula =}\NormalTok{ growth\_gdp }\SpecialCharTok{\textasciitilde{}}\NormalTok{ bc\_fr\_m1 }\SpecialCharTok{+}\NormalTok{ diff\_bc\_fr\_m1 }\SpecialCharTok{+}
+\NormalTok{    ind2020T1 }\SpecialCharTok{+}\NormalTok{ ind2020T2 }\SpecialCharTok{+}\NormalTok{ ind2020T3 }\SpecialCharTok{+}\NormalTok{ ind2020T4 }\SpecialCharTok{+}\NormalTok{ ind2021T3,}
+  \AttributeTok{data =} \FunctionTok{window}\NormalTok{(data\_covid, }\AttributeTok{start =} \DecValTok{1980}\NormalTok{),}
+  \CommentTok{\# On reprend l\textquotesingle{}ancienne fenêtre}
+  \AttributeTok{bw =}\NormalTok{ reg\_loc}\SpecialCharTok{$}\NormalTok{bw }
+\NormalTok{)}
+\NormalTok{ssm\_covid }\OtherTok{\textless{}{-}} \FunctionTok{ssm\_lm}\NormalTok{(}
+\NormalTok{  reg\_lin\_covid, }
+  \AttributeTok{fixed\_var\_intercept =} \ConstantTok{FALSE}\NormalTok{,}
+  \CommentTok{\# On fixe les coefficients des indicatrices}
+  \CommentTok{\# et le coefficient du climat des affaires en niveau }
+  \CommentTok{\# (sinon il varie dans le temps)}
+  \AttributeTok{fixed\_var\_variables =} \FunctionTok{c}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{), }\FunctionTok{rep}\NormalTok{(}\ConstantTok{TRUE}\NormalTok{, }\DecValTok{5}\NormalTok{)),}
+  \AttributeTok{var\_intercept =} \FloatTok{0.01}\NormalTok{,}
+  \AttributeTok{var\_variables =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{0.01}\NormalTok{, }\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\NormalTok{)}
+
+\NormalTok{coef\_morc\_covid }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(reg\_morc\_covid)}
+\NormalTok{coef\_lin\_covid }\OtherTok{\textless{}{-}} \FunctionTok{ts}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\FunctionTok{coef}\NormalTok{(reg\_lin\_covid), }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{), }
+               \AttributeTok{start =} \FunctionTok{start}\NormalTok{(coef\_morc\_covid),}
+               \AttributeTok{end =} \FunctionTok{end}\NormalTok{(coef\_morc\_covid),}
+               \AttributeTok{frequency =} \FunctionTok{frequency}\NormalTok{(coef\_morc\_covid))}
+\FunctionTok{colnames}\NormalTok{(coef\_lin\_covid) }\OtherTok{\textless{}{-}} \FunctionTok{names}\NormalTok{(}\FunctionTok{coef}\NormalTok{(reg\_lin\_covid))}
+\NormalTok{coef\_reg\_loc\_covid }\OtherTok{\textless{}{-}} \FunctionTok{ts}\NormalTok{(}\FunctionTok{coef}\NormalTok{(reg\_loc\_covid), }\AttributeTok{start =} \DecValTok{1980}\NormalTok{, }\AttributeTok{frequency =} \DecValTok{4}\NormalTok{)}
+\NormalTok{coef\_ssm\_covid }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(ssm\_covid)}
+\end{Highlighting}
+\end{Shaded}
+
+La figure~\ref{fig-coef-covid} montre les coefficients estimés en
+prenant en compte les données jusqu'au 2023T4. L'analyse est similaire à
+celle de la figure~\ref{fig-coef-ssm} sauf pour la régression avec
+coefficients stochastiques sur les dernières années : les variations du
+climat des affaires ayant un impact sur la prévision du PIB plus marqué
+après 2020, le coefficient associé est plus élevé après cette date mais
+aussi lors des années précédentes afin de lisser le passage à ce nouvel
+état de l'économie.
+
+\begin{figure}
+
+\caption{\label{fig-coef-covid}Coefficients estimés (hors indicatrices)
+par régression linéaire, régression par morceaux, régression locale
+(avec \(b=0,75\)) et régression avec coefficients stochastiques
+(modélisation espace-état) en utilisant les données jusqu'en 2023T4.}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/ffig-coef-covid-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Note} : les échelles sont différentes entre les différents
+graphiques.\\
+\textbf{Source} : Insee (PIB et climat des affaires France entre 1980 et
+2023 téléchargés le 15 mars 2024), calculs de l'auteur.
+
+}
+
+\end{figure}%
+
+Dans les données ici utilisées, le taux de croissance trimestriel du PIB
+est connu jusqu'au 2023T4 alors que les variables explicatives sont
+connues jusqu'au 2024T1 :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tail}\NormalTok{(data\_covid[, }\FunctionTok{c}\NormalTok{(}\StringTok{"growth\_gdp"}\NormalTok{, }\StringTok{"bc\_fr\_m1"}\NormalTok{, }\StringTok{"diff\_bc\_fr\_m1"}\NormalTok{)], }\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+        growth_gdp bc_fr_m1 diff_bc_fr_m1
+2023 Q4 0.05240066     -1.8          -1.9
+2024 Q1         NA     -1.4           0.4
+\end{verbatim}
+
+Il est donc possible d'effectuer une prévision sur le dernier trimestre
+et nous allons maintenant montrer comment procéder. Le plus simple est
+d'effectuer une somme pondérée des variables explicatives avec les
+coefficients estimés. Dans cet exemple, les variables explicatives sont
+directement calculées dans la base de données en entrée et sont donc
+faciles à extraire. Lorsque ce n'est pas le cas (par exemple lorsque des
+variables retardées ou en différence sont directement calculées dans la
+formule de la fonction \texttt{dynlm()}\footnote{ Ce qui aurait pu être
+  le cas si le modèle avait été estimé en utilisant le paramètre
+  \texttt{formula\ =\ growth\_gdp\ \textasciitilde{}\ bc\_fr\_m1\ +\ diff(bc\_fr\_m1,\ 1)}
+  dans la fonction \texttt{dynlm()}.}) il faut alors recalculer toutes
+les variables explicatives. La fonction
+\texttt{tvCoef::full\_exogeneous\_matrix()} peut aider à effectuer cette
+tâche et ajoute également le régresseur associé à la constante (égal à
+1) :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data\_prev }\OtherTok{\textless{}{-}} \FunctionTok{full\_exogeneous\_matrix}\NormalTok{(reg\_lin\_covid)}
+\CommentTok{\# On extrait le dernier trimestre :}
+\NormalTok{der\_period }\OtherTok{\textless{}{-}} \FunctionTok{tail}\NormalTok{(data\_prev, }\DecValTok{1}\NormalTok{)}
+\NormalTok{der\_period}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+        (Intercept) bc_fr_m1 diff_bc_fr_m1 ind2020T1 ind2020T2 ind2020T3
+2024 Q1           1     -1.4           0.4         0         0         0
+        ind2020T4 ind2021T3
+2024 Q1         0         0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Transformation en numeric pour éviter des erreurs dues au format ts()}
+\NormalTok{der\_period }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(der\_period)}
+\NormalTok{prev\_reg\_lin }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{coef}\NormalTok{(reg\_lin\_covid) }\SpecialCharTok{*}\NormalTok{ der\_period)}
+\CommentTok{\# Pour les autres méthodes on prend les derniers coefficients estimés}
+\NormalTok{prev\_reg\_morc }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{tail}\NormalTok{(}\FunctionTok{coef}\NormalTok{(reg\_morc\_covid), }\DecValTok{1}\NormalTok{) }\SpecialCharTok{*}\NormalTok{ der\_period)}
+\NormalTok{prev\_reg\_loc }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{tail}\NormalTok{(}\FunctionTok{coef}\NormalTok{(reg\_loc\_covid), }\DecValTok{1}\NormalTok{) }\SpecialCharTok{*}\NormalTok{ der\_period)}
+\NormalTok{prev\_ssm }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{tail}\NormalTok{(}\FunctionTok{coef}\NormalTok{(ssm\_covid), }\DecValTok{1}\NormalTok{) }\SpecialCharTok{*}\NormalTok{ der\_period)}
+\CommentTok{\# Ensemble des prévisions pour 2023T1 :}
+\FunctionTok{round}\NormalTok{(}
+  \FunctionTok{c}\NormalTok{(prev\_reg\_lin, prev\_reg\_morc, prev\_reg\_loc, prev\_ssm), }
+  \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.43 0.30 0.29 0.26
+\end{verbatim}
+
+Les prévisions entre les différentes méthodes sont proches car sur ce
+dernier trimestre le climat des affaires a peu évolué (différence de
+0,4).
+
+\section{Comparaison générale}\label{sec-comp-generales}
+
+Dans cette section nous effectuons une comparaison plus détaillée des
+différentes méthodes utilisées. Pour cela, nous utilisons 28 modèles de
+prévisions des taux de croissance trimestriels de l'industrie
+manufacturière et de ses principales sous-branches (voir annexe
+\ref{sec-an-graph} pour les graphiques de ces variables). Les modèles
+sont estimés entre 1990 et 2019 en utilisant des données issues des
+enquêtes de conjoncture de l'Insee et de la Banque de France, ainsi que
+l'Indice de Production Industrielle des branches étudiées. Toutes les
+séries utilisées sont disponibles sous \faIcon{r-project} dans la base
+de donnée \texttt{tvCoef::manufacturing}. Parmi ces 28 modèles, la
+procédure de Bai et Perron détecte au moins une rupture sur 14 modèles
+et le test de Hansen, utilisé avec un seuil de 5~\%, conclut à la
+présence de coefficients mobiles dans 5 modèles
+(table~\ref{tbl-nb-models}). Cela permet donc également de comparer les
+résultats de la régression locale et de la régression avec coefficients
+stochastiques (modélisation espace-état) lorsque les coefficients ne
+sont pas considérés comme fixes par les tests étudiés. Dans la suite,
+nous considérerons qu'un modèle n'a pas de rupture lorsque le test de
+Bai et Perron n'en détecte aucune : dans ce cas, la régression par
+morceaux donne le même résultat que la régression linéaire.
+
+\begin{longtable}{l|ccc}
+
+\caption{\label{tbl-nb-models}Nombre de modèles étudiés par branche
+d'activité.}
+
+\tabularnewline
+
+\toprule
+\multicolumn{1}{l}{} &  & \multicolumn{2}{c}{Avec rupture} \\ 
+\cmidrule(lr){3-4}
+\multicolumn{1}{l}{} & Total & Bai et Perron & Hansen \\ 
+\midrule\addlinespace[2.5pt]
+Industrie manufacturière (C) & 5 & 1 & 0 \\ 
+Agro–alimentaire (C1) & 5 & 0 & 0 \\ 
+Biens d'équipement (C3) & 6 & 4 & 2 \\ 
+Matériels de transport (C4) & 6 & 4 & 0 \\ 
+Autres industries (C5) & 6 & 5 & 3 \\ 
+\midrule 
+\midrule 
+Total & 28 & 14 & 5 \\ 
+\bottomrule
+
+\end{longtable}
+
+{\footnotesize\raggedright
+
+\textbf{Lecture} : dans la branche des biens d'équipement (C3), 6
+modèles sont étudiés. Dans 4 de ces modèles la procédure de Bai et
+Perron conclut à la présence d'au moins une rupture et le test joint
+d'Hansen conclut que les coefficients sont mobiles dans 2 de ces
+modèles.\\
+\textbf{Sources} : Insee (comptes trimestriels, indices de production
+industrielle et enquêtes de conjoncture téléchargés le 15 mars 2024),
+Banque de France (enquêtes de conjoncture téléchargées le 15 mars 2024),
+calculs de l'auteur.
+
+}
+
+Pour l'estimation des modèles de régression par morceaux, nous limitons
+le nombre maximal de ruptures à 2. La dernière rupture est détectée en
+2011T4, pour deux modèles de la branche des autres industries (C5). Les
+prévisions hors échantillon sont calculées après 2013 afin d'éviter les
+fortes erreurs autour des ruptures. Pour la régression locale et la
+régression avec coefficients stochastiques (modélisation espace-état),
+les modèles sont estimés avec les paramètres par défaut. Leur qualité
+prédictive pourrait même être améliorée avec une optimisation du modèle
+(par exemple en ne fixant pas les coefficients des indicatrices), au
+contraire de la régression linéaire ou par morceaux.
+
+Pour comparer les prévisions, nous utilisons la racine carrée de
+l'erreur quadratique moyenne --- \emph{Root-mean-square error} (RMSE).
+Afin de comparer les résultats entre les différentes branches, nous
+normalisons les RMSE par celles calculées par la régression linéaire,
+c'est ce qui est montré dans la table~\ref{tbl-error-table}. Dans
+l'ensemble ce sont les régressions avec coefficients stochastiques
+(modélisation espace-état) qui donnent les meilleurs résultats. C'est
+d'abord le cas pour les modèles où une rupture a été détectée. En effet
+dans l'échantillon, les performances sont proches entre les différentes
+méthodes (amélioration de la qualité prédictive moyenne d'environ 10 \%
+par rapport à la régression linéaire). Et hors échantillon, les
+résultats sont également améliorés avec la régression avec coefficients
+stochastiques pour la majorité des modèles (en moyenne de 5~\% et au
+maximum de 13~\%) mais sont dégradés pour 3 des 14 modèles (d'au plus
+7~\%). Alors que pour la régression locale, les résultats sont
+identiques ou dégradés dans la majorité des cas (9 modèles sur 14) ; et
+pour la régression par morceaux, même si pour 7 séries les résultats
+sont améliorés, cette amélioration semble moins forte qu'avec la
+régression avec coefficients stochastiques (au plus 9~\%).
+
+C'est ensuite, étonnamment, aussi le cas lorsqu'aucune rupture n'est
+détectée, puisque les régression avec coefficients stochastiques
+permettent également d'améliorer les résultats : dans l'échantillon les
+erreurs de prévision sont réduites d'en moyenne 9~\% et d'au plus 46~\%
+(contre 2 \% en moyenne et d'au plus 15~\% pour la régression locale).
+En temps réel elles sont améliorées pour huit modèles (d'au plus 15~\%)
+et ne sont que légèrement dégradées pour trois autres modèles. Pour la
+régression locale, la performance hors échantillon est toujours
+dégradée. Une partie de l'instabilité en temps réel provient du fait
+qu'aucune optimisation n'est faite dans la spécification des modèles.
+Toutefois ces résultats suggèrent que les tests ici présentés pour
+tester la constance des coefficients ne sont pas toujours pertinents.
+Ainsi, \textcite{abs2006} proposent une procédure de tests fondée sur la
+modélisation espace-état (en testant la significativité de la variance
+des coefficients estimés).
+
+\begin{longtable}{l|cccccc}
+
+\caption{\label{tbl-error-table}Racine carrée de l'erreur quadratique
+moyenne (RMSE) rapportée à celle des modèles régression linéaire.}
+
+\tabularnewline
+
+\toprule
+\multicolumn{1}{l}{} &  &  &  & \multicolumn{3}{c}{Séries dont RMSE} \\ 
+\cmidrule(lr){5-7}
+\multicolumn{1}{l}{} & Moyenne & Min & Max & < 1 & = 1 & > 1 \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{7}{l}{Sans rupture - Dans l'échantillon} \\ 
+\midrule\addlinespace[2.5pt]
+Rég. par morceaux & $1,00$ & $1,00$ & $1,00$ & $0$ & $14$ & $0$ \\ 
+Rég. locale & $0,98$ & $0,85$ & $1,00$ & $5$ & $9$ & $0$ \\ 
+Coef. stochastiques (espace-état) & $0,91$ & $0,54$ & $1,00$ & $10$ & $4$ & $0$ \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{7}{l}{Sans rupture - Hors échantillon} \\ 
+\midrule\addlinespace[2.5pt]
+Rég. par morceaux & $1,00$ & $1,00$ & $1,00$ & $0$ & $14$ & $0$ \\ 
+Rég. locale & $1,03$ & $1,00$ & $1,09$ & $0$ & $4$ & $10$ \\ 
+Coef. stochastiques (espace-état) & $0,98$ & $0,85$ & $1,02$ & $8$ & $3$ & $3$ \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{7}{l}{Avec rupture - Dans l'échantillon} \\ 
+\midrule\addlinespace[2.5pt]
+Rég. par morceaux & $0,89$ & $0,70$ & $0,98$ & $14$ & $0$ & $0$ \\ 
+Rég. locale & $0,90$ & $0,74$ & $0,99$ & $14$ & $0$ & $0$ \\ 
+Coef. stochastiques (espace-état) & $0,88$ & $0,68$ & $0,98$ & $14$ & $0$ & $0$ \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{7}{l}{Avec rupture - Hors échantillon} \\ 
+\midrule\addlinespace[2.5pt]
+Rég. par morceaux & $1,02$ & $0,91$ & $1,11$ & $7$ & $0$ & $7$ \\ 
+Rég. locale & $1,04$ & $0,96$ & $1,19$ & $5$ & $1$ & $8$ \\ 
+Coef. stochastiques (espace-état) & $0,95$ & $0,87$ & $1,07$ & $10$ & $1$ & $3$ \\ 
+\bottomrule
+
+\end{longtable}
+
+{\footnotesize\raggedright
+
+\textbf{Note} : les modèles sans rupture sont ceux où aucune rupture
+n'est détectée par la procédure de Bai et Perron, la régression par
+morceaux coïncide alors avec la régression linéaire.\\
+\textbf{Lecture} : pour les prévisions hors échantillon la régression
+avec coefficients stochastiques (modélisation espace-état) permet, par
+rapport à la régression linéaire, de réduire la RMSE d'en moyenne de
+5~\% pour les modèles avec rupture et de 2~\% pour les modèles sans
+rupture. Huit modèles sans rupture sont améliorés avec la régression
+avec coefficients stochastiques (avec une réduction maximale de la RMSE
+de 15~\%) et les erreurs de prévision sont augmentées pour trois modèles
+(avec une hausse maximale de 2~\%).\\
+\textbf{Sources} : Insee (comptes trimestriels, indices de production
+industrielle et enquêtes de conjoncture téléchargés le 15 mars 2024),
+Banque de France (enquêtes de conjoncture téléchargées le 15 mars 2024),
+calculs de l'auteur.
+
+}
+
+\section{Conclusion}\label{conclusion}
+
+En conclusion, cette étude montre comment, à partir d'un modèle de
+régression linéaire, l'hypothèse de constance des coefficients peut être
+testée et comment relâcher cette hypothèse en implémentant des modèles
+de régression par morceaux, de régression mobile et de régression avec
+coefficients stochastiques (modélisation espace-état). Cette
+implémentation est facilitée grâce au package \texttt{tvCoef}
+(\url{https://github.com/InseeFrLab/tvCoef}) qui accompagne cette étude
+et tous les codes associés sont disponibles sous
+\url{https://github.com/InseeFrLab/DT-tvcoef}.
+
+Lorsque les tests classiques indiquent une non-constance des
+coefficients, ces trois méthodes permettent de réduire les erreurs de
+prévision dans l'échantillon (lorsque les coefficients sont estimés sur
+l'ensemble des données). Toutefois, ces trois méthodes reposent sur des
+hypothèses qui peuvent conduire à de fortes instabilités, notamment si
+elles sont utilisées naïvement lors des exercices de prévision en temps
+réel (hors échantillon).\\
+La régression par morceaux suppose la connaissance de dates de ruptures
+: même si des procédures existent pour leur détection automatique
+\autocite{bai2003computation}, les instabilités autour de celles-ci font
+qu'il est préférable de s'appuyer sur un raisonnement économique. En
+effet, si rupture brutale il y a, elle doit pouvoir s'expliquer et le
+statisticien devrait pouvoir l'expliquer.\\
+Le paramètre principal de la régression locale est la fenêtre, qui
+permet de jouer sur la sensibilité des estimations aux observations
+lointaines. Même s'il existe également des procédures de sélection
+automatique, leurs instabilités conduisent à des erreurs de prévision
+plus élevées que la régression linéaire lors des exercices de prévisions
+en temps réel.\\
+Enfin, dans les régressions avec coefficients stochastiques
+(modélisation espace-état), des instabilités numériques d'optimisation
+peuvent conduire à une volatilité dans l'estimation des variances des
+coefficients (qui déterminent si le coefficient varie ou non dans le
+temps et à quelle vitesse). C'est toutefois la méthode qui donne les
+meilleurs résultats et qui permet dans la majorité des cas de réduire
+les erreurs de prévision par rapport à la régression linéaire, même
+lorsque les tests classiques indiquent une constance des coefficients !
+
+Même si ces méthodes permettent, par rapport à la régression linéaire,
+d'améliorer la qualité des prévisions, elles n'ont pas vocation à
+remplacer les modèles existants mais plutôt à les compléter. En effet,
+même si dans la majorité des cas les méthodes étudiées permettent de
+réduire les erreurs de prévision, cela peut ne pas être le cas sur tous
+les trimestres. D'une part la combinaison de prévisions issues de
+différents modèles permet généralement d'obtenir une prévision finale
+plus précise \autocite[voir par exemple][ pour une revue de
+littérature]{WANG20231518} ; d'autre part, l'interprétation économique
+et les hypothèses sous-jacentes sont différentes entre chaque modèle :
+l'analyse faite de la prévision dépend donc également de la conjoncture
+récente.
+
+Cette étude pourrait être étendue de plusieurs manières. Tout d'abord,
+les méthodes ici présentées pourraient être améliorées. Par exemple,
+pour la régression locale et la régression avec coefficients
+stochastiques, nous supposons que les paramètres évoluent à la même
+vitesse au cours de toute la période d'estimation (fenêtre fixe et
+variance fixée). Toutefois, autour des périodes de crises (comme le
+COVID-19), il pourrait être pertinent d'ajouter plus de flexibilité à
+l'évolution des coefficients (en réduisant la fenêtre ou en effectuant
+un choc sur la variance) : cela ajouterait plus de variabilité dans les
+estimations mais pourrait permettre de mieux prendre en compte les
+changements structurels.\\
+Ensuite, d'autres méthodes d'estimations pourraient être utilisées pour
+modéliser l'évolution dans le temps des coefficients. Par exemple
+\textcite{melard} modélise des variations déterministes des coefficients
+(plutôt que stochastiques comme pour les modèles espace-état).\\
+Enfin, les modèles auraient également pu être comparés aux modèles à
+seuil et modèles à changement de régime markoviens \autocite[pour une
+revue bibliographique de ces modèles, voir par
+exemple][]{PETROPOULOS2022705} qui peuvent se voir comme des cas
+particuliers des méthodes étudiées. En effet, dans les modèles à seuil
+la rupture est brutale et dépend du niveau d'une variable exogène et
+dans les modèles à changement de régime markoviens, les coefficients
+dépendent d'une variable inobservée modélisant la position de l'économie
+dans le cycle : la rupture est donc brutale et dépend d'une variable
+externe (comme dans la régression locale). \emph{In fine}, le choix
+entre toutes ces méthodes se fait surtout sur les hypothèses économiques
+que l'on souhaite modéliser.
+
+\newpage
+\appendix
+
+\section{\texorpdfstring{Installation de
+\texttt{tvCoef}}{Installation de tvCoef}}\label{installation-de-tvcoef}
+
+Pour utiliser \texttt{tvCoef}, il faut il faut avoir la version 17 de
+Java SE (ou une version supérieure).
+
+Pour savoir quelle version de Java est utilisée par R, utiliser le code
+suivant :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(rJava)}
+\FunctionTok{.jinit}\NormalTok{()}
+\FunctionTok{.jcall}\NormalTok{(}\StringTok{"java/lang/System"}\NormalTok{, }\StringTok{"S"}\NormalTok{, }\StringTok{"getProperty"}\NormalTok{, }\StringTok{"java.runtime.version"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Si le résultat n'est pas sous la forme \texttt{"17xxxx"} c'est que vous
+n'avez pas Java 17 !
+
+Si l'on a pas cette version d'installée et que l'on n'a pas les droits
+d'administrateur pour installer Java, une solution est d'installer une
+version portable de Java, par exemple installer une version portable à
+partir des liens suivants :
+
+\begin{itemize}
+\item
+  \href{https://www.azul.com/downloads/\#zulu}{Zulu JDK}
+\item
+  \href{https://adoptopenjdk.net/}{AdoptOpenJDK}
+\item
+  \href{https://aws.amazon.com/corretto/}{Amazon Corretto}
+\end{itemize}
+
+Pour installer une version portable de java, télécharger par exemple le
+fichier \texttt{Windows\ 10\ x64\ Java\ Development\ Kit} disponible sur
+\url{https://jdk.java.net/java-se-ri/17}, le dézipper et le mettre par
+exemple sous \texttt{"D:/Programmes/jdk-17"}.
+
+Pour configurer R avec une version portable de Java, trois solutions~:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Avant \textbf{tout chargement de package nécessitant Java
+  (\texttt{rJava}\ldots)} (si vous avez lancé le code précédent,
+  relancez donc R) :
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Si la version portable est installée sous D:/Programmes/jdk{-}17}
+\FunctionTok{Sys.setenv}\NormalTok{(}\AttributeTok{JAVA\_HOME=}\StringTok{\textquotesingle{}D:/Programmes/jdk{-}17\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Pour éviter de faire cette manipulation à chaque fois que l'on relance
+  R, deux solutions~:
+\end{enumerate}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\item
+  Modifier le \texttt{JAVA\_HOME} dans les variables d'environnement de
+  Windows (voir
+  \url{https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html}).
+\item
+  Modifier le \texttt{.Renviron} : depuis R lancer le code
+  \VERB|\FunctionTok{file.edit}\NormalTok{(}\StringTok{"\textasciitilde{}/.Renviron"}\NormalTok{)}|,
+  ajouter dans le fichier le chemin vers la version portable de Java
+  comme précédemment
+  (\texttt{JAVA\_HOME=\textquotesingle{}D:/Programmes/jdk-17\textquotesingle{}}),
+  sauvegarder et relancer R.
+\end{enumerate}
+
+Il reste maintenant à installer les packages :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Nécessaire pour installer rjd3sts}
+\NormalTok{remotes}\SpecialCharTok{::}\FunctionTok{install\_github}\NormalTok{(}\StringTok{"rjdverse/rjd3toolkit"}\NormalTok{)}
+\CommentTok{\# Pour installer rjd3sts (modèles espace{-}état)}
+\NormalTok{remotes}\SpecialCharTok{::}\FunctionTok{install\_github}\NormalTok{(}\StringTok{"rjdverse/rjd3sts"}\NormalTok{)}
+\NormalTok{remotes}\SpecialCharTok{::}\FunctionTok{install\_github}\NormalTok{(}\StringTok{"InseeFrLab/tvCoef"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Si vous utilisez un ordinateur professionnel, si c'est nécessaire,
+pensez à configurer le proxy pour que ces commandes puissent fonctionner
+(voir
+\url{https://www.book.utilitr.org/01_r_insee/fiche-personnaliser-r\#le-fichier-.renviron}).
+Pour cela vous pouvez utiliser \texttt{curl::ie\_get\_proxy\_for\_url()}
+pour récupérer l'adresse du proxy et ajouter deux variable
+\texttt{http\_proxy} et \texttt{https\_proxy} dans les variables
+d'environnement (comme précédemment).
+
+\newpage
+
+\section{Annexe graphiques}\label{sec-an-graph}
+
+\begin{figure}
+
+\caption{\label{fig-graph-pib}Taux de croissance trimestriel du PIB
+français (variable \texttt{tvCoef::gdp{[},\ "growth\_gdp"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-pib-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\begin{figure}
+
+\caption{\label{fig-graph-climatfrm1}Climat des affaires France en
+niveau au premier mois de chaque trimestre (variable
+\texttt{tvCoef::gdp{[},\ "bc\_fr\_m1"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-climatfr-m1-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\begin{figure}
+
+\caption{\label{fig-graph-diff-climatfrm1}Différenciation trimestrielle
+du climat des affaires France au premier mois de chaque trimestre
+(variable \texttt{tvCoef::gdp{[},\ "diff\_bc\_fr\_m1"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-diff-climatfr-m1-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\begin{figure}
+
+\caption{\label{fig-graph-manuf}Taux de croissance trimestriel de la
+production manufacturière (variable
+\texttt{tvCoef::manufacturing{[},\ "manuf\_prod"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-manuf-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\begin{figure}
+
+\caption{\label{fig-graph-prodc1}Taux de croissance trimestriel de la
+production dans la branche agro--alimentaire (C1) (variable
+\texttt{tvCoef::manufacturing{[},\ "prod\_c1"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-prod-c1-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\begin{figure}
+
+\caption{\label{fig-graph-prodc3}Taux de croissance trimestriel de la
+production dans la branche biens d'équipement (C3) (variable
+\texttt{tvCoef::manufacturing{[},\ "prod\_c3"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-prod-c3-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\begin{figure}
+
+\caption{\label{fig-graph-prodc4}Taux de croissance trimestriel de la
+production dans la branche matériels de transport (C4) (variable
+\texttt{tvCoef::manufacturing{[},\ "prod\_c4"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-prod-c4-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\begin{figure}
+
+\caption{\label{fig-graph-prodc5}Taux de croissance trimestriel de la
+production dans la branche autres industries (C5) (variable
+\texttt{tvCoef::manufacturing{[},\ "prod\_c5"{]}}).}
+
+\centering{
+
+\includegraphics{DT-tvcoef_files/figure-pdf/graph-prod-c5-1.pdf}
+
+\footnotesize\raggedright
+
+\textbf{Lecture} : le premier graphique représente la série observée
+jusqu'au 2023T4 et le second graphique correspond à un zoom sur la
+période pre-covid (avant 2020).\\
+\textbf{Source} : Insee (données téléchargées le 15 mars 2024).
+
+}
+
+\end{figure}%
+
+\clearpage
+
+\section*{Bibliographie}\label{bibliographie}
+\addcontentsline{toc}{section}{Bibliographie}
+
+\printbibliography[heading=none]
+
+
+
+
+\end{document}
