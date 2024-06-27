@@ -13,7 +13,7 @@ coefficients variant dans le temps pour la prévision conjoncturelle*,
 Document de travail Insee, G2024/16.
 
 Il est disponible à l’adresse :
-<https://www.insee.fr/fr/statistiques/xxx>.
+<https://www.insee.fr/fr/statistiques/8210914>.
 
 Pour citer cet article :
 
